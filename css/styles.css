@@ -641,6 +641,7 @@ button {
 
 .waveform span {
   width: 3px;
+  height: 100%;
   background: var(--accent-cyan);
   border-radius: 2px;
   animation: eq-bounce 700ms ease-in-out infinite alternate;
