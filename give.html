@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Give | TCH Global</title>
+<meta name="description" content="Support the mission of TCH Global through your generosity.">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container">
+    <a href="index.html" class="brand">
+      TCH Global
+      <span class="tagline">A Church for Every Nation</span>
+    </a>
+    <button class="nav-toggle" aria-label="Toggle navigation">&#9776;</button>
+    <nav class="main-nav">
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="sermons.html">Sermons</a></li>
+        <li><a href="events.html">Events</a></li>
+        <li><a href="contact.html">Contact</a></li>
+        <li><a href="give.html" class="btn-plan">Give</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<section class="page-header">
+  <div class="container">
+    <h1>Give</h1>
+    <p>Your generosity fuels our mission at home and around the world.</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container grid grid-2">
+    <div>
+      <h2>Why We Give</h2>
+      <p>Giving is an act of worship. Every gift helps us reach our community, support missions around the world, and build a place where people can encounter God.</p>
+      <p>You can give a one-time gift or set up recurring giving below. All gifts are securely processed and tax-deductible.</p>
+
+      <form action="#" method="post">
+        <div>
+          <label>Choose an Amount</label>
+          <div class="give-options">
+            <button type="button" data-amount="25">$25</button>
+            <button type="button" data-amount="50">$50</button>
+            <button type="button" data-amount="100">$100</button>
+            <button type="button" data-amount="250">$250</button>
+          </div>
+        </div>
+        <div>
+          <label for="amount">Custom Amount</label>
+          <input type="number" id="amount" name="amount" placeholder="Enter amount" min="1">
+        </div>
+        <div>
+          <label for="fund">Fund</label>
+          <select id="fund" name="fund">
+            <option>General Fund</option>
+            <option>Missions</option>
+            <option>Building Fund</option>
+            <option>Outreach</option>
+          </select>
+        </div>
+        <div>
+          <label for="giver-name">Full Name</label>
+          <input type="text" id="giver-name" name="name" placeholder="Your name">
+        </div>
+        <div>
+          <label for="giver-email">Email</label>
+          <input type="email" id="giver-email" name="email" placeholder="you@example.com">
+        </div>
+        <button type="submit" class="btn btn-primary">Give Now</button>
+      </form>
+    </div>
+    <div>
+      <img src="images/give-1.jpg" alt="Hands giving">
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <h4>TCH Global</h4>
+        <p>A church for every nation, gathering people to know Christ and make Him known.</p>
+      </div>
+      <div>
+        <h4>Explore</h4>
+        <ul>
+          <li><a href="about.html">About Us</a></li>
+          <li><a href="sermons.html">Sermons</a></li>
+          <li><a href="events.html">Events</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Connect</h4>
+        <ul>
+          <li><a href="contact.html">Contact</a></li>
+          <li><a href="give.html">Give</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Service Times</h4>
+        <ul>
+          <li>Sunday 9:00 &amp; 11:30 AM</li>
+          <li>Wednesday 7:00 PM</li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      &copy; <span id="year"></span> TCH Global. All rights reserved.
+    </div>
+  </div>
+</footer>
+
+<script src="js/main.js"></script>
+</body>
+</html>
