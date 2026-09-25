@@ -1,19 +1,18 @@
-  // Theme toggle
+  // Theme toggle. Light is the default for every visitor regardless of OS
+  // preference; dark only applies once someone explicitly picks it (then
+  // it's remembered for their next visit).
   (function () {
     var root = document.documentElement;
     var toggle = document.getElementById('theme-toggle');
     var stored = null;
     try { stored = localStorage.getItem('tch-theme'); } catch (e) {}
-    if (stored === 'dark' || stored === 'light') {
-      root.setAttribute('data-theme', stored);
-      toggle.dataset.active = stored;
-    }
+    var initial = stored === 'dark' ? 'dark' : 'light';
+    root.setAttribute('data-theme', initial);
+    toggle.dataset.active = initial;
+
     function currentIsDark() {
-      var explicit = root.getAttribute('data-theme');
-      if (explicit) return explicit === 'dark';
-      return window.matchMedia('(prefers-color-scheme: dark)').matches;
+      return root.getAttribute('data-theme') === 'dark';
     }
-    toggle.dataset.active = currentIsDark() ? 'dark' : 'light';
     toggle.addEventListener('click', function () {
       var next = currentIsDark() ? 'light' : 'dark';
       root.setAttribute('data-theme', next);
@@ -43,6 +42,7 @@
   wireForm('prayer-form', 'prayer-done');
   wireForm('join-form', 'join-done');
   wireForm('give-form', 'give-done');
+  wireForm('volunteer-form', 'volunteer-done');
 
   var newsletterForm = document.getElementById('newsletter-form');
   if (newsletterForm) {
@@ -106,4 +106,17 @@
     window.addEventListener('scroll', requestFrame, { passive: true });
     window.addEventListener('resize', requestFrame);
     updateFrame();
+  })();
+
+  // Live map — OpenStreetMap via Leaflet, no API key required.
+  (function () {
+    var el = document.getElementById('church-map');
+    if (!el || typeof L === 'undefined') return;
+    var lat = 6.3533, lng = 5.6702;
+    var map = L.map(el, { scrollWheelZoom: false }).setView([lat, lng], 15);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors',
+      maxZoom: 19,
+    }).addTo(map);
+    L.marker([lat, lng]).addTo(map).bindPopup('TCH Global Campus');
   })();
