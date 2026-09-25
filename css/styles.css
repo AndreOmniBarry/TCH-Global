@@ -141,18 +141,29 @@
   .main-nav a { font-size: .8rem; font-weight: 600; color: var(--text-body); white-space: nowrap; }
   .main-nav a:hover { color: var(--accent-cyan); }
 
-  .hero-stage { position: relative; overflow: hidden; border-radius: 0 0 28px 28px; min-height: 480px;
+  .hero-stage { position: relative; overflow: hidden; border-radius: 0 0 28px 28px; min-height: 620px;
     perspective: 1200px; perspective-origin: 50% 30%;
-    background: radial-gradient(circle at 30% 20%, color-mix(in srgb, var(--accent-violet) 35%, transparent), transparent 55%),
-                radial-gradient(circle at 70% 60%, color-mix(in srgb, var(--accent-cyan) 25%, transparent), transparent 55%),
-                linear-gradient(180deg, var(--bg-root-alt) 0%, var(--surface-low) 60%, var(--bg-root) 100%);
+    background: linear-gradient(180deg, var(--bg-root-alt) 0%, var(--surface-low) 60%, var(--bg-root) 100%);
     transition: background-color .4s ease; }
-  .hero-stage::after { content:''; position:absolute; inset:0; z-index:1; pointer-events:none; background: linear-gradient(180deg, color-mix(in srgb, var(--bg-root) 10%, transparent) 0%, color-mix(in srgb, var(--bg-root) 95%, transparent) 92%); }
-  .hero-giant-text { position:absolute; left:50%; top:44%; transform:translate(-50%,-50%); z-index:0; white-space:nowrap; font-family:var(--font-display); font-weight:800; font-size:clamp(6rem,34vw,12rem); letter-spacing:-.04em; text-transform:uppercase; color:transparent; -webkit-text-stroke:1px var(--border-glass-strong); pointer-events:none; }
-  .hero-content { position: relative; z-index: 2; padding-block: 40px 40px; }
-  .hero-title { font-size: clamp(2.6rem, 13vw, 4.2rem); line-height: .95; letter-spacing: -.03em; text-transform: uppercase; margin-bottom: 6px; background: linear-gradient(135deg, var(--text-high) 0%, var(--accent-lavender) 60%, var(--accent-cyan) 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
-  .hero-subtitle { font-family: var(--font-mono); font-size: .72rem; letter-spacing: .1em; text-transform: uppercase; color: var(--text-faint); margin-bottom: 22px; }
-  .hero-lead { font-size: 1rem; max-width: 360px; margin-bottom: 28px; color: var(--text-body); }
+  .hero-bg-photo {
+    position: absolute; inset: -8% -4%; z-index: 0;
+    background-image: url('../images/hero-worship.webp');
+    background-size: cover; background-position: center 30%;
+    will-change: transform;
+  }
+  .hero-stage::before {
+    content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+    background:
+      radial-gradient(circle at 30% 15%, color-mix(in srgb, var(--accent-violet) 45%, transparent), transparent 55%),
+      radial-gradient(circle at 75% 55%, color-mix(in srgb, var(--accent-cyan) 30%, transparent), transparent 55%);
+    mix-blend-mode: color;
+  }
+  .hero-stage::after { content:''; position:absolute; inset:0; z-index:1; pointer-events:none; background: linear-gradient(180deg, color-mix(in srgb, var(--bg-root) 46%, transparent) 0%, color-mix(in srgb, var(--bg-root) 60%, transparent) 55%, color-mix(in srgb, var(--bg-root) 96%, transparent) 96%); }
+  .hero-giant-text { position:absolute; left:50%; top:40%; transform:translate(-50%,-50%); z-index:1; white-space:nowrap; font-family:var(--font-display); font-weight:800; font-size:clamp(6rem,34vw,12rem); letter-spacing:-.04em; text-transform:uppercase; color:transparent; -webkit-text-stroke:1px color-mix(in srgb, var(--text-high) 16%, transparent); pointer-events:none; }
+  .hero-content { position: relative; z-index: 2; padding-block: 64px 40px; }
+  .hero-title { font-size: clamp(2.6rem, 13vw, 4.2rem); line-height: .95; letter-spacing: -.03em; text-transform: uppercase; margin-bottom: 6px; background: linear-gradient(135deg, var(--text-high) 0%, var(--accent-lavender) 60%, var(--accent-cyan) 100%); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 2px 10px rgba(0,0,0,.35)); }
+  .hero-subtitle { font-family: var(--font-mono); font-size: .72rem; letter-spacing: .1em; text-transform: uppercase; color: var(--text-faint); margin-bottom: 22px; text-shadow: 0 1px 6px rgba(0,0,0,.25); }
+  .hero-lead { font-size: 1rem; max-width: 360px; margin-bottom: 28px; color: var(--text-body); text-shadow: 0 1px 8px rgba(0,0,0,.3); }
   .hero-actions { display: flex; flex-direction: column; gap: 12px; margin-bottom: 10px; }
   .stream-row { display: flex; gap: 10px; }
   .stream-row a { flex: 1; }
