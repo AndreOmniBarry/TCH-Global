@@ -196,7 +196,7 @@
   .section-header p { color: var(--text-body); font-size: .95rem; max-width: 420px; }
 
   .photo-frame { position: relative; border-radius: var(--radius-card); overflow: hidden; border: 1px solid var(--border-glass); max-width: 640px; }
-  .photo-frame img { width: 100%; aspect-ratio: 4/3; object-fit: cover; object-position: center 25%; }
+  .photo-frame img { width: 100%; aspect-ratio: 5/4; object-fit: cover; object-position: center top; }
   .photo-tag { position: absolute; left: 14px; bottom: 14px; background: color-mix(in srgb, var(--bg-root) 70%, transparent); backdrop-filter: blur(8px); border: 1px solid var(--border-glass); border-radius: var(--radius-pill); padding: 6px 12px; font-family: var(--font-mono); font-size: 10px; letter-spacing: .06em; text-transform: uppercase; color: var(--text-high); }
 
   .latest-message { position: relative; display: block; margin-top: 20px; max-width: 640px; border-radius: var(--radius-card); overflow: hidden; border: 1px solid var(--border-glass); }
