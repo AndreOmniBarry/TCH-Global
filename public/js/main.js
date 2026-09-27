@@ -29,14 +29,66 @@
     });
   }
 
+  // Volunteer / Prayer / Join / Give forms all POST to /api/forms and
+  // are stored in Vercel KV (see lib/forms.ts) — previously these just
+  // hid the form and showed a fake "thank you" with nothing saved
+  // anywhere. Field values are read from each input/select/textarea's
+  // id, stripped of its "<type>-" prefix (e.g. "volunteer-name" -> "name").
   function wireForm(formId, doneId) {
     var form = document.getElementById(formId);
     var done = document.getElementById(doneId);
     if (!form) return;
+    var type = formId.replace(/-form$/, '');
+    var submitBtn = form.querySelector('button[type="submit"]');
+    var originalLabel = submitBtn ? submitBtn.textContent : '';
+
     form.addEventListener('submit', function (e) {
       e.preventDefault();
-      form.hidden = true;
-      if (done) done.hidden = false;
+
+      var fields = {};
+      Array.prototype.forEach.call(form.querySelectorAll('input, select, textarea'), function (el) {
+        if (!el.id || el.type === 'submit' || el.name === 'website') return;
+        var prefix = type + '-';
+        var key = el.id.indexOf(prefix) === 0 ? el.id.slice(prefix.length) : el.id;
+        fields[key] = el.value;
+      });
+
+      var honeypot = form.querySelector('input[name="website"]');
+
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Sending…';
+      }
+
+      fetch('/api/forms', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: type, fields: fields, website: honeypot ? honeypot.value : '' }),
+      })
+        .then(function (res) {
+          return res.json().catch(function () { return {}; }).then(function (data) {
+            return { ok: res.ok, data: data };
+          });
+        })
+        .then(function (result) {
+          if (result.ok) {
+            form.hidden = true;
+            if (done) done.hidden = false;
+          } else {
+            if (submitBtn) {
+              submitBtn.disabled = false;
+              submitBtn.textContent = originalLabel;
+            }
+            window.alert(result.data.error || 'Something went wrong. Please try again.');
+          }
+        })
+        .catch(function () {
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = originalLabel;
+          }
+          window.alert('Network error — please check your connection and try again.');
+        });
     });
   }
   wireForm('prayer-form', 'prayer-done');

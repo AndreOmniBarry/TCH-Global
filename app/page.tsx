@@ -221,6 +221,7 @@ const HOME_HTML_AFTER_LIBRARY = `<section class="section pop-stage" id="pastor-s
     </div>
     <div class="join-card pop">
       <form id="volunteer-form">
+        <input type="text" name="website" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;" aria-hidden="true">
         <label for="volunteer-name">Full Name</label>
         <input type="text" id="volunteer-name" placeholder="Your name" required>
         <label for="volunteer-email">Email</label>
@@ -249,7 +250,8 @@ const HOME_HTML_AFTER_LIBRARY = `<section class="section pop-stage" id="pastor-s
     <div class="prayer-card pop">
       <p style="font-size:.85rem;color:var(--text-muted);margin-bottom:16px;">Our pastoral team reads and prays over every request submitted here.</p>
       <form id="prayer-form">
-        <textarea rows="4" placeholder="Share your intention, burden, or praise..." required></textarea>
+        <input type="text" name="website" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;" aria-hidden="true">
+        <textarea id="prayer-message" rows="4" placeholder="Share your intention, burden, or praise..." required></textarea>
         <button type="submit" class="btn btn-primary" style="width:100%;">Send Prayer Request</button>
       </form>
       <div class="give-form done" id="prayer-done" hidden>
@@ -272,6 +274,7 @@ const HOME_HTML_AFTER_LIBRARY = `<section class="section pop-stage" id="pastor-s
     <div class="join-card pop">
       <p style="font-size:.88rem;color:var(--text-body);margin-bottom:16px;">Tell us a bit about yourself and someone from our membership team will follow up about next steps, including baptism and membership class.</p>
       <form id="join-form">
+        <input type="text" name="website" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;" aria-hidden="true">
         <label for="join-name">Full Name</label>
         <input type="text" id="join-name" placeholder="Your name" required>
         <label for="join-email">Email</label>
@@ -294,6 +297,7 @@ const HOME_HTML_AFTER_LIBRARY = `<section class="section pop-stage" id="pastor-s
     </div>
     <div class="give-form pop" id="give-form-wrap">
       <form id="give-form">
+        <input type="text" name="website" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;" aria-hidden="true">
         <label for="give-name">Full Name</label>
         <input type="text" id="give-name" placeholder="Your name" required>
         <label for="give-email">Email</label>
