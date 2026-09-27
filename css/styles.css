@@ -229,13 +229,13 @@
   .latest-message:hover img { transform: scale(1.04); }
   .latest-message::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,.05) 0%, rgba(0,0,0,.35) 55%, rgba(0,0,0,.92) 100%); }
   .latest-message-play {
-    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-    width: 68px; height: 68px; border-radius: 50%;
+    position: absolute; top: 22px; right: 22px;
+    width: 56px; height: 56px; border-radius: 50%;
     background: linear-gradient(135deg, var(--accent-cyan), var(--accent-lavender));
     display: flex; align-items: center; justify-content: center; color: var(--bg-root-alt);
     z-index: 2; box-shadow: var(--shadow-cta); transition: transform .2s ease;
   }
-  .latest-message:hover .latest-message-play { transform: translate(-50%, -50%) scale(1.08); }
+  .latest-message:hover .latest-message-play { transform: scale(1.08); }
   .latest-message-body { position: absolute; left: 20px; right: 20px; bottom: 18px; z-index: 2; }
   .latest-message-body h3 { color: #fff; font-size: 1.3rem; text-transform: uppercase; margin: 6px 0 8px; }
   .latest-message-cta { font-family: var(--font-mono); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--accent-cyan); }
