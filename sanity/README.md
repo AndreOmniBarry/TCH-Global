@@ -5,51 +5,56 @@ The blog works right now with zero setup — every post is seeded in
 external account. This document is for when you're ready to let a
 non-technical handler actually post, edit, and delete content.
 
-## 1. Create the Sanity project (5 minutes, needs your own login)
+The Studio (the actual editor — rich text, images, publish button) is
+**embedded directly in this site** at `/studio`, powered by
+`sanity.config.ts` and `app/studio/[[...tool]]/page.tsx`. There's no
+separate `sanity.studio` site to manage — whoever logs in at
+`tchglobal.org/studio` with an invited Sanity account gets the full
+editor, on your own domain.
 
-This step needs your own Sanity account — I can't create it for you.
+## 1. Set the Project ID
 
-```bash
-npm install -g sanity
-cd sanity
-sanity init
-```
-
-- Choose "Create new project"
-- Dataset: `production`
-- When it asks for a schema template, choose "Clean project" — the
-  schema is already written for you in `sanity/schema.ts`. Copy its
-  contents into the generated `schemaTypes/index.ts` (or wherever the
-  init wizard puts it).
-
-This creates a `sanity.config.ts` and a hosted Studio — a web app at
-`https://your-project.sanity.studio` where the handler logs in and
-gets a real editor: rich text, images, drag-and-drop, publish button.
-No code required for them, ever.
-
-## 2. Connect it to the Next.js site
-
-From the Sanity dashboard (sanity.io/manage), copy your **Project ID**.
-Add these to a `.env.local` file at the repo root (never commit this
-file — it's already gitignored):
+From the Sanity dashboard (sanity.io/manage), your **Project ID** is
+already `kqruklk1` (dataset `production`). Add these two variables in
+**Vercel → Project Settings → Environment Variables** (Preview and
+Production both):
 
 ```
-NEXT_PUBLIC_SANITY_PROJECT_ID=your-project-id
+NEXT_PUBLIC_SANITY_PROJECT_ID=kqruklk1
 NEXT_PUBLIC_SANITY_DATASET=production
 ```
 
-Add the same two variables in **Vercel → Project Settings →
-Environment Variables** so the live site picks them up too.
+For local development, put the same two lines in a `.env.local` file
+at the repo root (already gitignored, never commit it).
 
 The moment `NEXT_PUBLIC_SANITY_PROJECT_ID` is set, `lib/sanity.ts`
 automatically starts querying real Sanity content instead of the
-seeded fallback posts — no other code changes needed.
+seeded fallback posts, and `/studio` becomes a working editor — no
+other code changes needed.
+
+## 2. Allow this site's domain in Sanity's CORS settings
+
+Sanity blocks API requests from unrecognized origins by default. Go to
+sanity.io/manage → your project → **API** → **CORS origins** → **Add
+CORS origin**, and add each domain that will load the site or the
+Studio:
+
+- Your production domain (e.g. `https://tchglobal.org`)
+- The Vercel preview domain (e.g.
+  `https://tch-global-git-nextjs-migration-andreomnibarrys-projects.vercel.app`)
+- `http://localhost:3000` (for local development)
+
+Check **"Allow credentials"** for each — the Studio's login needs it.
+Without this step, `/studio` will load but fail to save.
 
 ## 3. Who can edit
 
 Invite the handler's email in sanity.io/manage → Members. They get
-their own login to the Studio, completely separate from your GitHub/
-Vercel access — they never need either of those.
+their own login, completely separate from your GitHub/Vercel access —
+they sign in at `tchglobal.org/studio` directly and never need either
+of those. Treat a Studio invite the same as handing someone publish
+access to the live site — only invite people you trust to post
+directly, since there's no additional review step before it's live.
 
 ## What ships with the schema already
 
