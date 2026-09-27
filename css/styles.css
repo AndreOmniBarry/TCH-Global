@@ -275,21 +275,6 @@
   .resource-card h4 { font-size: .82rem; line-height: 1.3; text-transform: none; margin-bottom: 8px; }
   .resource-card .resource-cta { font-family: var(--font-mono); font-size: 9.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--accent-cyan); }
 
-  .series-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
-  .series-card { position: relative; border-radius: var(--radius-control); overflow: hidden; border: 1px solid var(--border-glass); aspect-ratio: 4/5; transition: transform .2s ease, border-color .2s ease; }
-  .series-card:hover { transform: translateY(-3px); border-color: var(--border-cyan-glow); }
-  .series-card img { width: 100%; height: 100%; object-fit: cover; object-position: center 15%; transform: scale(1.15); }
-  .series-card::before { content: ''; position: absolute; inset: 0; z-index: 1; mix-blend-mode: color; }
-  .series-card:nth-child(1)::before { background: var(--accent-cyan); opacity: .22; }
-  .series-card:nth-child(2)::before { background: var(--accent-violet); opacity: .22; }
-  .series-card:nth-child(3)::before { background: var(--accent-lavender); opacity: .2; }
-  .series-card:nth-child(4)::before { background: var(--accent-cyan); opacity: .3; }
-  .series-card::after { content: ''; position: absolute; inset: 0; z-index: 1; background: linear-gradient(180deg, transparent 35%, rgba(0,0,0,.88) 100%); }
-  .series-card .play-chip { position: absolute; top: 10px; right: 10px; width: 30px; height: 30px; border-radius: 50%; background: rgba(0,0,0,.55); border: 1px solid rgba(255,255,255,.35); display: flex; align-items: center; justify-content: center; font-size: 10px; color: #fff; z-index: 2; backdrop-filter: blur(3px); }
-  .series-card .series-label { position: absolute; left: 10px; bottom: 10px; right: 10px; z-index: 2; }
-  .series-card .series-label .kind { font-family: var(--font-mono); font-size: 8px; letter-spacing: .08em; text-transform: uppercase; color: #7cf4ff; }
-  .series-card .series-label h4 { font-size: .78rem; color: #fff; text-transform: none; line-height: 1.25; }
-
   .pastor-card { background: var(--surface-low); border: 1px solid var(--border-glass); border-radius: var(--radius-card); padding: 26px 22px; text-align: center; box-shadow: var(--shadow-card); transition: background-color .4s ease, border-color .4s ease; max-width: 560px; margin: 0 auto; }
   .pastor-portrait { width: 128px; height: 128px; border-radius: 50%; margin: 0 auto 16px; padding: 3px; background: linear-gradient(135deg, var(--accent-cyan), var(--accent-violet)); }
   .pastor-portrait img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
@@ -356,7 +341,6 @@
 
   @media (min-width: 700px) {
     .container { max-width: 720px; }
-    .series-grid { grid-template-columns: repeat(4, 1fr); }
     .blog-grid { grid-template-columns: repeat(2, 1fr); }
     .testimony-grid { grid-template-columns: repeat(3, 1fr); }
   }
