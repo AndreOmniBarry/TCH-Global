@@ -75,17 +75,54 @@ export async function GET() {
         </div>
 
         {christmas && (
-          // A small hand-drawn ornament bauble (plain shapes, no emoji
-          // font / external fetch needed — reliable on every request).
-          <div style={{ position: 'absolute', top: '-4px', left: '-2px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <div style={{ width: '3px', height: '5px', background: '#e8c15a', borderRadius: '1px', display: 'flex' }} />
+          // A small Santa hat silhouette (trim + dome + pom-pom), plain
+          // shapes only — no emoji font / external fetch, and a much
+          // clearer silhouette than a single dot at real favicon sizes
+          // (16-32px), where fine detail disappears.
+          <div style={{ position: 'absolute', top: '-9px', left: '-6px', width: '26px', height: '24px', display: 'flex' }}>
+            {/* pom-pom */}
             <div
               style={{
-                width: '14px',
-                height: '14px',
+                position: 'absolute',
+                top: '0px',
+                right: '2px',
+                width: '8px',
+                height: '8px',
                 borderRadius: '50%',
-                background: '#2e7d46',
-                border: '2px solid #0b0f14',
+                background: '#ffffff',
+                border: '1.5px solid #0b0f14',
+                display: 'flex',
+              }}
+            />
+            {/* red dome */}
+            <div
+              style={{
+                position: 'absolute',
+                bottom: '5px',
+                left: '2px',
+                width: '18px',
+                height: '13px',
+                background: '#d13b3b',
+                borderTopLeftRadius: '10px',
+                borderTopRightRadius: '10px',
+                borderBottomLeftRadius: '2px',
+                borderBottomRightRadius: '2px',
+                border: '1.5px solid #0b0f14',
+                boxSizing: 'border-box',
+                display: 'flex',
+              }}
+            />
+            {/* white fur trim */}
+            <div
+              style={{
+                position: 'absolute',
+                bottom: '0px',
+                left: '0px',
+                width: '22px',
+                height: '7px',
+                borderRadius: '4px',
+                background: '#ffffff',
+                border: '1.5px solid #0b0f14',
                 boxSizing: 'border-box',
                 display: 'flex',
               }}
