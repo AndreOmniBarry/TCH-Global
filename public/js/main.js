@@ -112,7 +112,8 @@
   (function () {
     var el = document.getElementById('church-map');
     if (!el || typeof L === 'undefined') return;
-    var lat = 6.3533, lng = 5.6702;
+    // 6°21'13.0"N 5°41'51.0"E — Grace Dome Church, Benin City
+    var lat = 6.353611, lng = 5.6975;
     var map = L.map(el, { scrollWheelZoom: false }).setView([lat, lng], 15);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; OpenStreetMap contributors',

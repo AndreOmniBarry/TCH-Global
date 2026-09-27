@@ -190,7 +190,7 @@ const HOME_HTML_AFTER_LIBRARY = `<section class="section pop-stage" id="pastor-s
       </div>
       <strong style="color:var(--text-high);font-size:.95rem;">The Comforters House Global &mdash; Benin</strong>
       <p style="font-size:.82rem;margin:4px 0 8px;">45 Edosomwan Street, Ikpoba Hill, Benin City</p>
-      <a href="https://www.google.com/maps?q=6.3533,5.6702" target="_blank" rel="noopener" class="btn btn-ghost btn-sm" style="width:100%;">Get Directions</a>
+      <a href="https://www.google.com/maps?q=6.353611,5.6975" target="_blank" rel="noopener" class="btn btn-ghost btn-sm" style="width:100%;">Get Directions</a>
     </div>
 
     <div class="section-header pop" style="margin-top:40px;"><span class="eyebrow">Calendar</span><h2>Upcoming Events</h2></div>
