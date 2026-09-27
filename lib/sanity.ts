@@ -1,0 +1,85 @@
+import { createClient, type SanityClient } from '@sanity/client';
+import imageUrlBuilder from '@sanity/image-url';
+
+// These env vars come from your Sanity project once created (see
+// /sanity/README.md). Until they're set, sanityClient is null and every
+// page falls back to the seeded local posts in lib/fallback-posts.ts —
+// the site works out of the box, no Sanity account required to build.
+const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID;
+const dataset = process.env.NEXT_PUBLIC_SANITY_DATASET || 'production';
+
+export const sanityClient: SanityClient | null = projectId
+  ? createClient({
+      projectId,
+      dataset,
+      apiVersion: '2024-01-01',
+      useCdn: true,
+    })
+  : null;
+
+export function urlFor(source: any) {
+  if (!sanityClient) return null;
+  return imageUrlBuilder(sanityClient).image(source);
+}
+
+export type Post = {
+  _id: string;
+  title: string;
+  slug: string;
+  excerpt: string;
+  category: string;
+  publishedAt: string;
+  readTime: string;
+  coverImage: string;
+  authorName: string;
+  authorImage: string;
+  body: any; // Portable Text array when sourced from Sanity, or HTML string for fallback posts
+};
+
+const POSTS_QUERY = `*[_type == "post"] | order(publishedAt desc) {
+  _id,
+  title,
+  "slug": slug.current,
+  excerpt,
+  category,
+  publishedAt,
+  readTime,
+  "coverImage": coverImage.asset->url,
+  "authorName": author->name,
+  "authorImage": author->image.asset->url,
+  body
+}`;
+
+const POST_BY_SLUG_QUERY = `*[_type == "post" && slug.current == $slug][0] {
+  _id,
+  title,
+  "slug": slug.current,
+  excerpt,
+  category,
+  publishedAt,
+  readTime,
+  "coverImage": coverImage.asset->url,
+  "authorName": author->name,
+  "authorImage": author->image.asset->url,
+  body
+}`;
+
+export async function getAllPosts(): Promise<Post[] | null> {
+  if (!sanityClient) return null;
+  try {
+    return await sanityClient.fetch(POSTS_QUERY);
+  } catch (err) {
+    console.error('Sanity fetch failed, falling back to seeded posts:', err);
+    return null;
+  }
+}
+
+export async function getPostBySlug(slug: string): Promise<Post | null> {
+  if (!sanityClient) return null;
+  try {
+    return await sanityClient.fetch(POST_BY_SLUG_QUERY, { slug });
+  } catch (err) {
+    console.error('Sanity fetch failed, falling back to seeded posts:', err);
+    return null;
+  }
+}

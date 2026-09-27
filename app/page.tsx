@@ -1,23 +1,23 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TCH Global | The Comforter's House Global</title>
-<meta name="description" content="TCH Global (The Comforter's House Global) is a church for every nation, led by Pastor Uzor Echiejile.">
-<link rel="icon" href="favicon.jpg" type="image/jpeg">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Plus+Jakarta+Sans:wght@400;500;600&family=JetBrains+Mono:wght@600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/styles.css">
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
-</head>
-<body>
+"use client";
+
+// This page bridges the original hand-authored static homepage into
+// Next.js. The markup below is an exact, mechanically-extracted copy of
+// the former root index.html body content (paths rewritten to Next's
+// root-relative routing) so the visual design doesn't regress during
+// migration. The interactive behavior (theme toggle, nav, scroll
+// parallax, forms, map) is unchanged: it's still driven by
+// /public/js/main.js, loaded globally in app/layout.tsx.
+//
+// This is a deliberate bridge, not the end state — as sections get
+// rebuilt with real data (events, announcements, testimonies) they
+// should move to proper React components one at a time.
+
+const HOME_HTML = `
 
 <header class="site-header" id="top">
   <div class="container">
     <a href="#top" class="brand">
-      <img src="images/logo.jpg" alt="TCH Global logo">
+      <img src="/images/logo.jpg" alt="TCH Global logo">
       <span>TCH GLOBAL<span class="tagline">The Comforters House Global</span></span>
     </a>
     <div class="header-actions">
@@ -29,7 +29,7 @@
           <li><a href="#about-church">About Church</a></li>
           <li><a href="#pastor-section">Meet the Pastor</a></li>
           <li><a href="#testimonies">Testimonies</a></li>
-          <li><a href="blog/index.html">Blog</a></li>
+          <li><a href="/blog">Blog</a></li>
           <li><a href="#service">Service &amp; Events</a></li>
           <li><a href="#media">Media &amp; Streaming</a></li>
           <li><a href="#volunteer">Volunteer</a></li>
@@ -68,20 +68,20 @@
       <p>We don't replicate the traditions of the past for their own sake — we build a living, connected house rooted in the Word and in Faith.</p>
     </div>
     <div class="photo-frame pop">
-      <img src="images/pastor-teaching.webp" alt="Pastor teaching the congregation at TCH Global">
+      <img src="/images/pastor-teaching.webp" alt="Pastor teaching the congregation at TCH Global">
       <span class="photo-tag">The Word &amp; Faith in Action</span>
     </div>
   </div>
 
   <div class="container">
     <div class="photo-cycle pop">
-      <img src="images/gallery-4.webp" alt="TCH Global congregation" loading="lazy" width="900" height="600" style="--slot:0">
-      <img src="images/gallery-1.webp" alt="TCH Global worship service" loading="lazy" width="900" height="600" style="--slot:1">
-      <img src="images/gallery-6.webp" alt="Pastor Uzor Echiejile ministering" loading="lazy" width="900" height="599" style="--slot:2">
-      <img src="images/gallery-2.webp" alt="TCH Global worship service" loading="lazy" width="900" height="600" style="--slot:3">
-      <img src="images/gallery-7.webp" alt="TCH Global worship service" loading="lazy" width="900" height="600" style="--slot:4">
-      <img src="images/gallery-3.webp" alt="Pastor ministering at TCH Global" loading="lazy" width="900" height="600" style="--slot:5">
-      <img src="images/gallery-5.webp" alt="Pastor ministering at TCH Global" loading="lazy" width="900" height="600" style="--slot:6">
+      <img src="/images/gallery-4.webp" alt="TCH Global congregation" loading="lazy" width="900" height="600" style="--slot:0">
+      <img src="/images/gallery-1.webp" alt="TCH Global worship service" loading="lazy" width="900" height="600" style="--slot:1">
+      <img src="/images/gallery-6.webp" alt="Pastor Uzor Echiejile ministering" loading="lazy" width="900" height="599" style="--slot:2">
+      <img src="/images/gallery-2.webp" alt="TCH Global worship service" loading="lazy" width="900" height="600" style="--slot:3">
+      <img src="/images/gallery-7.webp" alt="TCH Global worship service" loading="lazy" width="900" height="600" style="--slot:4">
+      <img src="/images/gallery-3.webp" alt="Pastor ministering at TCH Global" loading="lazy" width="900" height="600" style="--slot:5">
+      <img src="/images/gallery-5.webp" alt="Pastor ministering at TCH Global" loading="lazy" width="900" height="600" style="--slot:6">
     </div>
   </div>
 </section>
@@ -95,7 +95,7 @@
     </div>
     <div class="resource-scroll pop">
       <div class="resource-card">
-        <div class="resource-cover"><img src="images/book-faith-life.webp" alt="Understanding the Faith Life book cover"></div>
+        <div class="resource-cover"><img src="/images/book-faith-life.webp" alt="Understanding the Faith Life book cover"></div>
         <div class="resource-body">
           <div class="resource-kind">Book</div>
           <h4>Understanding the Faith Life</h4>
@@ -103,7 +103,7 @@
         </div>
       </div>
       <div class="resource-card">
-        <div class="resource-cover"><img src="images/book-daily-inspiration.webp" alt="Daily Inspiration book cover"></div>
+        <div class="resource-cover"><img src="/images/book-daily-inspiration.webp" alt="Daily Inspiration book cover"></div>
         <div class="resource-body">
           <div class="resource-kind">Book</div>
           <h4>Daily Inspiration</h4>
@@ -111,7 +111,7 @@
         </div>
       </div>
       <div class="resource-card">
-        <div class="resource-cover"><img src="images/pastor-mic.webp" alt="Faith That Moves Mountains message"></div>
+        <div class="resource-cover"><img src="/images/pastor-mic.webp" alt="Faith That Moves Mountains message"></div>
         <div class="resource-body">
           <div class="resource-kind">YouTube</div>
           <h4>Faith That Moves Mountains</h4>
@@ -119,7 +119,7 @@
         </div>
       </div>
       <div class="resource-card">
-        <div class="resource-cover"><img src="images/pastor-mic.webp" alt="Living in the Spirit message"></div>
+        <div class="resource-cover"><img src="/images/pastor-mic.webp" alt="Living in the Spirit message"></div>
         <div class="resource-body">
           <div class="resource-kind">YouTube</div>
           <h4>Living in the Spirit</h4>
@@ -127,7 +127,7 @@
         </div>
       </div>
       <div class="resource-card">
-        <div class="resource-cover"><img src="images/pastor-mic.webp" alt="The Comforter's House message"></div>
+        <div class="resource-cover"><img src="/images/pastor-mic.webp" alt="The Comforter's House message"></div>
         <div class="resource-body">
           <div class="resource-kind">YouTube</div>
           <h4>The Comforter's House</h4>
@@ -135,7 +135,7 @@
         </div>
       </div>
       <div class="resource-card">
-        <div class="resource-cover"><img src="images/pastor-mic.webp" alt="Grace for Today message"></div>
+        <div class="resource-cover"><img src="/images/pastor-mic.webp" alt="Grace for Today message"></div>
         <div class="resource-body">
           <div class="resource-kind">YouTube</div>
           <h4>Grace for Today</h4>
@@ -150,7 +150,7 @@
 <section class="section pop-stage" id="pastor-section">
   <div class="container">
     <div class="pastor-card pop">
-      <div class="pastor-portrait"><img src="images/pastor-portrait.webp" alt="Portrait of Pastor Uzor Echiejile"></div>
+      <div class="pastor-portrait"><img src="/images/pastor-portrait.webp" alt="Portrait of Pastor Uzor Echiejile"></div>
       <div class="pastor-role">Global Lead Pastor</div>
       <h3>Pastor Uzor Echiejile</h3>
       <p class="subtitle">TCH Global</p>
@@ -158,7 +158,7 @@
       <p class="pastor-bio-note">Full biography coming soon — placeholder text above, ready to be replaced with your write-up.</p>
     </div>
     <a href="#media" class="latest-message pop">
-      <img src="images/pastor-mic.webp" alt="Pastor Uzor Echiejile ministering with a microphone">
+      <img src="/images/pastor-mic.webp" alt="Pastor Uzor Echiejile ministering with a microphone">
       <span class="latest-message-play"><svg class="icon-play" viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></span>
       <span class="latest-message-body">
         <span class="eyebrow">Latest Message</span>
@@ -201,16 +201,16 @@
       <p>Weekly reflections from TCH Global, published every Sunday — free to read, share, and grow from.</p>
     </div>
 
-    <a href="blog/posts/walking-in-faith.html" class="blog-feature pop">
+    <a href="/blog/walking-in-faith" class="blog-feature pop">
       <div class="blog-feature-media">
-        <img src="images/pastor-teaching.webp" alt="Pastor Uzor Echiejile teaching at TCH Global">
+        <img src="/images/pastor-teaching.webp" alt="Pastor Uzor Echiejile teaching at TCH Global">
       </div>
       <div class="blog-feature-body">
         <span class="blog-tag">Faith</span>
         <h3>Walking in Faith When You Can't See the Way</h3>
         <p>Faith was never meant to require full visibility. This week we look at what it means to take the next step when the whole path hasn't been shown to you yet.</p>
         <div class="blog-byline">
-          <span class="blog-avatar"><img src="images/pastor-portrait.webp" alt="Pastor Uzor Echiejile"></span>
+          <span class="blog-avatar"><img src="/images/pastor-portrait.webp" alt="Pastor Uzor Echiejile"></span>
           <span class="blog-byline-text">
             <strong>Pastor Uzor Echiejile</strong>
             <span>Sep 27, 2026 &middot; 6 min read</span>
@@ -220,18 +220,18 @@
     </a>
 
     <div class="blog-grid pop">
-      <a href="blog/posts/anchored-in-hope.html" class="blog-card">
+      <a href="/blog/anchored-in-hope" class="blog-card">
         <span class="blog-tag">Hope</span>
         <h4>Anchored in Hope: A Word for Weary Seasons</h4>
         <span class="blog-meta">Pastor Uzor Echiejile &middot; Sep 20, 2026</span>
       </a>
-      <a href="blog/posts/the-comforters-house.html" class="blog-card">
+      <a href="/blog/the-comforters-house" class="blog-card">
         <span class="blog-tag">Community</span>
         <h4>The Comforter's House: Why We Gather</h4>
         <span class="blog-meta">Pastor Uzor Echiejile &middot; Sep 13, 2026</span>
       </a>
     </div>
-    <a href="blog/index.html" class="resource-cta" style="display:inline-block;margin-top:20px;">Read The Comforters Blog &rarr;</a>
+    <a href="/blog" class="resource-cta" style="display:inline-block;margin-top:20px;">Read The Comforters Blog &rarr;</a>
   </div>
 </section>
 
@@ -403,7 +403,7 @@
           <li><a href="#pastor-section">Meet the Pastor</a></li>
           <li><a href="#testimonies">Testimonies</a></li>
           <li><a href="#library">Library</a></li>
-          <li><a href="blog/index.html">Blog</a></li>
+          <li><a href="/blog">Blog</a></li>
           <li><a href="#media">Media &amp; Streaming</a></li>
         </ul>
       </div>
@@ -427,8 +427,8 @@
     <div class="footer-bottom">&copy; 2026 TCH Global Church. All rights reserved.</div>
   </div>
 </footer>
+`;
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-<script src="js/main.js"></script>
-</body>
-</html>
+export default function HomePage() {
+  return <div dangerouslySetInnerHTML={{ __html: HOME_HTML }} />;
+}
