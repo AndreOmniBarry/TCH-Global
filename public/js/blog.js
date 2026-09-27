@@ -1,4 +1,9 @@
-document.addEventListener('DOMContentLoaded', function () {
+// Next.js loads this with strategy="afterInteractive", which usually runs
+// AFTER the DOMContentLoaded event has already fired — so a plain
+// `document.addEventListener('DOMContentLoaded', ...)` here would never
+// run. Guard against that by running immediately if the DOM is already
+// ready, and only waiting for the event if it genuinely hasn't fired yet.
+function initBlogPage() {
   // Reading progress bar
   var progress = document.querySelector('.read-progress');
   if (progress) {
@@ -178,4 +183,10 @@ document.addEventListener('DOMContentLoaded', function () {
       if (btn) btn.textContent = 'Subscribed!';
     });
   });
-});
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initBlogPage);
+} else {
+  initBlogPage();
+}

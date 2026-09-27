@@ -11,6 +11,10 @@ export const metadata = {
     'Weekly reflections from TCH Global, published every Sunday. Faith, hope, and grace for everyday living.',
 };
 
+// Without this, the page is fully static and "Trending This Week" would
+// freeze at whatever it was the moment the site was last built.
+export const revalidate = 60;
+
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
 }
