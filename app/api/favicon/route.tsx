@@ -66,69 +66,39 @@ export async function GET() {
             borderRadius: '50%',
             overflow: 'hidden',
             display: 'flex',
-            border: `4px solid ${christmas ? '#c0392b' : '#f5c542'}`,
+            border: '4px solid #f5c542',
             boxSizing: 'border-box',
+            position: 'relative',
           }}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={logoUrl} width={50} height={50} style={{ objectFit: 'cover' }} alt="" />
-        </div>
 
-        {christmas && (
-          // A small Santa hat silhouette (trim + dome + pom-pom), plain
-          // shapes only — no emoji font / external fetch, and a much
-          // clearer silhouette than a single dot at real favicon sizes
-          // (16-32px), where fine detail disappears.
-          <div style={{ position: 'absolute', top: '-9px', left: '-6px', width: '26px', height: '24px', display: 'flex' }}>
-            {/* pom-pom */}
-            <div
-              style={{
-                position: 'absolute',
-                top: '0px',
-                right: '2px',
-                width: '8px',
-                height: '8px',
-                borderRadius: '50%',
-                background: '#ffffff',
-                border: '1.5px solid #0b0f14',
-                display: 'flex',
-              }}
-            />
-            {/* red dome */}
-            <div
-              style={{
-                position: 'absolute',
-                bottom: '5px',
-                left: '2px',
-                width: '18px',
-                height: '13px',
-                background: '#d13b3b',
-                borderTopLeftRadius: '10px',
-                borderTopRightRadius: '10px',
-                borderBottomLeftRadius: '2px',
-                borderBottomRightRadius: '2px',
-                border: '1.5px solid #0b0f14',
-                boxSizing: 'border-box',
-                display: 'flex',
-              }}
-            />
-            {/* white fur trim */}
-            <div
-              style={{
-                position: 'absolute',
-                bottom: '0px',
-                left: '0px',
-                width: '22px',
-                height: '7px',
-                borderRadius: '4px',
-                background: '#ffffff',
-                border: '1.5px solid #0b0f14',
-                boxSizing: 'border-box',
-                display: 'flex',
-              }}
-            />
-          </div>
-        )}
+          {christmas && (
+            // A soft snow drift along the top of the mark — the
+            // Vercel/Next.js-style seasonal treatment: the mark itself
+            // never changes, just snow sitting on top of it. Built from
+            // overlapping circles along the top arc (simpler and more
+            // reliable than a hand-tuned path), with a faint shadow
+            // layer underneath for depth.
+            <svg viewBox="0 0 50 50" width={50} height={50} style={{ position: 'absolute', top: 0, left: 0 }}>
+              <g fill="rgba(10,14,20,0.12)" transform="translate(0.5,1)">
+                <circle cx="4" cy="13" r="7" />
+                <circle cx="13" cy="3" r="9" />
+                <circle cx="25" cy="0" r="11" />
+                <circle cx="37" cy="3" r="9" />
+                <circle cx="46" cy="13" r="7" />
+              </g>
+              <g fill="#ffffff">
+                <circle cx="4" cy="13" r="7" />
+                <circle cx="13" cy="3" r="9" />
+                <circle cx="25" cy="0" r="11" />
+                <circle cx="37" cy="3" r="9" />
+                <circle cx="46" cy="13" r="7" />
+              </g>
+            </svg>
+          )}
+        </div>
 
         {dotColor && (
           <div
