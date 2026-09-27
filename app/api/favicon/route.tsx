@@ -73,39 +73,52 @@ export async function GET() {
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={logoUrl} width={50} height={50} style={{ objectFit: 'cover' }} alt="" />
-
-          {christmas && (
-            // A soft snow drift along the top of the mark — the
-            // Vercel/Next.js-style seasonal treatment: the mark itself
-            // never changes, just snow sitting on top of it. Built from
-            // overlapping circles along the top arc (simpler and more
-            // reliable than a hand-tuned path), with a faint shadow
-            // layer underneath for depth.
-            <svg viewBox="0 0 50 50" width={50} height={50} style={{ position: 'absolute', top: 0, left: 0 }}>
-              <g fill="rgba(10,14,20,0.12)" transform="translate(0.5,1)">
-                <circle cx="4" cy="13" r="7" />
-                <circle cx="13" cy="3" r="9" />
-                <circle cx="25" cy="0" r="11" />
-                <circle cx="37" cy="3" r="9" />
-                <circle cx="46" cy="13" r="7" />
-              </g>
-              <g fill="#ffffff">
-                <circle cx="4" cy="13" r="7" />
-                <circle cx="13" cy="3" r="9" />
-                <circle cx="25" cy="0" r="11" />
-                <circle cx="37" cy="3" r="9" />
-                <circle cx="46" cy="13" r="7" />
-              </g>
-            </svg>
-          )}
         </div>
+
+        {christmas && (
+          // A Santa hat worn on the badge, tilted and draping off the
+          // top-right edge like it's actually sitting on top of a round
+          // object — drawn over the full canvas (not clipped to the
+          // inner circle) so the droop and pom-pom can hang past the
+          // ring naturally.
+          <svg
+            viewBox="0 0 64 64"
+            width={64}
+            height={64}
+            style={{ position: 'absolute', top: 0, left: 0 }}
+          >
+            <path
+              d="M9,19 C6,2 22,-8 33,3 C42,12 44,22 52,32 C58,40 60,46 55,49 C50,52 46,44 42,36 C36,24 24,14 14,18 Z"
+              fill="#c8393c"
+              stroke="#0b0f14"
+              strokeWidth="1.2"
+              strokeLinejoin="round"
+            />
+            <path
+              d="M8,19 A27,27 0 0,1 45,27"
+              fill="none"
+              stroke="#0b0f14"
+              strokeWidth="10.5"
+              strokeLinecap="round"
+              opacity="0.4"
+            />
+            <path
+              d="M8,19 A27,27 0 0,1 45,27"
+              fill="none"
+              stroke="#ffffff"
+              strokeWidth="9"
+              strokeLinecap="round"
+            />
+            <circle cx="55" cy="49" r="6.5" fill="#ffffff" stroke="#0b0f14" strokeWidth="1.2" />
+          </svg>
+        )}
 
         {dotColor && (
           <div
             style={{
               position: 'absolute',
               bottom: '0px',
-              right: '0px',
+              left: '0px',
               width: '18px',
               height: '18px',
               borderRadius: '50%',
