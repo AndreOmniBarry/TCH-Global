@@ -200,6 +200,25 @@
   .photo-frame img { width: 100%; aspect-ratio: 5/4; object-fit: cover; object-position: center top; }
   .photo-tag { position: absolute; left: 14px; bottom: 14px; background: color-mix(in srgb, var(--bg-root) 70%, transparent); backdrop-filter: blur(8px); border: 1px solid var(--border-glass); border-radius: var(--radius-pill); padding: 6px 12px; font-family: var(--font-mono); font-size: 10px; letter-spacing: .06em; text-transform: uppercase; color: var(--text-high); }
 
+  /* Continuous auto-scrolling photo marquee — pure CSS transform animation,
+     no JS, no library. Each row's track is the image set duplicated once,
+     translated exactly -50% over the animation so the loop is seamless. */
+  .marquee-gallery { margin-top: 40px; display: flex; flex-direction: column; gap: 14px; }
+  .marquee-row { overflow: hidden; -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); }
+  .marquee-track { display: flex; gap: 14px; width: max-content; animation: marquee-left 42s linear infinite; }
+  .marquee-row-right .marquee-track { animation-name: marquee-right; animation-duration: 50s; }
+  .marquee-track img { height: 160px; width: auto; aspect-ratio: 3/2; object-fit: cover; border-radius: var(--radius-control); border: 1px solid var(--border-glass); flex-shrink: 0; }
+  .marquee-row:hover .marquee-track { animation-play-state: paused; }
+  @keyframes marquee-left { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+  @keyframes marquee-right { from { transform: translateX(-50%); } to { transform: translateX(0); } }
+  @media (prefers-reduced-motion: reduce) {
+    .marquee-track { animation: none; }
+    .marquee-row { overflow-x: auto; }
+  }
+  @media (min-width: 700px) {
+    .marquee-track img { height: 210px; }
+  }
+
   .latest-message { position: relative; display: block; margin-top: 20px; max-width: 640px; border-radius: var(--radius-card); overflow: hidden; border: 1px solid var(--border-glass); }
   .latest-message img { width: 100%; aspect-ratio: 16/10; object-fit: cover; object-position: center 15%; transition: transform .3s ease; }
   .latest-message:hover img { transform: scale(1.04); }
