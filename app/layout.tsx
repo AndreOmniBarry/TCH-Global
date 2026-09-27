@@ -5,7 +5,10 @@ export const metadata: Metadata = {
   title: "TCH Global | The Comforter's House Global",
   description:
     "TCH Global (The Comforter's House Global) is a church for every nation, led by Pastor Uzor Echiejile.",
-  icons: { icon: '/favicon.jpg' },
+  // Dynamically rendered — bold circular badge, a status dot (live now /
+  // fresh post), and a small seasonal accent near Christmas. See
+  // app/api/favicon/route.tsx.
+  icons: { icon: '/api/favicon' },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

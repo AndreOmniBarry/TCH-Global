@@ -129,10 +129,28 @@ function initBlogPage() {
     var pageUrl = window.location.href;
     var pageTitle = document.title;
 
+    // /blog/<slug> -> <slug>, used to attribute the share to a post for
+    // the admin analytics dashboard. Silently no-ops elsewhere (share
+    // buttons only render on post pages today).
+    var slugMatch = window.location.pathname.match(/^\/blog\/([^/]+)\/?$/);
+    var postSlug = slugMatch ? slugMatch[1] : null;
+
+    function trackShare() {
+      if (!postSlug) return;
+      var body = JSON.stringify({ slug: postSlug, event: 'share' });
+      if (navigator.sendBeacon) {
+        navigator.sendBeacon('/api/track-view', new Blob([body], { type: 'application/json' }));
+      } else {
+        fetch('/api/track-view', { method: 'POST', body: body, headers: { 'Content-Type': 'application/json' }, keepalive: true }).catch(function () {});
+      }
+    }
+
     shareBtns.forEach(function (btn) {
       var kind = btn.dataset.share;
 
       btn.addEventListener('click', function (e) {
+        trackShare();
+
         if (kind === 'native') {
           if (navigator.share) {
             e.preventDefault();

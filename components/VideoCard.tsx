@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { getVisitorId } from '@/lib/visitor-id';
 
 type Props = {
   id: string;
@@ -18,7 +19,7 @@ export default function VideoCard({ id, title, thumbnail, url, isLive }: Props) 
     setPlaying(true);
     // Counted separately from YouTube's own view count — this is our
     // site's own "watched here" analytics, same store as blog reads.
-    const payload = JSON.stringify({ slug: `yt:${id}` });
+    const payload = JSON.stringify({ slug: `yt:${id}`, event: 'view', visitorId: getVisitorId() });
     if (navigator.sendBeacon) {
       navigator.sendBeacon('/api/track-view', new Blob([payload], { type: 'application/json' }));
     } else {
