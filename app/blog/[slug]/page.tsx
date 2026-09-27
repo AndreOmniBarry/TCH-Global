@@ -9,6 +9,11 @@ import { getViewCount } from '@/lib/analytics';
 
 type Props = { params: { slug: string } };
 
+// Without this, the page is fully static and the "N reads" count would
+// freeze at whatever it was the moment the site was last built, instead
+// of reflecting real-time view counts.
+export const revalidate = 60;
+
 export async function generateStaticParams() {
   const posts = (await getAllPosts()) ?? fallbackPosts;
   return posts.map((p) => ({ slug: p.slug }));
