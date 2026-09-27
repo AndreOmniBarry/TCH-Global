@@ -3,39 +3,55 @@
 Website for TCH Global (The Comforter's House Global), led by Pastor Uzor
 Echiejile — a church for every nation.
 
+**This branch (`nextjs-migration`) is the Next.js rebuild.** The
+previously-shipped static-HTML site still lives on the
+`claude/tch-global-church-site-g7adxm` branch. Once this is verified on a
+Vercel preview deployment, switch the Vercel project's Production Branch
+to this one to go live — see "Deploying" below.
+
 ## Structure
 
-Single-page site with anchor navigation (Home, About Church, Meet the
-Pastor, Blog, Service Days, Media & Streaming, Contact Us, Join Us, Give).
-
-- `index.html` — the full site
-- `css/styles.css` — design tokens (light + dark themes), layout, the
-  pop-up-book scroll-depth engine's styles
-- `js/main.js` — theme toggle, mobile nav, form handlers, and the
-  scroll-linked parallax/pop-up engine
-- `images/` — logo, pastor photos, book covers
-- `favicon.jpg` — browser tab icon
-
-## Notes for the next pass
-
-- Placeholder content still to be swapped in: pastor's full biography,
-  real YouTube/Facebook URLs, real teaching series links, phone number.
-- The map is a styled static card (Artifacts/most sandboxes can't load
-  live map tiles) — swap in a real Google Maps or Leaflet embed once
-  deployed somewhere that can reach external tile servers.
-- Give/Join/Prayer forms currently just show a confirmation message
-  client-side; no backend is wired up yet.
+- `app/page.tsx` — homepage (bridged from the original static markup;
+  see the comment at the top of the file)
+- `app/blog/page.tsx` — blog listing, reads from Sanity or falls back
+  to seeded posts
+- `app/blog/[slug]/page.tsx` — individual post page
+- `lib/sanity.ts` — Sanity client + queries (returns `null` gracefully
+  until a Sanity project is connected)
+- `lib/fallback-posts.ts` — the 4 seeded posts, used until Sanity is live
+- `sanity/schema.ts` — content schema (Post, Author, Announcement) —
+  see `sanity/README.md` for how to actually stand up the CMS
+- `components/SiteChrome.tsx` — shared header/footer for blog pages
+- `public/` — images, css, js, favicon (served as-is at the site root)
 
 ## Development
 
-This is a static site — open `index.html` in a browser, or serve the
-directory with any static file server, e.g.:
+```bash
+npm install
+npm run dev
+```
 
-```
-npx serve .
-```
+Visit `http://localhost:3000`. Works immediately — no Sanity account
+needed; the blog uses seeded content until you connect one.
 
 ## Deploying
 
-Static site, no build step — works as-is on Vercel, Netlify, GitHub
-Pages, etc.
+This is now a real Next.js app, not a static site — the Vercel project
+needs:
+
+1. **Framework Preset: Next.js** (Vercel should auto-detect this once
+   `package.json` exists at the root; double-check it in Project
+   Settings → General if the build fails).
+2. **Production Branch** pointed at whichever branch you want live.
+   Pushing this branch creates a Preview deployment automatically —
+   check that URL before switching Production Branch over to it.
+3. Once ready to connect the CMS: the two env vars described in
+   `sanity/README.md`.
+
+## What's next
+
+See `sanity/README.md` for connecting the CMS. Beyond that, still
+ahead: reader analytics (most-watched/trending), a proofreader
+integration for the post editor, comment moderation, and YouTube
+auto-sync — all layered on top of this same Next.js + Sanity
+foundation.
