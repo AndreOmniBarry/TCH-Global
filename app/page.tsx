@@ -70,21 +70,15 @@ const HOME_HTML_BEFORE_LIBRARY = `
       <h2>Beyond Walls.<br><span class="accent">Into Light.</span></h2>
       <p>We don't replicate the traditions of the past for their own sake — we build a living, connected house rooted in the Word and in Faith.</p>
     </div>
-    <div class="photo-frame pop">
-      <img src="/images/pastor-teaching.webp" alt="Pastor teaching the congregation at TCH Global">
-      <span class="photo-tag">The Word &amp; Faith in Action</span>
-    </div>
-  </div>
-
-  <div class="container">
     <div class="photo-cycle pop">
-      <img src="/images/gallery-4.webp" alt="TCH Global congregation" loading="lazy" width="900" height="600" style="--slot:0">
-      <img src="/images/gallery-1.webp" alt="TCH Global worship service" loading="lazy" width="900" height="600" style="--slot:1">
-      <img src="/images/gallery-6.webp" alt="Pastor Uzor Echiejile ministering" loading="lazy" width="900" height="599" style="--slot:2">
-      <img src="/images/gallery-2.webp" alt="TCH Global worship service" loading="lazy" width="900" height="600" style="--slot:3">
-      <img src="/images/gallery-7.webp" alt="TCH Global worship service" loading="lazy" width="900" height="600" style="--slot:4">
-      <img src="/images/gallery-3.webp" alt="Pastor ministering at TCH Global" loading="lazy" width="900" height="600" style="--slot:5">
+      <img src="/images/pastor-teaching.webp" alt="Pastor teaching the congregation at TCH Global" style="--slot:0">
+      <img src="/images/gallery-4.webp" alt="TCH Global congregation" loading="lazy" width="900" height="600" style="--slot:1">
+      <img src="/images/gallery-1.webp" alt="Pastor ministering at TCH Global" loading="lazy" width="900" height="600" style="--slot:2">
+      <img src="/images/gallery-6.webp" alt="Pastor Uzor Echiejile ministering" loading="lazy" width="900" height="599" style="--slot:3">
+      <img src="/images/gallery-2.webp" alt="Pastor Uzor Echiejile at the podium" loading="lazy" width="900" height="600" style="--slot:4">
+      <img src="/images/gallery-7.webp" alt="TCH Global worship service" loading="lazy" width="900" height="600" style="--slot:5">
       <img src="/images/gallery-5.webp" alt="Pastor ministering at TCH Global" loading="lazy" width="900" height="600" style="--slot:6">
+      <span class="photo-tag">The Word &amp; Faith in Action</span>
     </div>
   </div>
 </section>
@@ -191,7 +185,7 @@ const HOME_HTML_AFTER_LIBRARY = `<section class="section pop-stage" id="pastor-s
 
     <div class="map-card pop">
       <div id="church-map" class="map-visual"></div>
-      <strong style="color:var(--text-high);font-size:.95rem;">TCH Global Campus</strong>
+      <strong style="color:var(--text-high);font-size:.95rem;">The Comforters House Global &mdash; Benin</strong>
       <p style="font-size:.82rem;margin:4px 0 8px;">45 Edosomwan Street, Ikpoba Hill, Benin City</p>
       <a href="https://www.google.com/maps?q=6.3533,5.6702" target="_blank" rel="noopener" class="btn btn-ghost btn-sm" style="width:100%;">Get Directions</a>
     </div>
@@ -209,8 +203,9 @@ const HOME_HTML_AFTER_LIBRARY = `<section class="section pop-stage" id="pastor-s
     <div class="stream-row pop">
       <a href="https://www.youtube.com" target="_blank" rel="noopener" class="btn btn-primary" style="flex:1;"><svg class="icon-play" viewBox="0 0 24 24" width="12" height="12" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg> YouTube Channel</a>
       <a href="https://www.facebook.com" target="_blank" rel="noopener" class="btn btn-ghost" style="flex:1;"><svg class="icon-play" viewBox="0 0 24 24" width="12" height="12" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg> Facebook Live</a>
+      <a href="https://open.spotify.com" target="_blank" rel="noopener" class="btn btn-ghost" style="flex:1;"><svg class="icon-play" viewBox="0 0 24 24" width="12" height="12" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg> Spotify</a>
     </div>
-    <p style="font-size:.72rem;color:var(--text-faint);margin-top:12px;font-family:var(--font-mono);">Podcast distribution (Apple Podcasts / Spotify) — planned, see notes below.</p>
+    <p style="font-size:.72rem;color:var(--text-faint);margin-top:12px;font-family:var(--font-mono);">Messages are also available as a podcast on Spotify.</p>
   </div>
 </section>
 

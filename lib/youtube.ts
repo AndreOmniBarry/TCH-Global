@@ -28,6 +28,15 @@ const CHANNEL_ID = process.env.YOUTUBE_CHANNEL_ID;
 let cache: { data: YouTubeVideo[]; fetchedAt: number } | null = null;
 const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour — comfortably under the API's daily quota even with traffic
 
+// Parses YouTube's ISO 8601 duration format (e.g. "PT1H2M3S") into seconds.
+function parseIsoDurationSeconds(duration?: string): number | undefined {
+  if (!duration) return undefined;
+  const match = duration.match(/^PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?$/);
+  if (!match) return undefined;
+  const [, h, m, s] = match;
+  return (Number(h) || 0) * 3600 + (Number(m) || 0) * 60 + (Number(s) || 0);
+}
+
 export async function getLatestVideos(limit = 6): Promise<YouTubeVideo[] | null> {
   if (!API_KEY || !CHANNEL_ID) return null;
 
@@ -46,24 +55,54 @@ export async function getLatestVideos(limit = 6): Promise<YouTubeVideo[] | null>
     const uploadsPlaylistId = channelData?.items?.[0]?.contentDetails?.relatedPlaylists?.uploads;
     if (!uploadsPlaylistId) throw new Error('no uploads playlist found for this channel ID');
 
-    // Step 2: pull the most recent items from that playlist.
+    // Step 2: pull the most recent items from that playlist. Fetch extra
+    // (up to the API max of 50) since Shorts get filtered out below and
+    // we still need enough regular videos left to satisfy `limit`.
+    const fetchCount = Math.min(50, Math.max(limit * 3, 15));
     const playlistRes = await fetch(
-      `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${uploadsPlaylistId}&maxResults=${Math.max(limit, 6)}&key=${API_KEY}`,
+      `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${uploadsPlaylistId}&maxResults=${fetchCount}&key=${API_KEY}`,
       { next: { revalidate: 3600 } }
     );
     if (!playlistRes.ok) throw new Error(`playlistItems lookup failed: ${playlistRes.status}`);
     const playlistData = await playlistRes.json();
 
-    const videos: YouTubeVideo[] = (playlistData.items || []).map((item: any) => ({
-      id: item.snippet.resourceId.videoId,
-      title: item.snippet.title,
-      thumbnail:
-        item.snippet.thumbnails?.high?.url ||
-        item.snippet.thumbnails?.medium?.url ||
-        item.snippet.thumbnails?.default?.url,
-      publishedAt: item.snippet.publishedAt,
-      url: `https://www.youtube.com/watch?v=${item.snippet.resourceId.videoId}`,
-    }));
+    const items = (playlistData.items || []).filter((item: any) => item.snippet?.resourceId?.videoId);
+    const videoIds: string[] = items.map((item: any) => item.snippet.resourceId.videoId);
+    if (videoIds.length === 0) {
+      cache = { data: [], fetchedAt: Date.now() };
+      return [];
+    }
+
+    // Step 3: look up each video's duration so Shorts (roughly <= 3
+    // minutes and typically vertical) can be excluded — the
+    // playlistItems response doesn't include duration at all.
+    const detailsRes = await fetch(
+      `https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=${videoIds.join(',')}&key=${API_KEY}`,
+      { next: { revalidate: 3600 } }
+    );
+    if (!detailsRes.ok) throw new Error(`videos lookup failed: ${detailsRes.status}`);
+    const detailsData = await detailsRes.json();
+    const durationById = new Map<string, number>(
+      (detailsData.items || []).map((v: any) => [v.id, parseIsoDurationSeconds(v.contentDetails?.duration)])
+    );
+
+    const SHORTS_MAX_SECONDS = 180; // Shorts run up to ~3 minutes; regular messages run far longer.
+
+    const videos: YouTubeVideo[] = items
+      .filter((item: any) => {
+        const seconds = durationById.get(item.snippet.resourceId.videoId);
+        return seconds === undefined || seconds > SHORTS_MAX_SECONDS;
+      })
+      .map((item: any) => ({
+        id: item.snippet.resourceId.videoId,
+        title: item.snippet.title,
+        thumbnail:
+          item.snippet.thumbnails?.high?.url ||
+          item.snippet.thumbnails?.medium?.url ||
+          item.snippet.thumbnails?.default?.url,
+        publishedAt: item.snippet.publishedAt,
+        url: `https://www.youtube.com/watch?v=${item.snippet.resourceId.videoId}`,
+      }));
 
     cache = { data: videos, fetchedAt: Date.now() };
     return videos.slice(0, limit);
