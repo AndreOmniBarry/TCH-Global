@@ -13,7 +13,10 @@ export async function POST(req: NextRequest) {
   if (!process.env.LIVE_STATUS_SECRET || secret !== process.env.LIVE_STATUS_SECRET) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   }
-  const { live } = await req.json();
-  await setLiveNow(Boolean(live));
-  return NextResponse.json({ ok: true, live: Boolean(live) });
+  const { state } = await req.json();
+  if (state !== 'auto' && state !== 'on' && state !== 'off') {
+    return NextResponse.json({ error: 'state must be "auto", "on", or "off"' }, { status: 400 });
+  }
+  await setLiveNow(state);
+  return NextResponse.json({ ok: true, state });
 }

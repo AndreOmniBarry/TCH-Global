@@ -2,24 +2,32 @@
 
 ## The favicon's "live now" dot
 
-The browser-tab icon shows a red dot when the site is marked live — a
-manual switch for now (there's no automatic stream detection yet, that's
-the bigger build described below). Flip it on right before a service
-and off after, from a terminal:
+The browser-tab icon shows a red dot when the site is marked live.
+**By default this needs no manual work** — it automatically turns on
+during your Sunday service window (7:15–11:15 AM, Africa/Lagos time,
+covering First Service at 7:30 and Second Service at 9:15 back to
+back) and off outside it. If the service schedule ever changes, tell
+me the new times and I'll update the window in `lib/analytics.ts`
+(`isWithinSundayService`).
+
+For anything outside that schedule — an unplanned stream, a special
+Wednesday broadcast, or ending the dot early because the stream wrapped
+before the window closed — override it manually from a terminal:
 
 ```bash
 curl -X POST https://tchglobal.org/api/live-status \
   -H "x-live-secret: YOUR_SECRET" \
   -H "Content-Type: application/json" \
-  -d '{"live": true}'
+  -d '{"state": "on"}'
 ```
 
-Set `YOUR_SECRET` to whatever you put in the `LIVE_STATUS_SECRET`
-environment variable in Vercel (pick any random string — it's just
-there so a stranger can't flip your live dot). Set `"live": false` the
-same way once the service ends. Note: browsers cache favicons and
-mostly only refetch on page load/navigation, so this won't update an
-already-open tab in real time — it reflects on the next visit.
+Use `"state": "off"` to force it off, or `"state": "auto"` to hand
+control back to the Sunday schedule. Set `YOUR_SECRET` to whatever you
+put in the `LIVE_STATUS_SECRET` environment variable in Vercel (pick
+any random string — it's just there so a stranger can't flip your live
+dot). Note: browsers cache favicons and mostly only refetch on page
+load/navigation, so this won't update an already-open tab in real
+time — it reflects on the next visit.
 
 ## Can we embed the live stream directly on the site?
 

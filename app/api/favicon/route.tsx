@@ -6,11 +6,15 @@ import { fallbackPosts } from '@/lib/fallback-posts';
 import { isLiveNow } from '@/lib/analytics';
 
 export const runtime = 'nodejs';
-// Browsers cache favicons aggressively and mostly only refetch on
-// navigation/reload — so the dot is "fresh as of your last page load,"
-// not a live-updating badge in an already-open tab. Revalidating hourly
-// keeps it honest without hammering KV/Sanity on every request.
-export const revalidate = 3600;
+// This must stay dynamic: next/og's ImageResponse sets a 1-year
+// "immutable" Cache-Control by default, and Next's route cache keys
+// solely on the pathname (ignoring query strings) unless the route is
+// explicitly opted out of caching — so a cached "not live" render would
+// get stuck and never pick up a real status change. Browsers still
+// cache favicons client-side and mostly only refetch on navigation, so
+// in practice the dot reflects "as of your last page load" either way —
+// this just makes sure that load actually re-checks the real status.
+export const dynamic = 'force-dynamic';
 
 let logoBase64: string | null = null;
 async function getLogoDataUrl() {
@@ -71,7 +75,22 @@ export async function GET() {
         </div>
 
         {christmas && (
-          <div style={{ position: 'absolute', top: '-6px', left: '-4px', fontSize: '22px', display: 'flex' }}>🎄</div>
+          // A small hand-drawn ornament bauble (plain shapes, no emoji
+          // font / external fetch needed — reliable on every request).
+          <div style={{ position: 'absolute', top: '-4px', left: '-2px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <div style={{ width: '3px', height: '5px', background: '#e8c15a', borderRadius: '1px', display: 'flex' }} />
+            <div
+              style={{
+                width: '14px',
+                height: '14px',
+                borderRadius: '50%',
+                background: '#2e7d46',
+                border: '2px solid #0b0f14',
+                boxSizing: 'border-box',
+                display: 'flex',
+              }}
+            />
+          </div>
         )}
 
         {dotColor && (
@@ -91,6 +110,12 @@ export async function GET() {
         )}
       </div>
     ),
-    { width: 64, height: 64 }
+    {
+      width: 64,
+      height: 64,
+      // Short client cache instead of next/og's 1-year default, so a
+      // reload during/after a live stream actually picks up the change.
+      headers: { 'Cache-Control': 'public, max-age=300' },
+    }
   );
 }
