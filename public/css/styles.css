@@ -214,9 +214,9 @@
   }
   @keyframes photo-cycle-fade {
     0% { opacity: 0; }
-    2% { opacity: 1; }
-    13% { opacity: 1; }
-    15.5% { opacity: 0; }
+    8% { opacity: 1; }
+    11.5% { opacity: 1; }
+    19.5% { opacity: 0; }
     100% { opacity: 0; }
   }
   @media (prefers-reduced-motion: reduce) {
@@ -266,11 +266,12 @@
   .testimony-name { font-size: .82rem; font-weight: 700; color: var(--text-high); display: flex; flex-direction: column; gap: 2px; }
   .testimony-name span { font-weight: 400; color: var(--text-faint); font-size: .74rem; }
 
-  .resource-scroll { display: flex; gap: 14px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: thin; }
-  .resource-card { flex: 0 0 190px; background: var(--surface-elevated); border: 1px solid var(--border-glass); border-radius: var(--radius-card); overflow: hidden; box-shadow: var(--shadow-card); transition: background-color .4s ease, border-color .4s ease; }
-  .resource-card .resource-cover { height: 230px; overflow: hidden; background: var(--surface-high); }
-  .resource-card .resource-cover img { width: 100%; height: 100%; object-fit: cover; object-position: 38% center; transform: scale(1.55); }
-  .resource-card .resource-body { padding: 12px; }
+  .resource-scroll { display: flex; gap: 20px; overflow-x: auto; padding-bottom: 10px; scrollbar-width: thin; }
+  .resource-card { flex: 0 0 210px; background: var(--surface-elevated); border: 1px solid var(--border-glass); border-radius: var(--radius-card); overflow: hidden; box-shadow: var(--shadow-card); transition: background-color .4s ease, border-color .4s ease, transform .3s ease; }
+  .resource-card:hover { transform: translateY(-3px); }
+  .resource-card .resource-cover { height: 210px; overflow: hidden; background: var(--surface-high); }
+  .resource-card .resource-cover img { width: 100%; height: 100%; object-fit: cover; object-position: 38% 22%; transform: scale(1.15); }
+  .resource-card .resource-body { padding: 14px; }
   .resource-card .resource-kind { font-family: var(--font-mono); font-size: 8.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--accent-cyan); margin-bottom: 4px; }
   .resource-card h4 { font-size: .82rem; line-height: 1.3; text-transform: none; margin-bottom: 8px; }
   .resource-card .resource-cta { font-family: var(--font-mono); font-size: 9.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--accent-cyan); }

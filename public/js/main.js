@@ -118,5 +118,5 @@
       attribution: '&copy; OpenStreetMap contributors',
       maxZoom: 19,
     }).addTo(map);
-    L.marker([lat, lng]).addTo(map).bindPopup('TCH Global Campus');
+    L.marker([lat, lng]).addTo(map).bindPopup('The Comforters House Global &mdash; Benin<br>Grace Dome Church').openPopup();
   })();

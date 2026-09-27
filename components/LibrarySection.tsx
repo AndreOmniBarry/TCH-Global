@@ -1,4 +1,5 @@
 import { getLatestVideos } from '@/lib/youtube';
+import VideoCard from '@/components/VideoCard';
 
 const placeholderVideos = [
   { id: 'placeholder-1', title: 'Faith That Moves Mountains', url: '#', thumbnail: '/images/pastor-mic.webp' },
@@ -38,14 +39,14 @@ export default async function LibrarySection() {
             </div>
           </div>
           {videos.map((video) => (
-            <div className="resource-card" key={video.id}>
-              <div className="resource-cover"><img src={video.thumbnail} alt={video.title} /></div>
-              <div className="resource-body">
-                <div className="resource-kind">YouTube</div>
-                <h4>{video.title}</h4>
-                <a className="resource-cta" href={video.url} target="_blank" rel="noopener">Watch Now &rarr;</a>
-              </div>
-            </div>
+            <VideoCard
+              key={video.id}
+              id={video.id}
+              title={video.title}
+              thumbnail="/images/pastor-mic.webp"
+              url={video.url}
+              isLive={isLive}
+            />
           ))}
         </div>
         <p style={{ fontSize: '.72rem', color: 'var(--text-faint)', marginTop: 10, fontFamily: 'var(--font-mono)' }}>
