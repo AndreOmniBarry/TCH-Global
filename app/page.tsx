@@ -1,18 +1,20 @@
-"use client";
+import LibrarySection from '@/components/LibrarySection';
 
 // This page bridges the original hand-authored static homepage into
-// Next.js. The markup below is an exact, mechanically-extracted copy of
-// the former root index.html body content (paths rewritten to Next's
-// root-relative routing) so the visual design doesn't regress during
-// migration. The interactive behavior (theme toggle, nav, scroll
+// Next.js. Most of the markup below is an exact, mechanically-extracted
+// copy of the former root index.html body content (paths rewritten to
+// Next's root-relative routing) so the visual design didn't regress
+// during migration. The interactive behavior (theme toggle, nav, scroll
 // parallax, forms, map) is unchanged: it's still driven by
 // /public/js/main.js, loaded globally in app/layout.tsx.
 //
-// This is a deliberate bridge, not the end state — as sections get
-// rebuilt with real data (events, announcements, testimonies) they
-// should move to proper React components one at a time.
+// The Library section has already been pulled out into a real Server
+// Component (components/LibrarySection.tsx) that fetches live YouTube
+// data server-side. This is the pattern for migrating the rest: as a
+// section needs real data (events, announcements, testimonies), extract
+// it from the HTML bridge below into its own component, the same way.
 
-const HOME_HTML = `
+const HOME_HTML_BEFORE_LIBRARY = `
 
 <header class="site-header" id="top">
   <div class="container">
@@ -86,68 +88,9 @@ const HOME_HTML = `
   </div>
 </section>
 
-<section class="section pop-stage" id="library" style="padding-top:0;">
-  <div class="container">
-    <div class="section-header pop">
-      <span class="eyebrow">Library</span>
-      <h2>From the Pastor's Desk</h2>
-      <p>Books, teaching series, and messages to help you grow — new resources added regularly.</p>
-    </div>
-    <div class="resource-scroll pop">
-      <div class="resource-card">
-        <div class="resource-cover"><img src="/images/book-faith-life.webp" alt="Understanding the Faith Life book cover"></div>
-        <div class="resource-body">
-          <div class="resource-kind">Book</div>
-          <h4>Understanding the Faith Life</h4>
-          <a class="resource-cta" href="mailto:info@tchglobal.org?subject=Book%20Order%3A%20Understanding%20the%20Faith%20Life">Get This Book &rarr;</a>
-        </div>
-      </div>
-      <div class="resource-card">
-        <div class="resource-cover"><img src="/images/book-daily-inspiration.webp" alt="Daily Inspiration book cover"></div>
-        <div class="resource-body">
-          <div class="resource-kind">Book</div>
-          <h4>Daily Inspiration</h4>
-          <a class="resource-cta" href="mailto:info@tchglobal.org?subject=Book%20Order%3A%20Daily%20Inspiration">Get This Book &rarr;</a>
-        </div>
-      </div>
-      <div class="resource-card">
-        <div class="resource-cover"><img src="/images/pastor-mic.webp" alt="Faith That Moves Mountains message"></div>
-        <div class="resource-body">
-          <div class="resource-kind">YouTube</div>
-          <h4>Faith That Moves Mountains</h4>
-          <a class="resource-cta" href="#" target="_blank" rel="noopener">Watch Now &rarr;</a>
-        </div>
-      </div>
-      <div class="resource-card">
-        <div class="resource-cover"><img src="/images/pastor-mic.webp" alt="Living in the Spirit message"></div>
-        <div class="resource-body">
-          <div class="resource-kind">YouTube</div>
-          <h4>Living in the Spirit</h4>
-          <a class="resource-cta" href="#" target="_blank" rel="noopener">Watch Now &rarr;</a>
-        </div>
-      </div>
-      <div class="resource-card">
-        <div class="resource-cover"><img src="/images/pastor-mic.webp" alt="The Comforter's House message"></div>
-        <div class="resource-body">
-          <div class="resource-kind">YouTube</div>
-          <h4>The Comforter's House</h4>
-          <a class="resource-cta" href="#" target="_blank" rel="noopener">Watch Now &rarr;</a>
-        </div>
-      </div>
-      <div class="resource-card">
-        <div class="resource-cover"><img src="/images/pastor-mic.webp" alt="Grace for Today message"></div>
-        <div class="resource-body">
-          <div class="resource-kind">YouTube</div>
-          <h4>Grace for Today</h4>
-          <a class="resource-cta" href="#" target="_blank" rel="noopener">Watch Now &rarr;</a>
-        </div>
-      </div>
-    </div>
-    <p style="font-size:.72rem;color:var(--text-faint);margin-top:10px;font-family:var(--font-mono);">Video links go live once connected to the YouTube channel — see notes below.</p>
-  </div>
-</section>
+`;
 
-<section class="section pop-stage" id="pastor-section">
+const HOME_HTML_AFTER_LIBRARY = `<section class="section pop-stage" id="pastor-section">
   <div class="container">
     <div class="pastor-card pop">
       <div class="pastor-portrait"><img src="/images/pastor-portrait.webp" alt="Portrait of Pastor Uzor Echiejile"></div>
@@ -429,6 +372,12 @@ const HOME_HTML = `
 </footer>
 `;
 
-export default function HomePage() {
-  return <div dangerouslySetInnerHTML={{ __html: HOME_HTML }} />;
+export default async function HomePage() {
+  return (
+    <>
+      <div dangerouslySetInnerHTML={{ __html: HOME_HTML_BEFORE_LIBRARY }} />
+      <LibrarySection />
+      <div dangerouslySetInnerHTML={{ __html: HOME_HTML_AFTER_LIBRARY }} />
+    </>
+  );
 }
