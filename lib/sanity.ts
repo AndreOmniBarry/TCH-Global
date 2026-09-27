@@ -83,3 +83,34 @@ export async function getPostBySlug(slug: string): Promise<Post | null> {
     return null;
   }
 }
+
+export type Announcement = {
+  _id: string;
+  title: string;
+  body: string;
+  flyerImage: string | null;
+  startsAt: string;
+  endsAt: string | null;
+  link: string | null;
+};
+
+// Only future/current announcements, soonest first.
+const ANNOUNCEMENTS_QUERY = `*[_type == "announcement" && (endsAt > now() || !defined(endsAt))] | order(startsAt asc) {
+  _id,
+  title,
+  body,
+  "flyerImage": flyerImage.asset->url,
+  startsAt,
+  endsAt,
+  link
+}`;
+
+export async function getAnnouncements(): Promise<Announcement[] | null> {
+  if (!sanityClient) return null;
+  try {
+    return await sanityClient.fetch(ANNOUNCEMENTS_QUERY);
+  } catch (err) {
+    console.error('Sanity fetch failed, no announcements shown:', err);
+    return null;
+  }
+}
