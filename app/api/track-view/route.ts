@@ -1,13 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { recordView } from '@/lib/analytics';
+import { recordView, recordShare, recordReadComplete } from '@/lib/analytics';
 
 export async function POST(req: NextRequest) {
   try {
-    const { slug } = await req.json();
+    const { slug, event, visitorId } = await req.json();
     if (typeof slug !== 'string' || !slug) {
       return NextResponse.json({ error: 'slug required' }, { status: 400 });
     }
-    await recordView(slug);
+    switch (event) {
+      case 'share':
+        await recordShare(slug);
+        break;
+      case 'read-complete':
+        await recordReadComplete(slug);
+        break;
+      case 'view':
+      default:
+        await recordView(slug, typeof visitorId === 'string' ? visitorId : undefined);
+    }
     return NextResponse.json({ ok: true });
   } catch {
     // Never fail loudly for a view-tracking call — a broken analytics
