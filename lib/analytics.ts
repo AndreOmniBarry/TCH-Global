@@ -181,25 +181,50 @@ export async function getReadCompleteCount(slug: string): Promise<number | null>
   }
 }
 
-// A manual on/off flag for "we're live right now" — there's no automatic
-// live-stream detection yet (see streaming/README.md), so this is set by
-// hand via POST /api/live-status right before/after a service, and read
-// by the favicon's status dot. Defaults to false / not-live if KV isn't
-// configured or the key was never set.
+// "We're live right now" for the favicon's status dot. Defaults to
+// auto-detecting the Sunday service window (see isWithinSundayService
+// below) — no manual toggling needed week to week. POST /api/live-status
+// can still force it on (for an unscheduled stream — a special event,
+// Wednesday service, etc.) or force it off (service ran long but the
+// broadcast already ended) via the "auto" | "on" | "off" flag in KV;
+// "auto" (or unset) falls back to the schedule.
+const CHURCH_TIMEZONE = 'Africa/Lagos';
+
+function isWithinSundayService(now: Date): boolean {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: CHURCH_TIMEZONE,
+    weekday: 'short',
+    hour: 'numeric',
+    minute: 'numeric',
+    hour12: false,
+  }).formatToParts(now);
+  const weekday = parts.find((p) => p.type === 'weekday')?.value;
+  const hour = Number(parts.find((p) => p.type === 'hour')?.value);
+  const minute = Number(parts.find((p) => p.type === 'minute')?.value);
+  if (weekday !== 'Sun') return false;
+  const minutesSinceMidnight = hour * 60 + minute;
+  // First Service 7:30 AM, Second Service 9:15 AM — covers both back to
+  // back with a buffer on each end (7:15 AM to 11:15 AM).
+  return minutesSinceMidnight >= 7 * 60 + 15 && minutesSinceMidnight <= 11 * 60 + 15;
+}
+
 export async function isLiveNow(): Promise<boolean> {
-  if (!KV_CONFIGURED) return false;
+  if (!KV_CONFIGURED) return isWithinSundayService(new Date());
   try {
-    return Boolean(await kv.get<boolean>('site:live'));
+    const flag = await kv.get<'auto' | 'on' | 'off'>('site:live');
+    if (flag === 'on') return true;
+    if (flag === 'off') return false;
+    return isWithinSundayService(new Date());
   } catch (err) {
     console.error('isLiveNow failed:', err);
-    return false;
+    return isWithinSundayService(new Date());
   }
 }
 
-export async function setLiveNow(live: boolean): Promise<void> {
+export async function setLiveNow(state: 'auto' | 'on' | 'off'): Promise<void> {
   if (!KV_CONFIGURED) return;
   try {
-    await kv.set('site:live', live);
+    await kv.set('site:live', state);
   } catch (err) {
     console.error('setLiveNow failed:', err);
   }
