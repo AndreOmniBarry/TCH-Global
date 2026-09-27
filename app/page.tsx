@@ -184,7 +184,10 @@ const HOME_HTML_AFTER_LIBRARY = `<section class="section pop-stage" id="pastor-s
     </div>
 
     <div class="map-card pop">
-      <div id="church-map" class="map-visual"></div>
+      <div class="map-visual" style="position:relative;">
+        <div id="church-map" style="position:absolute;inset:0;"></div>
+        <span class="photo-tag" style="position:absolute;left:10px;bottom:10px;z-index:500;pointer-events:none;">The Comforters House Global &mdash; Benin &middot; Grace Dome Church</span>
+      </div>
       <strong style="color:var(--text-high);font-size:.95rem;">The Comforters House Global &mdash; Benin</strong>
       <p style="font-size:.82rem;margin:4px 0 8px;">45 Edosomwan Street, Ikpoba Hill, Benin City</p>
       <a href="https://www.google.com/maps?q=6.3533,5.6702" target="_blank" rel="noopener" class="btn btn-ghost btn-sm" style="width:100%;">Get Directions</a>
