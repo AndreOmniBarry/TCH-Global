@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { getAllPosts } from '@/lib/sanity';
 import { fallbackPosts } from '@/lib/fallback-posts';
 import { SiteHeader, SiteFooter } from '@/components/SiteChrome';
+import { getTrendingSlugs } from '@/lib/analytics';
 
 export const metadata = {
   title: 'The Comforters Blog | TCH Global',
@@ -17,6 +18,11 @@ function formatDate(iso: string) {
 export default async function BlogIndexPage() {
   const posts = (await getAllPosts()) ?? fallbackPosts;
   const [featured, ...rest] = posts;
+
+  const trendingSlugs = await getTrendingSlugs(3);
+  const trendingPosts = trendingSlugs
+    ?.map((slug) => posts.find((p) => p.slug === slug))
+    .filter((p): p is (typeof posts)[number] => Boolean(p));
 
   return (
     <>
@@ -33,6 +39,22 @@ export default async function BlogIndexPage() {
 
       <section className="section" style={{ paddingTop: 0 }}>
         <div className="blog-shell">
+          {trendingPosts && trendingPosts.length > 0 && (
+            <div style={{ marginBottom: 32 }}>
+              <span className="blog-tag" style={{ display: 'block', marginBottom: 10 }}>Trending This Week</span>
+              <div className="blog-grid-list">
+                {trendingPosts.map((post) => (
+                  <Link href={`/blog/${post.slug}`} className="blog-list-card" key={post._id}>
+                    <div className="body" style={{ padding: 16 }}>
+                      <span className="blog-tag">{post.category}</span>
+                      <h4 style={{ fontSize: '.95rem', textTransform: 'none', margin: '6px 0' }}>{post.title}</h4>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+
           {featured && (
             <Link href={`/blog/${featured.slug}`} className="blog-hero-card">
               <div className="cover">

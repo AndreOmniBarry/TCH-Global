@@ -1,4 +1,5 @@
 import LibrarySection from '@/components/LibrarySection';
+import AnnouncementsSection from '@/components/AnnouncementsSection';
 
 // This page bridges the original hand-authored static homepage into
 // Next.js. Most of the markup below is an exact, mechanically-extracted
@@ -377,6 +378,7 @@ export default async function HomePage() {
     <>
       <div dangerouslySetInnerHTML={{ __html: HOME_HTML_BEFORE_LIBRARY }} />
       <LibrarySection />
+      <AnnouncementsSection />
       <div dangerouslySetInnerHTML={{ __html: HOME_HTML_AFTER_LIBRARY }} />
     </>
   );

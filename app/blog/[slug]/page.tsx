@@ -4,6 +4,8 @@ import { notFound } from 'next/navigation';
 import { getPostBySlug, getAllPosts } from '@/lib/sanity';
 import { fallbackPosts, getFallbackPostBySlug } from '@/lib/fallback-posts';
 import { SiteHeader, SiteFooter } from '@/components/SiteChrome';
+import TrackView from '@/components/TrackView';
+import { getViewCount } from '@/lib/analytics';
 
 type Props = { params: { slug: string } };
 
@@ -53,10 +55,12 @@ export default async function BlogPostPage({ params }: Props) {
   if (!post) notFound();
 
   const shareText = encodeURIComponent(`${post.title} — The Comforters Blog`);
+  const views = await getViewCount(post.slug);
 
   return (
     <>
       <div className="read-progress" id="read-progress" />
+      <TrackView slug={post.slug} />
       <SiteHeader />
 
       <article className="blog-shell">
@@ -69,6 +73,7 @@ export default async function BlogPostPage({ params }: Props) {
             <span className="meta">
               <strong>{post.authorName}</strong>
               {formatDate(post.publishedAt)} &middot; {post.readTime}
+              {views !== null && <> &middot; {views.toLocaleString()} {views === 1 ? 'read' : 'reads'}</>}
             </span>
           </span>
         </div>
