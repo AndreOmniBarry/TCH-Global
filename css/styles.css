@@ -168,6 +168,7 @@
      the right contrast automatically, no per-element overrides needed. */
   .hero-content {
     position: relative; z-index: 2; padding-block: 64px 40px;
+    text-align: center; display: flex; flex-direction: column; align-items: center;
     --text-high: #ffffff;
     --text-body: #d1d5db;
     --text-faint: #9ca3af;
@@ -178,9 +179,9 @@
   }
   .hero-title { font-size: clamp(2.6rem, 13vw, 4.2rem); line-height: .95; letter-spacing: -.03em; text-transform: uppercase; margin-bottom: 6px; background: linear-gradient(135deg, var(--text-high) 0%, var(--accent-lavender) 60%, var(--accent-cyan) 100%); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 2px 10px rgba(0,0,0,.35)); }
   .hero-subtitle { font-family: var(--font-mono); font-size: .72rem; letter-spacing: .1em; text-transform: uppercase; color: var(--text-faint); margin-bottom: 22px; text-shadow: 0 1px 6px rgba(0,0,0,.25); }
-  .hero-lead { font-size: 1rem; max-width: 360px; margin-bottom: 28px; color: var(--text-body); text-shadow: 0 1px 8px rgba(0,0,0,.3); }
-  .hero-actions { display: flex; flex-direction: column; gap: 12px; margin-bottom: 10px; }
-  .stream-row { display: flex; gap: 10px; }
+  .hero-lead { font-size: 1.1rem; font-weight: 600; max-width: 420px; margin-bottom: 28px; color: var(--text-high); text-shadow: 0 1px 8px rgba(0,0,0,.3); }
+  .hero-actions { display: flex; flex-direction: column; gap: 12px; margin-bottom: 10px; width: 100%; max-width: 360px; }
+  .stream-row { display: flex; gap: 10px; width: 100%; max-width: 360px; }
   .stream-row a { flex: 1; }
   .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 15px 20px; border-radius: var(--radius-control); font-family: var(--font-display); font-weight: 700; font-size: .78rem; letter-spacing: .05em; text-transform: uppercase; border: none; transition: transform .18s ease, filter .18s ease, background-color .4s ease, color .4s ease, border-color .4s ease; }
   .btn-primary { background: linear-gradient(135deg, var(--accent-cyan), var(--accent-lavender)); color: var(--bg-root-alt); box-shadow: var(--shadow-cta); }
