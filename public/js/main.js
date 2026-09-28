@@ -8,6 +8,11 @@
     try { stored = localStorage.getItem('tch-theme'); } catch (e) {}
     var initial = stored === 'dark' ? 'dark' : 'light';
     root.setAttribute('data-theme', initial);
+    // Pages with no site header (e.g. /studio, which is Sanity's own
+    // full-page UI) have no #theme-toggle — this script still loads
+    // globally there, so bail instead of throwing on a null element,
+    // which would otherwise halt every script below this one on that page.
+    if (!toggle) return;
     toggle.dataset.active = initial;
 
     function currentIsDark() {
