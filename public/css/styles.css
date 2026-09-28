@@ -488,3 +488,9 @@
      interfere with clicks. */
   .shape-host { position: relative; overflow: hidden; }
   .shape-mount { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 0; }
+  /* Hero has its own darkening gradient (.hero-stage::after, z-index:1)
+     for text legibility over the photo — shapes need to sit above that
+     overlay (so they're not washed out) but below .hero-content
+     (z-index:2, text/buttons), which DOM order plus equal z-index
+     already resolves correctly. */
+  #hero-shapes { z-index: 2; }

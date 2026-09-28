@@ -2,19 +2,28 @@
 
 import ShapeLayer from './ShapeLayer';
 import FloatingShape from './FloatingShape';
-import { HollowRing, Pill, DottedGrid } from './Shapes';
+import { HollowRing, Pill, DottedGrid, FluidBlob, Polygon } from './Shapes';
 
 export default function HeroShapes() {
   return (
     <ShapeLayer targetId="hero-shapes">
-      <FloatingShape top="8%" right="6%" depth={1.3} rotate={12}>
-        <HollowRing size={130} color="var(--accent-cyan)" strokeWidth={8} style={{ opacity: 0.5 }} />
+      <FloatingShape top="-6%" right="-4%" depth={1.4} rotate={14}>
+        <FluidBlob size={340} color="var(--accent-cyan)" style={{ opacity: 0.55 }} />
       </FloatingShape>
-      <FloatingShape top="62%" right="10%" depth={0.7} rotate={-8}>
-        <DottedGrid size={110} color="var(--accent-violet)" style={{ opacity: 0.6 }} />
+      <FloatingShape top="10%" right="10%" depth={1.6} rotate={18}>
+        <HollowRing size={190} color="var(--accent-lavender)" strokeWidth={18} style={{ opacity: 0.85 }} />
       </FloatingShape>
-      <FloatingShape top="14%" left="5%" depth={0.9} rotate={-6}>
-        <Pill width={120} height={44} color="var(--accent-gold)" style={{ opacity: 0.4 }} />
+      <FloatingShape top="58%" right="4%" depth={0.9} rotate={-10}>
+        <DottedGrid size={150} color="var(--accent-violet)" style={{ opacity: 0.8 }} />
+      </FloatingShape>
+      <FloatingShape top="8%" left="3%" depth={1.1} rotate={-8}>
+        <Pill width={170} height={62} color="var(--accent-gold)" style={{ opacity: 0.65 }} />
+      </FloatingShape>
+      <FloatingShape bottom="10%" left="6%" depth={0.8} rotate={12}>
+        <Polygon size={130} color="var(--accent-cyan)" filled style={{ opacity: 0.6 }} />
+      </FloatingShape>
+      <FloatingShape bottom="4%" left="30%" depth={0.5} rotate={0}>
+        <HollowRing size={80} color="var(--accent-gold)" strokeWidth={12} style={{ opacity: 0.7 }} />
       </FloatingShape>
     </ShapeLayer>
   );
