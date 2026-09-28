@@ -13,7 +13,7 @@ type ShapeProps = {
   style?: React.CSSProperties;
 };
 
-export function HollowRing({ size = 120, color = 'var(--accent-cyan)', strokeWidth = 10, className, style }: ShapeProps) {
+export function HollowRing({ size = 120, color = 'var(--accent-cyan)', strokeWidth = 16, className, style }: ShapeProps) {
   return (
     <svg
       width={size}
@@ -53,10 +53,33 @@ export function DottedGrid({ size = 140, color = 'var(--accent-violet)', classNa
   );
 }
 
-export function Polygon({ size = 100, color = 'var(--accent-lavender)', className, style }: ShapeProps) {
+export function Polygon({ size = 100, color = 'var(--accent-lavender)', className, style, filled = false }: ShapeProps & { filled?: boolean }) {
   return (
     <svg width={size} height={size} viewBox="0 0 100 100" className={className} style={style} aria-hidden="true">
-      <polygon points="50,4 96,36 78,92 22,92 4,36" fill="none" stroke={color} strokeWidth="7" strokeLinejoin="round" />
+      <polygon
+        points="50,4 96,36 78,92 22,92 4,36"
+        fill={filled ? color : 'none'}
+        stroke={color}
+        strokeWidth={filled ? 0 : 7}
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+/** An organic, irregular blob (not a perfect circle) — the "fluid blob"
+ * shape from the Neo-Memphis spec. Solid fill, meant to be bold and
+ * visible rather than a subtle background wash (that's what .blob-field
+ * already does elsewhere on the site — this is a different, more
+ * graphic/illustrative element). */
+export function FluidBlob({ size = 200, color = 'var(--accent-cyan)', className, style }: ShapeProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 200 200" className={className} style={style} aria-hidden="true">
+      <path
+        fill={color}
+        d="M45.4,-59.4C58.6,-49.8,68.5,-35.1,72.8,-18.7C77.1,-2.3,75.8,15.9,68.2,30.8C60.6,45.8,46.7,57.6,31.1,64.5C15.5,71.5,-1.8,73.7,-18.9,70.3C-36,66.9,-52.9,57.9,-63.6,44.1C-74.3,30.3,-78.8,11.6,-76.4,-5.9C-74,-23.4,-64.7,-39.7,-51.6,-49.6C-38.5,-59.5,-21.5,-63,-3.7,-58.4C14.1,-53.9,32.2,-69,45.4,-59.4Z"
+        transform="translate(100 100)"
+      />
     </svg>
   );
 }
