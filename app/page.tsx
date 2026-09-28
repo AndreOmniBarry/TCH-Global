@@ -2,6 +2,8 @@ import LibrarySection from '@/components/LibrarySection';
 import AnnouncementsSection from '@/components/AnnouncementsSection';
 import EventsSection from '@/components/EventsSection';
 import TestimoniesSection from '@/components/TestimoniesSection';
+import HeroShapes from '@/components/decor/HeroShapes';
+import AboutChurchShapes from '@/components/decor/AboutChurchShapes';
 
 // This page bridges the original hand-authored static homepage into
 // Next.js. Most of the markup below is an exact, mechanically-extracted
@@ -50,8 +52,9 @@ const HOME_HTML_BEFORE_LIBRARY = `
 <section class="hero-stage">
   <div class="hero-bg-photo" data-speed="0.22" role="img" aria-label="Worship service at TCH Global with congregation raising hands"></div>
   <div class="hero-giant-text" data-speed="0.34">TCH</div>
+  <div class="shape-mount" id="hero-shapes"></div>
   <div class="hero-content container">
-    <h1 class="hero-title">TCH Global</h1>
+    <h1 class="hero-title">TCH <em>Global</em></h1>
     <p class="hero-subtitle">The Comforters House Global</p>
     <p class="hero-lead">Giving Comfort to Your Living.</p>
     <div class="hero-actions">
@@ -65,7 +68,8 @@ const HOME_HTML_BEFORE_LIBRARY = `
   </div>
 </section>
 
-<section class="section pop-stage" id="about-church">
+<section class="section pop-stage shape-host" id="about-church">
+  <div class="shape-mount" id="about-shapes"></div>
   <div class="container section-duo">
     <div class="section-header pop">
       <span class="eyebrow">Word &amp; Faith</span>
@@ -356,6 +360,8 @@ export default async function HomePage() {
   return (
     <>
       <div dangerouslySetInnerHTML={{ __html: HOME_HTML_BEFORE_LIBRARY }} />
+      <HeroShapes />
+      <AboutChurchShapes />
       <LibrarySection />
       <AnnouncementsSection />
       <div dangerouslySetInnerHTML={{ __html: HOME_HTML_AFTER_LIBRARY }} />

@@ -229,7 +229,30 @@
     --glass-fill-high: rgba(255, 255, 255, .14);
     --glass-fill-hover: rgba(255, 255, 255, .22);
   }
-  .hero-title { font-size: clamp(2.6rem, 13vw, 4.2rem); line-height: .95; letter-spacing: -.03em; text-transform: uppercase; margin-bottom: 6px; background: linear-gradient(135deg, var(--text-high) 0%, var(--accent-lavender) 60%, var(--accent-cyan) 100%); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 2px 10px rgba(0,0,0,.35)); }
+  /* Syne tops out at weight 800 — no heavier cut exists to load. The
+     stacked text-shadow copies below fake extra boldness by thickening
+     the glyph silhouette (a standard technique: text-shadow draws
+     around the glyph outline independent of the transparent gradient
+     fill, so it reads as a heavier weight without needing a font file
+     that doesn't exist). */
+  .hero-title {
+    font-size: clamp(3rem, 15vw, 5.6rem);
+    line-height: .92;
+    letter-spacing: -.035em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    background: linear-gradient(135deg, var(--text-high) 0%, var(--accent-lavender) 60%, var(--accent-cyan) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    filter: drop-shadow(0 2px 10px rgba(0,0,0,.35));
+    text-shadow:
+      0.7px 0 0 var(--text-high), -0.7px 0 0 var(--text-high),
+      0 0.7px 0 var(--text-high), 0 -0.7px 0 var(--text-high),
+      1.4px 0 0 var(--text-high), -1.4px 0 0 var(--text-high),
+      0.9px 0.9px 0 var(--text-high), -0.9px -0.9px 0 var(--text-high);
+  }
+  .hero-title em { font-style: italic; }
   .hero-subtitle { font-family: var(--font-mono); font-size: .72rem; letter-spacing: .1em; text-transform: uppercase; color: var(--text-faint); margin-bottom: 22px; text-shadow: 0 1px 6px rgba(0,0,0,.25); }
   .hero-lead { font-size: 1.1rem; font-weight: 600; max-width: 420px; margin-bottom: 28px; color: var(--text-high); text-shadow: 0 1px 8px rgba(0,0,0,.3); }
   .hero-actions { display: flex; flex-direction: column; gap: 12px; margin-bottom: 10px; width: 100%; max-width: 360px; }
@@ -455,3 +478,13 @@
     .main-nav ul { flex-direction: column; gap: 4px; }
     .main-nav a { display: block; padding: 10px 0; }
   }
+
+  /* Neo-Memphis floating shapes — opt-in only, new classes, nothing
+     existing is touched. .shape-host gives a section a positioning
+     context for its .shape-mount (portal target for FloatingShape
+     components); .hero-stage already had position:relative so it
+     doesn't need the host class. Shapes are decorative and clipped to
+     their section so they never spill into neighboring content or
+     interfere with clicks. */
+  .shape-host { position: relative; overflow: hidden; }
+  .shape-mount { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 0; }
