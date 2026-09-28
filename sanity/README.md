@@ -68,6 +68,11 @@ directly, since there's no additional review step before it's live.
 - **Announcement**: title, body, flyer image, start/end dates, link —
   ready for the "upload flyers/programs" feature once we build the
   homepage section that reads from it.
+- **Event**: title, description, start/end date-time, location, flyer
+  image, link — powers the "Upcoming Events" list on the homepage
+  (right under Service Days). Add one in the Studio and it appears
+  automatically, soonest first; it disappears on its own once its end
+  date passes (or its start date, if no end date is set).
 
 ## What this does NOT include yet
 

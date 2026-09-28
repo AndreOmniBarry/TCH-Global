@@ -114,3 +114,36 @@ export async function getAnnouncements(): Promise<Announcement[] | null> {
     return null;
   }
 }
+
+export type ChurchEvent = {
+  _id: string;
+  title: string;
+  description: string | null;
+  startsAt: string;
+  endsAt: string | null;
+  location: string | null;
+  flyerImage: string | null;
+  link: string | null;
+};
+
+// Only events that haven't ended yet (or have no end date), soonest first.
+const EVENTS_QUERY = `*[_type == "event" && (endsAt > now() || (!defined(endsAt) && startsAt > now()))] | order(startsAt asc) {
+  _id,
+  title,
+  description,
+  startsAt,
+  endsAt,
+  location,
+  "flyerImage": flyerImage.asset->url,
+  link
+}`;
+
+export async function getUpcomingEvents(): Promise<ChurchEvent[] | null> {
+  if (!sanityClient) return null;
+  try {
+    return await sanityClient.fetch(EVENTS_QUERY);
+  } catch (err) {
+    console.error('Sanity fetch failed, no events shown:', err);
+    return null;
+  }
+}

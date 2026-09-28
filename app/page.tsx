@@ -1,5 +1,6 @@
 import LibrarySection from '@/components/LibrarySection';
 import AnnouncementsSection from '@/components/AnnouncementsSection';
+import EventsSection from '@/components/EventsSection';
 
 // This page bridges the original hand-authored static homepage into
 // Next.js. Most of the markup below is an exact, mechanically-extracted
@@ -192,14 +193,11 @@ const HOME_HTML_AFTER_LIBRARY = `<section class="section pop-stage" id="pastor-s
       <p style="font-size:.82rem;margin:4px 0 8px;">45 Edosomwan Street, Ikpoba Hill, Benin City</p>
       <a href="https://www.google.com/maps?q=6.353611,5.6975" target="_blank" rel="noopener" class="btn btn-ghost btn-sm" style="width:100%;">Get Directions</a>
     </div>
-
-    <div class="section-header pop" style="margin-top:40px;"><span class="eyebrow">Calendar</span><h2>Upcoming Events</h2></div>
-    <div class="gather-list pop">
-      <div class="gather-row"><div><div class="gather-name">Events calendar coming soon</div><div class="gather-place">Conferences, revivals &amp; outreach days will be listed here</div></div></div>
-    </div>
   </div>
 </section>
+`;
 
+const HOME_HTML_EVENTS_TO_MEDIA = `
 <section class="section pop-stage" id="media">
   <div class="container">
     <div class="section-header pop"><span class="eyebrow">Media &amp; Streaming</span><h2>Watch &amp; Listen</h2><p>Our services stream live and are archived here shortly after.</p></div>
@@ -382,6 +380,8 @@ export default async function HomePage() {
       <LibrarySection />
       <AnnouncementsSection />
       <div dangerouslySetInnerHTML={{ __html: HOME_HTML_AFTER_LIBRARY }} />
+      <EventsSection />
+      <div dangerouslySetInnerHTML={{ __html: HOME_HTML_EVENTS_TO_MEDIA }} />
     </>
   );
 }
