@@ -64,4 +64,22 @@ export const announcement = {
   ],
 };
 
-export const schemaTypes = [post, author, announcement];
+export const event = {
+  name: 'event',
+  title: 'Event',
+  type: 'document',
+  fields: [
+    { name: 'title', title: 'Title', type: 'string', validation: (R: any) => R.required() },
+    { name: 'description', title: 'Description', type: 'text', rows: 3 },
+    { name: 'startsAt', title: 'Starts At', type: 'datetime', validation: (R: any) => R.required() },
+    { name: 'endsAt', title: 'Ends At (optional)', type: 'datetime' },
+    { name: 'location', title: 'Location', type: 'string', description: 'e.g. "Main Auditorium" or "Grace Dome Church" — leave blank to just show "TCH Global".' },
+    { name: 'flyerImage', title: 'Flyer Image (optional)', type: 'image', options: { hotspot: true } },
+    { name: 'link', title: 'Link (optional)', type: 'url', description: 'RSVP page, ticket link, or more-info page.' },
+  ],
+  orderings: [
+    { title: 'Start Date, Soonest First', name: 'startsAtAsc', by: [{ field: 'startsAt', direction: 'asc' }] },
+  ],
+};
+
+export const schemaTypes = [post, author, announcement, event];
