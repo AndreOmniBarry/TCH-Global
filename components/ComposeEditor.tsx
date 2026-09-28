@@ -14,6 +14,7 @@ import { useMemo, useRef, useState } from 'react';
 // __underline__          -> <u>
 // > Pull quote text     -> <blockquote class="pull-quote">
 // [[bible:John 3:16]]    -> tappable Bible verse reference
+// ![alt text](url)       -> image (figure.post-image, matches published posts)
 // blank line             -> paragraph break
 function parseToHtml(source: string): string {
   const blocks = source.split(/\n\s*\n/).map((b) => b.trim()).filter(Boolean);
@@ -25,8 +26,12 @@ function parseToHtml(source: string): string {
       .replace(/__(.+?)__/g, '<u>$1</u>')
       .replace(/\*(.+?)\*/g, '<em>$1</em>');
 
+  const imageMatch = (block: string) => block.match(/^!\[([^\]]*)\]\(([^)]+)\)$/);
+
   return blocks
     .map((block) => {
+      const img = imageMatch(block);
+      if (img) return `<figure class="post-image"><img src="${img[2]}" alt="${img[1]}" loading="lazy"></figure>`;
       if (block.startsWith('### ')) return `<h3>${inline(block.slice(4))}</h3>`;
       if (block.startsWith('## ')) return `<h2>${inline(block.slice(3))}</h2>`;
       if (block.startsWith('> ')) return `<blockquote class="pull-quote">${inline(block.slice(2))}</blockquote>`;
@@ -65,7 +70,29 @@ export default function ComposeEditor() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const previewHtml = useMemo(() => parseToHtml(body), [body]);
-  const plainText = useMemo(() => body.replace(/\[\[bible:[^\]]+\]\]/g, '').replace(/[*_>#]/g, ''), [body]);
+  const plainText = useMemo(
+    () => body.replace(/\[\[bible:[^\]]+\]\]/g, '').replace(/!\[[^\]]*\]\([^)]+\)/g, '').replace(/[*_>#]/g, ''),
+    [body]
+  );
+
+  function insertImage() {
+    const el = textareaRef.current;
+    if (!el) return;
+    const url = window.prompt('Image URL (paste a link to an already-hosted photo):');
+    if (!url || !url.trim()) return;
+    const alt = window.prompt('Short description of the image (for accessibility):') || '';
+    const markdown = `![${alt.trim()}](${url.trim()})`;
+    const { selectionStart, value } = el;
+    const needsLeadingBreak = selectionStart > 0 && value[selectionStart - 1] !== '\n';
+    const insertText = `${needsLeadingBreak ? '\n\n' : ''}${markdown}\n\n`;
+    const next = value.slice(0, selectionStart) + insertText + value.slice(selectionStart);
+    setBody(next);
+    const cursorPos = selectionStart + insertText.length;
+    requestAnimationFrame(() => {
+      el.focus();
+      el.setSelectionRange(cursorPos, cursorPos);
+    });
+  }
 
   function applyFormat(action: (typeof TOOLBAR_ACTIONS)[number]) {
     const el = textareaRef.current;
@@ -148,6 +175,9 @@ export default function ComposeEditor() {
               {action.label}
             </button>
           ))}
+          <button type="button" className="btn btn-ghost btn-sm" onClick={insertImage}>
+            Image
+          </button>
         </div>
 
         <div style={{ display: 'grid', gap: 20, gridTemplateColumns: '1fr' }} className="compose-grid">
