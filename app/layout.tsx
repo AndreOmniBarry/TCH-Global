@@ -31,6 +31,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body>
+        <div className="blob-field" aria-hidden="true">
+          <div className="blob blob-1" data-speed="0.04" />
+          <div className="blob blob-2" data-speed="-0.06" />
+          <div className="blob blob-3" data-speed="0.03" />
+          <div className="blob blob-4" data-speed="-0.05" />
+        </div>
         {children}
         <Script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
           integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
