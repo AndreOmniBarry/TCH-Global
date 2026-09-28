@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { getVisitorId } from '@/lib/visitor-id';
 
 type Props = {
@@ -44,21 +45,34 @@ export default function VideoCard({ id, title, thumbnail, url, isLive }: Props) 
         )}
       </div>
 
-      {playing && (
-        <div className="video-lightbox" onClick={() => setPlaying(false)}>
-          <div className="video-lightbox-inner" onClick={(e) => e.stopPropagation()}>
-            <button type="button" className="video-lightbox-close" onClick={() => setPlaying(false)} aria-label="Close video">
-              &times;
-            </button>
-            <iframe
-              src={`https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0`}
-              title={title}
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            />
-          </div>
-        </div>
-      )}
+      {playing &&
+        typeof document !== 'undefined' &&
+        createPortal(
+          // Rendered via portal directly on <body> — the resource row this
+          // card lives in has the .pop scroll-animation class, which gets a
+          // CSS transform applied by main.js. A transform on any ancestor
+          // creates a new containing block for position:fixed descendants,
+          // which was silently confining this "full-screen" lightbox to
+          // that row's bounds instead of the actual viewport.
+          <div className="video-lightbox" onClick={() => setPlaying(false)}>
+            <div className="video-lightbox-inner" onClick={(e) => e.stopPropagation()}>
+              <button type="button" className="video-lightbox-close" onClick={() => setPlaying(false)} aria-label="Close video">
+                &times;
+              </button>
+              {/* No autoplay: most browsers (Chrome included) silently
+                  block autoplay with sound, which left this frozen on the
+                  video's first frame with no obvious way to start it.
+                  YouTube's own play button is the reliable path. */}
+              <iframe
+                src={`https://www.youtube-nocookie.com/embed/${id}?rel=0`}
+                title={title}
+                allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
+          </div>,
+          document.body
+        )}
 
       <style>{`
         .video-lightbox {
