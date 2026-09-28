@@ -70,8 +70,8 @@ const HOME_HTML_BEFORE_LIBRARY = `
       <a href="#media" class="btn btn-ghost">Watch a Message</a>
     </div>
     <div class="stream-row">
-      <a href="https://www.youtube.com" class="btn btn-ghost btn-sm" target="_blank" rel="noopener"><svg class="icon-play" viewBox="0 0 24 24" width="12" height="12" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg> YouTube</a>
-      <a href="https://www.facebook.com" class="btn btn-ghost btn-sm" target="_blank" rel="noopener"><svg class="icon-play" viewBox="0 0 24 24" width="12" height="12" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg> Facebook</a>
+      <a href="https://www.youtube.com" class="btn btn-ghost btn-sm btn-youtube" target="_blank" rel="noopener"><svg class="icon-play" viewBox="0 0 24 24" width="12" height="12" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg> YouTube</a>
+      <a href="https://www.facebook.com" class="btn btn-ghost btn-sm btn-facebook" target="_blank" rel="noopener"><svg class="icon-play" viewBox="0 0 24 24" width="12" height="12" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg> Facebook</a>
     </div>
   </div>
 </section>
@@ -197,9 +197,9 @@ const HOME_HTML_EVENTS_TO_MEDIA = `
   <div class="container">
     <div class="section-header pop"><span class="eyebrow">Media &amp; Streaming</span><h2>Watch &amp; Listen</h2><p>Our services stream live and are archived here shortly after.</p></div>
     <div class="stream-row pop">
-      <a href="https://www.youtube.com" target="_blank" rel="noopener" class="btn btn-primary" style="flex:1;"><svg class="icon-play" viewBox="0 0 24 24" width="12" height="12" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg> YouTube Channel</a>
-      <a href="https://www.facebook.com" target="_blank" rel="noopener" class="btn btn-ghost" style="flex:1;"><svg class="icon-play" viewBox="0 0 24 24" width="12" height="12" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg> Facebook Live</a>
-      <a href="https://open.spotify.com" target="_blank" rel="noopener" class="btn btn-ghost" style="flex:1;"><svg class="icon-play" viewBox="0 0 24 24" width="12" height="12" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg> Spotify</a>
+      <a href="https://www.youtube.com" target="_blank" rel="noopener" class="btn btn-primary btn-youtube" style="flex:1;"><svg class="icon-play" viewBox="0 0 24 24" width="12" height="12" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg> YouTube Channel</a>
+      <a href="https://www.facebook.com" target="_blank" rel="noopener" class="btn btn-ghost btn-facebook" style="flex:1;"><svg class="icon-play" viewBox="0 0 24 24" width="12" height="12" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg> Facebook Live</a>
+      <a href="https://open.spotify.com" target="_blank" rel="noopener" class="btn btn-ghost btn-spotify" style="flex:1;"><svg class="icon-play" viewBox="0 0 24 24" width="12" height="12" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg> Spotify</a>
     </div>
     <p style="font-size:.72rem;color:var(--text-faint);margin-top:12px;font-family:var(--font-mono);">Messages are also available as a podcast on Spotify.</p>
   </div>

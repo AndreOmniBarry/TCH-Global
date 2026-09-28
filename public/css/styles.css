@@ -293,6 +293,21 @@
   .btn-primary:hover { filter: brightness(1.08); transform: scale(1.02); }
   .btn-ghost { --liquid-color: var(--glass-fill-hover); }
   .btn-ghost:hover { border-color: var(--border-cyan-glow); }
+
+  /* Brand-colored liquid fill for social/platform buttons — real brand
+     colors (not theme accents), same fill-on-scroll mechanic as every
+     other button. White text/icon at all times rather than the usual
+     theme-dependent --text-high, since --text-high is near-black in
+     light mode and would lose contrast against a saturated red/blue
+     fill once it's mostly filled. */
+  .btn-youtube { --liquid-color: #ff0000; color: #fff; border-color: color-mix(in srgb, #ff0000 45%, var(--border-glass-strong)); }
+  .btn-youtube:hover { border-color: #ff0000; }
+  .btn-facebook { --liquid-color: #1877f2; color: #fff; border-color: color-mix(in srgb, #1877f2 45%, var(--border-glass-strong)); }
+  .btn-facebook:hover { border-color: #1877f2; }
+  .btn-spotify { --liquid-color: #1db954; color: #fff; border-color: color-mix(in srgb, #1db954 45%, var(--border-glass-strong)); }
+  .btn-spotify:hover { border-color: #1db954; }
+  .btn-instagram { --liquid-color: linear-gradient(135deg, #f58529, #dd2a7b, #8134af, #515bd4); color: #fff; border-color: color-mix(in srgb, #dd2a7b 45%, var(--border-glass-strong)); }
+  .btn-instagram:hover { border-color: #dd2a7b; }
   @media (prefers-reduced-motion: reduce) {
     .btn::before { clip-path: inset(0 0 0 0); }
   }
@@ -430,7 +445,11 @@
   .footer-col li { margin-bottom: 10px; }
   .footer-col a:hover { color: var(--accent-cyan); }
   .social-row { display: flex; gap: 10px; margin-top: 14px; }
-  .social-row a { width: 34px; height: 34px; border-radius: 50%; background: var(--glass-fill-high); border: 1px solid var(--border-glass); display: flex; align-items: center; justify-content: center; font-size: .8rem; color: var(--text-high); }
+  .social-row a { width: 34px; height: 34px; border-radius: 50%; background: var(--glass-fill-high); border: 1px solid var(--border-glass); display: flex; align-items: center; justify-content: center; font-size: .8rem; color: var(--text-high); transition: background .25s ease, border-color .25s ease, color .25s ease, transform .18s ease; }
+  .social-row a:hover { transform: scale(1.08); color: #fff; }
+  .social-row a[aria-label="Facebook"]:hover { background: #1877f2; border-color: #1877f2; }
+  .social-row a[aria-label="YouTube"]:hover { background: #ff0000; border-color: #ff0000; }
+  .social-row a[aria-label="Instagram"]:hover { background: linear-gradient(135deg, #f58529, #dd2a7b, #8134af, #515bd4); border-color: #dd2a7b; }
   .footer-bottom { border-top: 1px solid var(--border-glass); padding-top: 20px; text-align: center; font-size: .78rem; color: var(--text-faint); font-family: var(--font-mono); }
 
   /* Pop-up book depth: transform recomputed every scroll frame from live
