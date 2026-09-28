@@ -66,7 +66,7 @@ const HOME_HTML_BEFORE_LIBRARY = `
 </section>
 
 <section class="section pop-stage" id="about-church">
-  <div class="container">
+  <div class="container section-duo">
     <div class="section-header pop">
       <span class="eyebrow">Word &amp; Faith</span>
       <h2>Beyond Walls.<br><span class="accent">Into Light.</span></h2>
@@ -88,7 +88,7 @@ const HOME_HTML_BEFORE_LIBRARY = `
 `;
 
 const HOME_HTML_AFTER_LIBRARY = `<section class="section pop-stage" id="pastor-section">
-  <div class="container">
+  <div class="container section-duo">
     <div class="pastor-card pop">
       <div class="pastor-portrait"><img src="/images/pastor-portrait.webp" alt="Portrait of Pastor Uzor Echiejile"></div>
       <div class="pastor-role">Global Lead Pastor</div>
@@ -190,7 +190,7 @@ const HOME_HTML_EVENTS_TO_MEDIA = `
 </section>
 
 <section class="section pop-stage" id="volunteer">
-  <div class="container">
+  <div class="container section-duo">
     <div class="section-header pop">
       <span class="eyebrow">Serve</span>
       <h2>Join the Workforce</h2>
@@ -222,7 +222,7 @@ const HOME_HTML_EVENTS_TO_MEDIA = `
 </section>
 
 <section class="section pop-stage" id="contact">
-  <div class="container">
+  <div class="container section-duo section-duo--header-top">
     <div class="section-header pop"><span class="eyebrow">Prayer</span><h2>Need Prayer Right Now?</h2></div>
     <div class="prayer-card pop">
       <p style="font-size:.85rem;color:var(--text-muted);margin-bottom:16px;">Our pastoral team reads and prays over every request submitted here.</p>
@@ -246,7 +246,7 @@ const HOME_HTML_EVENTS_TO_MEDIA = `
 </section>
 
 <section class="section pop-stage" id="join">
-  <div class="container">
+  <div class="container section-duo">
     <div class="section-header pop"><span class="eyebrow">Membership</span><h2>Join Us</h2><p>Already part of the family and ready to take the next step? Start a membership conversation with our pastoral team here.</p></div>
     <div class="join-card pop">
       <p style="font-size:.88rem;color:var(--text-body);margin-bottom:16px;">Tell us a bit about yourself and someone from our membership team will follow up about next steps, including baptism and membership class.</p>
@@ -266,7 +266,7 @@ const HOME_HTML_EVENTS_TO_MEDIA = `
 </section>
 
 <section class="section pop-stage" id="give">
-  <div class="container">
+  <div class="container section-duo">
     <div class="section-header pop">
       <span class="eyebrow">Generous Stewardship</span>
       <h2>Give</h2>
