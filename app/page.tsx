@@ -1,6 +1,7 @@
 import LibrarySection from '@/components/LibrarySection';
 import AnnouncementsSection from '@/components/AnnouncementsSection';
 import EventsSection from '@/components/EventsSection';
+import TestimoniesSection from '@/components/TestimoniesSection';
 
 // This page bridges the original hand-authored static homepage into
 // Next.js. Most of the markup below is an exact, mechanically-extracted
@@ -107,31 +108,9 @@ const HOME_HTML_AFTER_LIBRARY = `<section class="section pop-stage" id="pastor-s
     </a>
   </div>
 </section>
+`;
 
-<section class="section pop-stage" id="testimonies">
-  <div class="container">
-    <div class="section-header pop">
-      <span class="eyebrow">Changed Lives</span>
-      <h2>Testimonies</h2>
-      <p>Real stories from our church family — placeholders below, ready to be replaced with real testimonies.</p>
-    </div>
-    <div class="testimony-grid pop">
-      <div class="testimony-card">
-        <p class="testimony-quote">&ldquo;Testimony placeholder — share how God has moved in your life through TCH Global.&rdquo;</p>
-        <div class="testimony-name">Member Name<span>Placeholder</span></div>
-      </div>
-      <div class="testimony-card">
-        <p class="testimony-quote">&ldquo;Testimony placeholder — share how God has moved in your life through TCH Global.&rdquo;</p>
-        <div class="testimony-name">Member Name<span>Placeholder</span></div>
-      </div>
-      <div class="testimony-card">
-        <p class="testimony-quote">&ldquo;Testimony placeholder — share how God has moved in your life through TCH Global.&rdquo;</p>
-        <div class="testimony-name">Member Name<span>Placeholder</span></div>
-      </div>
-    </div>
-  </div>
-</section>
-
+const HOME_HTML_TESTIMONIES_TO_EVENTS = `
 <section class="section pop-stage" id="blog">
   <div class="container">
     <div class="section-header pop">
@@ -380,6 +359,8 @@ export default async function HomePage() {
       <LibrarySection />
       <AnnouncementsSection />
       <div dangerouslySetInnerHTML={{ __html: HOME_HTML_AFTER_LIBRARY }} />
+      <TestimoniesSection />
+      <div dangerouslySetInnerHTML={{ __html: HOME_HTML_TESTIMONIES_TO_EVENTS }} />
       <EventsSection />
       <div dangerouslySetInnerHTML={{ __html: HOME_HTML_EVENTS_TO_MEDIA }} />
     </>

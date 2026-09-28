@@ -73,6 +73,13 @@ directly, since there's no additional review step before it's live.
   (right under Service Days). Add one in the Studio and it appears
   automatically, soonest first; it disappears on its own once its end
   date passes (or its start date, if no end date is set).
+- **Testimony**: name, testimony text, optional photo, date. Members
+  submit through the form on the Testimonies section of the homepage —
+  those submissions land in Vercel KV, viewable at `/admin/submissions`
+  (**not** published automatically). To actually publish one, create a
+  new Testimony document here in the Studio with their name and story —
+  same two-step flow as `/write`: draft/submit, then a real person
+  publishes it.
 
 ## What this does NOT include yet
 
