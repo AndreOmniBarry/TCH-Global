@@ -4,6 +4,14 @@ import EventsSection from '@/components/EventsSection';
 import TestimoniesSection from '@/components/TestimoniesSection';
 import HeroShapes from '@/components/decor/HeroShapes';
 import AboutChurchShapes from '@/components/decor/AboutChurchShapes';
+import PastorShapes from '@/components/decor/PastorShapes';
+import BlogShapes from '@/components/decor/BlogShapes';
+import ServiceShapes from '@/components/decor/ServiceShapes';
+import MediaShapes from '@/components/decor/MediaShapes';
+import VolunteerShapes from '@/components/decor/VolunteerShapes';
+import ContactShapes from '@/components/decor/ContactShapes';
+import JoinShapes from '@/components/decor/JoinShapes';
+import GiveShapes from '@/components/decor/GiveShapes';
 
 // This page bridges the original hand-authored static homepage into
 // Next.js. Most of the markup below is an exact, mechanically-extracted
@@ -91,7 +99,8 @@ const HOME_HTML_BEFORE_LIBRARY = `
 
 `;
 
-const HOME_HTML_AFTER_LIBRARY = `<section class="section pop-stage" id="pastor-section">
+const HOME_HTML_AFTER_LIBRARY = `<section class="section pop-stage shape-host" id="pastor-section">
+  <div class="shape-mount" id="pastor-shapes"></div>
   <div class="container section-duo">
     <div class="pastor-card pop">
       <div class="pastor-portrait"><img src="/images/pastor-portrait.webp" alt="Portrait of Pastor Uzor Echiejile"></div>
@@ -115,7 +124,8 @@ const HOME_HTML_AFTER_LIBRARY = `<section class="section pop-stage" id="pastor-s
 `;
 
 const HOME_HTML_TESTIMONIES_TO_EVENTS = `
-<section class="section pop-stage" id="blog">
+<section class="section pop-stage shape-host" id="blog">
+  <div class="shape-mount" id="blog-shapes"></div>
   <div class="container">
     <div class="section-header pop">
       <span class="eyebrow">The Comforters Blog</span>
@@ -157,7 +167,8 @@ const HOME_HTML_TESTIMONIES_TO_EVENTS = `
   </div>
 </section>
 
-<section class="section pop-stage" id="service">
+<section class="section pop-stage shape-host" id="service">
+  <div class="shape-mount" id="service-shapes"></div>
   <div class="container">
     <div class="section-header pop"><span class="eyebrow">Schedule</span><h2>Our Service Days</h2></div>
     <div class="gather-list pop">
@@ -181,7 +192,8 @@ const HOME_HTML_TESTIMONIES_TO_EVENTS = `
 `;
 
 const HOME_HTML_EVENTS_TO_MEDIA = `
-<section class="section pop-stage" id="media">
+<section class="section pop-stage shape-host" id="media">
+  <div class="shape-mount" id="media-shapes"></div>
   <div class="container">
     <div class="section-header pop"><span class="eyebrow">Media &amp; Streaming</span><h2>Watch &amp; Listen</h2><p>Our services stream live and are archived here shortly after.</p></div>
     <div class="stream-row pop">
@@ -193,7 +205,8 @@ const HOME_HTML_EVENTS_TO_MEDIA = `
   </div>
 </section>
 
-<section class="section pop-stage" id="volunteer">
+<section class="section pop-stage shape-host" id="volunteer">
+  <div class="shape-mount" id="volunteer-shapes"></div>
   <div class="container section-duo">
     <div class="section-header pop">
       <span class="eyebrow">Serve</span>
@@ -225,7 +238,8 @@ const HOME_HTML_EVENTS_TO_MEDIA = `
   </div>
 </section>
 
-<section class="section pop-stage" id="contact">
+<section class="section pop-stage shape-host" id="contact">
+  <div class="shape-mount" id="contact-shapes"></div>
   <div class="container section-duo section-duo--header-top">
     <div class="section-header pop"><span class="eyebrow">Prayer</span><h2>Need Prayer Right Now?</h2></div>
     <div class="prayer-card pop">
@@ -249,7 +263,8 @@ const HOME_HTML_EVENTS_TO_MEDIA = `
   </div>
 </section>
 
-<section class="section pop-stage" id="join">
+<section class="section pop-stage shape-host" id="join">
+  <div class="shape-mount" id="join-shapes"></div>
   <div class="container section-duo">
     <div class="section-header pop"><span class="eyebrow">Membership</span><h2>Join Us</h2><p>Already part of the family and ready to take the next step? Start a membership conversation with our pastoral team here.</p></div>
     <div class="join-card pop">
@@ -269,7 +284,8 @@ const HOME_HTML_EVENTS_TO_MEDIA = `
   </div>
 </section>
 
-<section class="section pop-stage" id="give">
+<section class="section pop-stage shape-host" id="give">
+  <div class="shape-mount" id="give-shapes"></div>
   <div class="container section-duo">
     <div class="section-header pop">
       <span class="eyebrow">Generous Stewardship</span>
@@ -365,10 +381,18 @@ export default async function HomePage() {
       <LibrarySection />
       <AnnouncementsSection />
       <div dangerouslySetInnerHTML={{ __html: HOME_HTML_AFTER_LIBRARY }} />
+      <PastorShapes />
       <TestimoniesSection />
       <div dangerouslySetInnerHTML={{ __html: HOME_HTML_TESTIMONIES_TO_EVENTS }} />
+      <BlogShapes />
       <EventsSection />
       <div dangerouslySetInnerHTML={{ __html: HOME_HTML_EVENTS_TO_MEDIA }} />
+      <ServiceShapes />
+      <MediaShapes />
+      <VolunteerShapes />
+      <ContactShapes />
+      <JoinShapes />
+      <GiveShapes />
     </>
   );
 }

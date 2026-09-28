@@ -204,6 +204,12 @@
     background-image: url('../images/hero-worship.webp');
     background-size: cover; background-position: center 30%;
     will-change: transform;
+    /* Fades the photo's own edges into .hero-stage's background
+       gradient underneath (which already ends at var(--bg-root),
+       matching the page background) instead of a hard rectangular cut
+       — the photo now blends into the backdrop on all sides. */
+    mask-image: radial-gradient(ellipse 85% 88% at center, black 55%, transparent 100%);
+    -webkit-mask-image: radial-gradient(ellipse 85% 88% at center, black 55%, transparent 100%);
   }
   .hero-stage::before {
     content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none;
@@ -236,9 +242,9 @@
      fill, so it reads as a heavier weight without needing a font file
      that doesn't exist). */
   .hero-title {
-    font-size: clamp(3rem, 15vw, 5.6rem);
-    line-height: .92;
-    letter-spacing: -.035em;
+    font-size: clamp(3.6rem, 18vw, 7.2rem);
+    line-height: .9;
+    letter-spacing: -.04em;
     text-transform: uppercase;
     margin-bottom: 6px;
     background: linear-gradient(135deg, var(--text-high) 0%, var(--accent-lavender) 60%, var(--accent-cyan) 100%);
@@ -247,10 +253,11 @@
     color: transparent;
     filter: drop-shadow(0 2px 10px rgba(0,0,0,.35));
     text-shadow:
-      0.7px 0 0 var(--text-high), -0.7px 0 0 var(--text-high),
-      0 0.7px 0 var(--text-high), 0 -0.7px 0 var(--text-high),
-      1.4px 0 0 var(--text-high), -1.4px 0 0 var(--text-high),
-      0.9px 0.9px 0 var(--text-high), -0.9px -0.9px 0 var(--text-high);
+      1px 0 0 var(--text-high), -1px 0 0 var(--text-high),
+      0 1px 0 var(--text-high), 0 -1px 0 var(--text-high),
+      2px 0 0 var(--text-high), -2px 0 0 var(--text-high),
+      1.3px 1.3px 0 var(--text-high), -1.3px -1.3px 0 var(--text-high),
+      2.6px 0 0 var(--text-high), -2.6px 0 0 var(--text-high);
   }
   .hero-title em { font-style: italic; }
   .hero-subtitle { font-family: var(--font-mono); font-size: .72rem; letter-spacing: .1em; text-transform: uppercase; color: var(--text-faint); margin-bottom: 22px; text-shadow: 0 1px 6px rgba(0,0,0,.25); }
@@ -258,11 +265,37 @@
   .hero-actions { display: flex; flex-direction: column; gap: 12px; margin-bottom: 10px; width: 100%; max-width: 360px; }
   .stream-row { display: flex; gap: 10px; width: 100%; max-width: 360px; }
   .stream-row a { flex: 1; }
-  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 15px 20px; border-radius: var(--radius-control); font-family: var(--font-display); font-weight: 700; font-size: .78rem; letter-spacing: .05em; text-transform: uppercase; border: none; transition: transform .18s ease, filter .18s ease, background-color .4s ease, color .4s ease, border-color .4s ease; }
-  .btn-primary { background: linear-gradient(135deg, var(--accent-cyan), var(--accent-lavender)); color: var(--bg-root-alt); box-shadow: var(--shadow-cta); }
+  /* Liquid fill: buttons start as an outlined/empty container and fill
+     with color from the bottom up as they scroll into view, draining
+     back on scroll-out — driven by --fill (0-100%), set per-button in
+     main.js's existing scroll-progress loop (same engine already
+     driving the .pop reveal effect, just a second computation added to
+     the same rAF frame, no separate loop). */
+  .btn {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 15px 20px; border-radius: var(--radius-control);
+    font-family: var(--font-display); font-weight: 700; font-size: .78rem; letter-spacing: .05em; text-transform: uppercase;
+    background: transparent; border: 1.5px solid var(--border-glass-strong); color: var(--text-high);
+    transition: transform .18s ease, filter .18s ease, border-color .4s ease;
+  }
+  .btn::before {
+    content: '';
+    position: absolute; left: -8%; right: -8%; bottom: -10%; height: 140%;
+    background: var(--liquid-color);
+    clip-path: inset(calc(100% - var(--fill, 0%)) 0 0 0 round 50% 50% 0 0 / 16px 16px 0 0);
+    z-index: -1;
+    pointer-events: none;
+  }
+  .btn-primary { --liquid-color: linear-gradient(135deg, var(--accent-cyan), var(--accent-lavender)); box-shadow: var(--shadow-cta); }
   .btn-primary:hover { filter: brightness(1.08); transform: scale(1.02); }
-  .btn-ghost { background: var(--glass-fill-high); border: 1px solid var(--border-glass-strong); color: var(--text-high); }
-  .btn-ghost:hover { background: var(--glass-fill-hover); border-color: var(--border-cyan-glow); }
+  .btn-ghost { --liquid-color: var(--glass-fill-hover); }
+  .btn-ghost:hover { border-color: var(--border-cyan-glow); }
+  @media (prefers-reduced-motion: reduce) {
+    .btn::before { clip-path: inset(0 0 0 0); }
+  }
   .btn-sm { padding: 12px 14px; font-size: .68rem; }
 
   .section { padding-block: 52px; }
