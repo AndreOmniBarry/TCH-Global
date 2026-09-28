@@ -6,6 +6,7 @@ const REQUIRED_FIELDS: Record<FormType, string[]> = {
   prayer: ['message'],
   join: ['name', 'email'],
   give: ['name', 'email'],
+  testimony: ['name', 'quote'],
 };
 
 function isFormType(value: unknown): value is FormType {

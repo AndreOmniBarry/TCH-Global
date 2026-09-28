@@ -147,3 +147,29 @@ export async function getUpcomingEvents(): Promise<ChurchEvent[] | null> {
     return null;
   }
 }
+
+export type Testimony = {
+  _id: string;
+  name: string;
+  quote: string;
+  image: string | null;
+  submittedAt: string | null;
+};
+
+const TESTIMONIES_QUERY = `*[_type == "testimony"] | order(submittedAt desc) [0...12] {
+  _id,
+  name,
+  quote,
+  "image": image.asset->url,
+  submittedAt
+}`;
+
+export async function getTestimonies(): Promise<Testimony[] | null> {
+  if (!sanityClient) return null;
+  try {
+    return await sanityClient.fetch(TESTIMONIES_QUERY);
+  } catch (err) {
+    console.error('Sanity fetch failed, no testimonies shown:', err);
+    return null;
+  }
+}

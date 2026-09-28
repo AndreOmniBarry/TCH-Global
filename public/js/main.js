@@ -95,6 +95,7 @@
   wireForm('join-form', 'join-done');
   wireForm('give-form', 'give-done');
   wireForm('volunteer-form', 'volunteer-done');
+  wireForm('testimony-form', 'testimony-done');
 
   var newsletterForm = document.getElementById('newsletter-form');
   if (newsletterForm) {

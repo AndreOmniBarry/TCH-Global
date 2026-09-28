@@ -82,4 +82,19 @@ export const event = {
   ],
 };
 
-export const schemaTypes = [post, author, announcement, event];
+export const testimony = {
+  name: 'testimony',
+  title: 'Testimony',
+  type: 'document',
+  fields: [
+    { name: 'name', title: 'Name', type: 'string', description: 'How to credit them, e.g. "Grace A." — full names optional, member\'s call.', validation: (R: any) => R.required() },
+    { name: 'quote', title: 'Testimony', type: 'text', rows: 4, validation: (R: any) => R.required() },
+    { name: 'image', title: 'Photo (optional)', type: 'image', options: { hotspot: true } },
+    { name: 'submittedAt', title: 'Date', type: 'datetime' },
+  ],
+  orderings: [
+    { title: 'Newest First', name: 'submittedAtDesc', by: [{ field: 'submittedAt', direction: 'desc' }] },
+  ],
+};
+
+export const schemaTypes = [post, author, announcement, event, testimony];
