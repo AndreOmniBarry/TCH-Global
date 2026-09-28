@@ -404,6 +404,49 @@
     .hero-content { max-width: 680px; padding-block: 90px; }
     .hero-actions { flex-direction: row; }
     .footer-grid { grid-template-columns: 2fr 1fr 1fr 1.3fr; }
+
+    /* The header's own row needs more room than the 1100px content
+       container — 11 nav items were wrapping to a second line well
+       before the viewport ran out of actual space. */
+    .site-header .container { max-width: 1320px; }
+    .main-nav ul { gap: 13px; }
+    .main-nav a { font-size: .76rem; }
+
+    /* Desktop-only pairing: sections whose container holds exactly an
+       intro block (.section-header) and one paired content block sit
+       side by side instead of stacking with a full empty column next
+       to them — the single biggest desktop layout problem site-wide.
+       Mobile is untouched; this only activates at this breakpoint. */
+    .section-duo {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 56px;
+      align-items: center;
+    }
+    .section-duo > .section-header { margin-bottom: 0; }
+    .section-duo > .section-header p { max-width: 46ch; }
+    /* Second column content shouldn't stay clamped to its old
+       mobile-derived max-width if that leaves it looking small and
+       adrift in its grid cell. */
+    .section-duo .photo-cycle,
+    .section-duo .latest-message,
+    .section-duo .pastor-card,
+    .section-duo .join-card,
+    .section-duo .give-form,
+    .section-duo .prayer-card,
+    .section-duo .contact-card {
+      max-width: 100%;
+      margin-left: 0;
+      margin-right: 0;
+    }
+    /* Contact section pairs Prayer + Contact card — Contact's own
+       margin-top was for mobile stacking, not needed side by side. */
+    .section-duo .contact-card { margin-top: 0 !important; }
+
+    /* Contact has 3 children (header, prayer card, contact card), not
+       the usual 2 — the header spans both columns instead of being
+       treated as one half of the pair. */
+    .section-duo--header-top > .section-header { grid-column: 1 / -1; }
   }
   @media (max-width: 959px) {
     .nav-toggle { display: block; }
