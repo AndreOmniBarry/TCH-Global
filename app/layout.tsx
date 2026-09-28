@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Script from 'next/script';
+import RotatingBackdrop from '@/components/decor/RotatingBackdrop';
 
 export const metadata: Metadata = {
   title: "TCH Global | The Comforter's House Global",
@@ -37,6 +38,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <div className="blob blob-3" data-speed="0.03" />
           <div className="blob blob-4" data-speed="-0.05" />
         </div>
+        <RotatingBackdrop />
         {children}
         <Script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
           integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="

@@ -119,9 +119,12 @@
     var prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     var parallaxLayers = Array.prototype.slice.call(document.querySelectorAll('[data-speed]'));
     var popEls = Array.prototype.slice.call(document.querySelectorAll('.pop'));
+    var btnEls = Array.prototype.slice.call(document.querySelectorAll('.btn'));
 
-    if (prefersReducedMotion || (!parallaxLayers.length && !popEls.length)) {
+    if (prefersReducedMotion || (!parallaxLayers.length && !popEls.length && !btnEls.length)) {
       popEls.forEach(function (el) { el.style.opacity = 1; el.style.transform = 'none'; });
+      // Buttons' filled/empty state under reduced motion is handled
+      // entirely by CSS (prefers-reduced-motion override), not here.
       return;
     }
 
@@ -149,6 +152,20 @@
         el.style.opacity = 0.001 + progress * 0.999;
         el.style.transform =
           'translateY(' + translateY.toFixed(2) + 'px) rotateX(' + rotateX.toFixed(2) + 'deg) scale(' + scale.toFixed(3) + ')';
+      });
+
+      // Liquid-fill buttons: same progress formula as the .pop reveal,
+      // written to --fill (a percentage) which .btn::before reads via
+      // clip-path — fills as a button scrolls into view, drains back on
+      // scroll-out. A faster start/end window than .pop so buttons feel
+      // responsive rather than lagging the section around them.
+      var btnStart = vh * 0.98;
+      var btnEnd = vh * 0.62;
+      btnEls.forEach(function (el) {
+        var rect = el.getBoundingClientRect();
+        var raw = (btnStart - rect.top) / (btnStart - btnEnd);
+        var progress = Math.min(Math.max(raw, 0), 1);
+        el.style.setProperty('--fill', (progress * 100).toFixed(1) + '%');
       });
 
       ticking = false;
