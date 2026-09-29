@@ -199,7 +199,7 @@
     position: absolute; left: 0; right: 0; bottom: 0;
     display: flex; justify-content: center;
     font-family: var(--font-display); font-weight: 800; text-transform: uppercase;
-    font-size: min(19vw, calc(94vw / var(--n, 6)));
+    font-size: min(19vw, calc(82vw / var(--n, 6)));
     line-height: .8; letter-spacing: -.045em; white-space: nowrap;
     transform-origin: 50% 100%;
     perspective: 700px;
