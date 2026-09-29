@@ -12,6 +12,8 @@ import VolunteerShapes from '@/components/decor/VolunteerShapes';
 import ContactShapes from '@/components/decor/ContactShapes';
 import JoinShapes from '@/components/decor/JoinShapes';
 import GiveShapes from '@/components/decor/GiveShapes';
+import SectionTitleStage from '@/components/decor/SectionTitleStage';
+import HeroExtras from '@/components/decor/HeroExtras';
 
 // This page bridges the original hand-authored static homepage into
 // Next.js. Most of the markup below is an exact, mechanically-extracted
@@ -26,6 +28,11 @@ import GiveShapes from '@/components/decor/GiveShapes';
 // data server-side. This is the pattern for migrating the rest: as a
 // section needs real data (events, announcements, testimonies), extract
 // it from the HTML bridge below into its own component, the same way.
+
+const ICON_YOUTUBE = `<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M23 7.2a3 3 0 0 0-2.1-2.1C19 4.6 12 4.6 12 4.6s-7 0-8.9.5A3 3 0 0 0 1 7.2 31 31 0 0 0 .5 12a31 31 0 0 0 .5 4.8 3 3 0 0 0 2.1 2.1c1.9.5 8.9.5 8.9.5s7 0 8.9-.5a3 3 0 0 0 2.1-2.1 31 31 0 0 0 .5-4.8 31 31 0 0 0-.5-4.8zM9.7 15.1V8.9l5.8 3.1z"/></svg>`;
+const ICON_FACEBOOK = `<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M14 8.5V6.6c0-.9.6-1.1 1-1.1h2.6V1.6H14c-4 0-4.9 3-4.9 4.9v2H6.8v4.1h2.3v9.8H14v-9.8h3.3l.4-4.1z"/></svg>`;
+const ICON_INSTAGRAM = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5.5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.3" cy="6.7" r="1.1" fill="currentColor" stroke="none"/></svg>`;
+const ICON_SPOTIFY = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="10.2" stroke-width="1.8"/><path d="M6.9 9.5c3.4-1 7.3-.7 10.3 1M7.5 12.7c2.8-.8 5.9-.5 8.4.9M8.1 15.7c2.2-.6 4.5-.4 6.4.7" stroke-width="1.7"/></svg>`;
 
 const HOME_HTML_BEFORE_LIBRARY = `
 
@@ -61,7 +68,10 @@ const HOME_HTML_BEFORE_LIBRARY = `
   <div class="hero-bg-photo" data-speed="0.22" role="img" aria-label="Worship service at TCH Global with congregation raising hands"></div>
   <div class="hero-giant-text" data-speed="0.34">TCH</div>
   <div class="shape-mount" id="hero-shapes"></div>
+  <div class="hero-spotlight" aria-hidden="true"></div>
+  <div class="hero-cards" id="hero-cards"></div>
   <div class="hero-content container">
+    <div id="hero-chip-mount" class="hero-chip-mount"></div>
     <h1 class="hero-title">TCH <em>Global</em></h1>
     <p class="hero-subtitle">The Comforters House Global</p>
     <p class="hero-lead">Giving Comfort to Your Living.</p>
@@ -70,8 +80,14 @@ const HOME_HTML_BEFORE_LIBRARY = `
       <a href="#media" class="btn btn-ghost">Watch a Message</a>
     </div>
     <div class="stream-row">
-      <a href="https://www.youtube.com" class="btn btn-ghost btn-sm btn-youtube" target="_blank" rel="noopener"><svg class="icon-play" viewBox="0 0 24 24" width="12" height="12" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg> YouTube</a>
-      <a href="https://www.facebook.com" class="btn btn-ghost btn-sm btn-facebook" target="_blank" rel="noopener"><svg class="icon-play" viewBox="0 0 24 24" width="12" height="12" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg> Facebook</a>
+      <a href="https://www.youtube.com" class="btn btn-ghost btn-sm btn-youtube" target="_blank" rel="noopener">${ICON_YOUTUBE} YouTube</a>
+      <a href="https://www.facebook.com" class="btn btn-ghost btn-sm btn-facebook" target="_blank" rel="noopener">${ICON_FACEBOOK} Facebook</a>
+      <a href="https://www.instagram.com" class="btn btn-ghost btn-sm btn-instagram" target="_blank" rel="noopener">${ICON_INSTAGRAM} Instagram</a>
+    </div>
+  </div>
+  <div class="hero-marquee" aria-hidden="true">
+    <div class="hero-marquee-track">
+      ${Array(2).fill('<span>Worship</span><i>✦</i><em>the Word</em><i>✦</i><span>Comfort</span><i>✦</i><em>Prayer</em><i>✦</i><span>Family</span><i>✦</i><em>every Nation</em><i>✦</i>').join('')}
     </div>
   </div>
 </section>
@@ -197,9 +213,9 @@ const HOME_HTML_EVENTS_TO_MEDIA = `
   <div class="container">
     <div class="section-header pop"><span class="eyebrow">Media &amp; Streaming</span><h2>Watch &amp; Listen</h2><p>Our services stream live and are archived here shortly after.</p></div>
     <div class="stream-row pop">
-      <a href="https://www.youtube.com" target="_blank" rel="noopener" class="btn btn-primary btn-youtube" style="flex:1;"><svg class="icon-play" viewBox="0 0 24 24" width="12" height="12" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg> YouTube Channel</a>
-      <a href="https://www.facebook.com" target="_blank" rel="noopener" class="btn btn-ghost btn-facebook" style="flex:1;"><svg class="icon-play" viewBox="0 0 24 24" width="12" height="12" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg> Facebook Live</a>
-      <a href="https://open.spotify.com" target="_blank" rel="noopener" class="btn btn-ghost btn-spotify" style="flex:1;"><svg class="icon-play" viewBox="0 0 24 24" width="12" height="12" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg> Spotify</a>
+      <a href="https://www.youtube.com" target="_blank" rel="noopener" class="btn btn-primary btn-youtube">${ICON_YOUTUBE} YouTube Channel</a>
+      <a href="https://www.facebook.com" target="_blank" rel="noopener" class="btn btn-ghost btn-facebook">${ICON_FACEBOOK} Facebook Live</a>
+      <a href="https://open.spotify.com" target="_blank" rel="noopener" class="btn btn-ghost btn-spotify">${ICON_SPOTIFY} Spotify</a>
     </div>
     <p style="font-size:.72rem;color:var(--text-faint);margin-top:12px;font-family:var(--font-mono);">Messages are also available as a podcast on Spotify.</p>
   </div>
@@ -334,9 +350,10 @@ const HOME_HTML_EVENTS_TO_MEDIA = `
         <h4>TCH Global</h4>
         <p>The Comforter's House Global — a church for every nation, gathering people to know Christ and make Him known.</p>
         <div class="social-row">
-          <a href="https://www.facebook.com" target="_blank" rel="noopener" aria-label="Facebook">f</a>
-          <a href="https://www.youtube.com" target="_blank" rel="noopener" aria-label="YouTube"><svg class="icon-play" viewBox="0 0 24 24" width="12" height="12" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></a>
-          <a href="https://www.instagram.com" target="_blank" rel="noopener" aria-label="Instagram">ig</a>
+          <a href="https://www.facebook.com" target="_blank" rel="noopener" aria-label="Facebook" class="liquid liquid-facebook">${ICON_FACEBOOK}</a>
+          <a href="https://www.youtube.com" target="_blank" rel="noopener" aria-label="YouTube" class="liquid liquid-youtube">${ICON_YOUTUBE}</a>
+          <a href="https://www.instagram.com" target="_blank" rel="noopener" aria-label="Instagram" class="liquid liquid-instagram">${ICON_INSTAGRAM}</a>
+          <a href="https://open.spotify.com" target="_blank" rel="noopener" aria-label="Spotify" class="liquid liquid-spotify">${ICON_SPOTIFY}</a>
         </div>
       </div>
       <div class="footer-col">
@@ -375,8 +392,10 @@ const HOME_HTML_EVENTS_TO_MEDIA = `
 export default async function HomePage() {
   return (
     <>
+      <SectionTitleStage />
       <div dangerouslySetInnerHTML={{ __html: HOME_HTML_BEFORE_LIBRARY }} />
       <HeroShapes />
+      <HeroExtras />
       <AboutChurchShapes />
       <LibrarySection />
       <AnnouncementsSection />

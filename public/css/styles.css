@@ -135,6 +135,94 @@
     .blob-field .blob { will-change: auto; }
   }
 
+  /* Section-title stage (components/decor/SectionTitleStage.tsx): a
+     giant extruded word per section standing between parallax mountain
+     ridges, fixed to the bottom of the viewport behind the content. The
+     front ridge is painted in the page color, so a sinking word reads
+     as being buried in the ground. */
+  .st-stage {
+    --st-opacity: .5;
+    --st-top: var(--accent-violet);
+    --st-bottom: var(--accent-cyan);
+    --st-edge: color-mix(in srgb, var(--accent-violet) 55%, #140b2e);
+    --st-ridge-back: color-mix(in srgb, var(--accent-lavender) 50%, transparent);
+    --st-ridge-mid: color-mix(in srgb, var(--accent-cyan) 38%, var(--bg-root));
+    position: fixed; left: 0; right: 0; bottom: 0;
+    height: clamp(150px, 31vh, 330px);
+    z-index: -1; overflow: hidden; pointer-events: none;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .st-stage {
+      --st-opacity: .62;
+      --st-edge: color-mix(in srgb, var(--accent-violet) 45%, #05030d);
+      --st-ridge-back: color-mix(in srgb, var(--accent-violet) 42%, transparent);
+      --st-ridge-mid: color-mix(in srgb, var(--accent-cyan) 22%, var(--bg-root));
+    }
+  }
+  :root[data-theme="dark"] .st-stage {
+    --st-opacity: .62;
+    --st-edge: color-mix(in srgb, var(--accent-violet) 45%, #05030d);
+    --st-ridge-back: color-mix(in srgb, var(--accent-violet) 42%, transparent);
+    --st-ridge-mid: color-mix(in srgb, var(--accent-cyan) 22%, var(--bg-root));
+  }
+  .st-ridge {
+    position: absolute; left: 0; bottom: 0;
+    width: calc(100% + 1200px);
+    -webkit-mask-size: 1200px 100%; mask-size: 1200px 100%;
+    -webkit-mask-repeat: repeat-x; mask-repeat: repeat-x;
+    will-change: transform;
+  }
+  .st-ridge--back {
+    height: 64%;
+    background: linear-gradient(180deg, var(--st-ridge-back), transparent 95%);
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 200' preserveAspectRatio='none'%3E%3Cpath d='M0 200V112C70 96 120 58 205 52C290 46 318 92 392 88C470 84 520 20 610 18C700 16 742 76 820 80C900 84 950 40 1030 44C1110 48 1160 96 1200 112V200Z'/%3E%3C/svg%3E");
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 200' preserveAspectRatio='none'%3E%3Cpath d='M0 200V112C70 96 120 58 205 52C290 46 318 92 392 88C470 84 520 20 610 18C700 16 742 76 820 80C900 84 950 40 1030 44C1110 48 1160 96 1200 112V200Z'/%3E%3C/svg%3E");
+  }
+  .st-ridge--mid {
+    height: 40%;
+    background: linear-gradient(180deg, var(--st-ridge-mid), var(--bg-root) 85%);
+    opacity: .92;
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 200' preserveAspectRatio='none'%3E%3Cpath d='M0 200V150C90 132 150 104 240 110C330 116 380 150 470 142C560 134 610 92 700 96C790 100 850 146 940 146C1030 146 1100 118 1200 150V200Z'/%3E%3C/svg%3E");
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 200' preserveAspectRatio='none'%3E%3Cpath d='M0 200V150C90 132 150 104 240 110C330 116 380 150 470 142C560 134 610 92 700 96C790 100 850 146 940 146C1030 146 1100 118 1200 150V200Z'/%3E%3C/svg%3E");
+  }
+  .st-ridge--front {
+    height: 26%;
+    background: var(--bg-root);
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 200' preserveAspectRatio='none'%3E%3Cpath d='M0 200V168C100 160 170 138 270 142C370 146 430 172 530 170C630 168 690 136 790 134C890 132 960 166 1060 168C1130 169 1170 164 1200 168V200Z'/%3E%3C/svg%3E");
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 200' preserveAspectRatio='none'%3E%3Cpath d='M0 200V168C100 160 170 138 270 142C370 146 430 172 530 170C630 168 690 136 790 134C890 132 960 166 1060 168C1130 169 1170 164 1200 168V200Z'/%3E%3C/svg%3E");
+  }
+  .st-words { position: absolute; left: 0; right: 0; bottom: 7%; top: 0; opacity: var(--st-opacity); }
+  .st-word {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    display: flex; justify-content: center;
+    font-family: var(--font-display); font-weight: 800; text-transform: uppercase;
+    font-size: min(clamp(4.2rem, 22vw, 17rem), calc(128vw / var(--n, 6)));
+    line-height: .8; letter-spacing: -.045em; white-space: nowrap;
+    transform-origin: 50% 100%;
+    perspective: 700px;
+    will-change: transform;
+  }
+  .st-letter { position: relative; display: inline-block; transform-origin: 50% 100%; }
+  .st-letter::before {
+    content: attr(data-l);
+    position: absolute; left: 0; top: 0; z-index: -1;
+    color: var(--st-edge);
+    text-shadow:
+      0 .008em 0 var(--st-edge), 0 .016em 0 var(--st-edge), 0 .024em 0 var(--st-edge),
+      0 .032em 0 var(--st-edge), 0 .04em 0 var(--st-edge), 0 .048em 0 var(--st-edge),
+      0 .056em 0 var(--st-edge), 0 .11em .14em rgb(0 0 0 / .28);
+  }
+  .st-face {
+    position: relative;
+    background:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .3 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
+      linear-gradient(180deg, rgb(255 255 255 / .38), transparent 42%),
+      linear-gradient(180deg, var(--st-top), var(--st-bottom));
+    -webkit-background-clip: text; background-clip: text;
+    color: transparent;
+  }
+  @media print { .st-stage { display: none; } }
+
   * { box-sizing: border-box; }
   /* The solid page background lives on <html>, not <body>: a negative
      z-index child of body (.blob-field) paints behind body's own
@@ -260,17 +348,130 @@
       2.6px 0 0 var(--text-high), -2.6px 0 0 var(--text-high);
   }
   .hero-title em { font-style: italic; }
+
+  /* Hero enrichment (components/decor/HeroExtras.tsx). */
+  .hero-content { padding-bottom: 112px; transition: transform .2s linear; }
+  .hero-stage--interactive .hero-content {
+    transform:
+      perspective(1200px)
+      rotateX(calc(var(--my, 0) * -2.5deg)) rotateY(calc(var(--mx, 0) * 3.5deg))
+      translate3d(calc(var(--mx, 0) * -8px), calc(var(--my, 0) * -6px), 0);
+  }
+  .hero-spotlight {
+    position: absolute; inset: 0; z-index: 2; pointer-events: none;
+    background: radial-gradient(520px circle at var(--px, 50%) var(--py, 40%), rgb(255 255 255 / .2), transparent 62%);
+    mix-blend-mode: soft-light; opacity: 0; transition: opacity .6s ease;
+  }
+  .hero-stage--interactive:hover .hero-spotlight { opacity: 1; }
+
+  .hero-chip-mount { min-height: 34px; margin-bottom: 18px; display: flex; justify-content: center; }
+  .hero-chip {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 8px 14px 8px 12px; border-radius: 999px;
+    background: rgb(255 255 255 / .1); border: 1px solid rgb(255 255 255 / .22);
+    -webkit-backdrop-filter: blur(14px) saturate(150%); backdrop-filter: blur(14px) saturate(150%);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / .22), 0 10px 30px -14px rgb(0 0 0 / .6);
+    font-size: .72rem; color: #fff; white-space: nowrap;
+    transition: border-color .3s ease, background .3s ease;
+  }
+  .hero-chip:hover { border-color: rgb(255 255 255 / .42); background: rgb(255 255 255 / .16); }
+  .hero-chip--placeholder { width: 280px; height: 34px; }
+  .hero-chip strong { font-weight: 700; }
+  .hero-chip-muted { color: rgb(255 255 255 / .68); }
+  .hero-chip-sep { color: rgb(255 255 255 / .4); }
+  .hero-chip-count {
+    font-family: var(--font-mono); font-size: .68rem; font-variant-numeric: tabular-nums;
+    padding: 3px 8px; margin-left: 2px; border-radius: 999px;
+    background: color-mix(in srgb, var(--accent-cyan) 26%, transparent); color: #e6fbff;
+  }
+  .hero-chip-dot { position: relative; width: 8px; height: 8px; border-radius: 50%; background: var(--accent-cyan); flex-shrink: 0; }
+  .hero-chip-dot::after {
+    content: ''; position: absolute; inset: -4px; border-radius: 50%;
+    border: 2px solid currentColor; color: var(--accent-cyan);
+    animation: hero-pulse 2s ease-out infinite;
+  }
+  .hero-chip--live { border-color: rgb(255 59 48 / .6); background: rgb(255 59 48 / .16); }
+  .hero-chip--live .hero-chip-dot { background: #ff3b30; }
+  .hero-chip--live .hero-chip-dot::after { color: #ff3b30; }
+  @keyframes hero-pulse { from { transform: scale(.6); opacity: .9; } to { transform: scale(1.9); opacity: 0; } }
+  @media (max-width: 480px) { .hero-chip-when, .hero-chip-when + .hero-chip-sep { display: none; } }
+
+  .hero-cards { position: absolute; inset: 0; z-index: 2; pointer-events: none; display: none; }
+  @media (min-width: 1180px) { .hero-cards { display: block; } }
+  .hero-card {
+    position: absolute; pointer-events: auto;
+    width: 232px; padding: 16px 18px; border-radius: 20px;
+    background: linear-gradient(145deg, rgb(255 255 255 / .16), rgb(255 255 255 / .05));
+    border: 1px solid rgb(255 255 255 / .22);
+    -webkit-backdrop-filter: blur(18px) saturate(160%); backdrop-filter: blur(18px) saturate(160%);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / .3), 0 30px 60px -24px rgb(0 0 0 / .65);
+    color: #fff; font-size: .82rem; line-height: 1.45; text-decoration: none;
+    transform: translate3d(calc(var(--mx, 0) * var(--depth, 1) * -16px), calc(var(--my, 0) * var(--depth, 1) * -12px), 0);
+    transition: transform .25s linear, border-color .3s ease;
+    animation: hero-bob 7s ease-in-out infinite;
+  }
+  .hero-card:hover { border-color: rgb(255 255 255 / .45); }
+  .hero-card--a { left: max(3vw, calc(50% - 640px)); top: 24%; rotate: -4deg; }
+  .hero-card--b { right: max(3vw, calc(50% - 640px)); top: 17%; rotate: 3deg; animation-delay: -2.5s; }
+  .hero-card--c { right: max(6vw, calc(50% - 560px)); bottom: 21%; rotate: -2deg; display: flex; align-items: center; gap: 12px; width: auto; animation-delay: -4.5s; }
+  @keyframes hero-bob { 0%, 100% { translate: 0 0; } 50% { translate: 0 -10px; } }
+  .hero-card-eyebrow { display: block; font-family: var(--font-mono); font-size: .62rem; letter-spacing: .12em; text-transform: uppercase; color: var(--accent-cyan); margin-bottom: 8px; }
+  .hero-card-row { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; padding: 6px 0; border-top: 1px solid rgb(255 255 255 / .12); }
+  .hero-card-row strong { font-family: var(--font-display); font-size: 1rem; }
+  .hero-card-row span { color: rgb(255 255 255 / .7); font-size: .76rem; }
+  .hero-card p { margin: 0 0 8px; font-size: .95rem; font-weight: 600; }
+  .hero-card p em { font-style: italic; color: var(--accent-lavender); }
+  .hero-card-ref { font-family: var(--font-mono); font-size: .66rem; color: rgb(255 255 255 / .6); }
+  .hero-card-orbs { display: flex; }
+  .hero-card-orbs i { width: 26px; height: 26px; border-radius: 50%; border: 2px solid rgb(20 18 36 / .9); margin-left: -8px; }
+  .hero-card-orbs i:first-child { margin-left: 0; background: linear-gradient(135deg, #ff9a3c, #ff3d77); }
+  .hero-card-orbs i:nth-child(2) { background: linear-gradient(135deg, var(--accent-cyan), #2563eb); }
+  .hero-card-orbs i:nth-child(3) { background: linear-gradient(135deg, #34d399, #059669); }
+  .hero-card-orbs i:nth-child(4) { background: linear-gradient(135deg, var(--accent-lavender), var(--accent-violet)); }
+
+  .hero-marquee {
+    position: absolute; left: 0; right: 0; bottom: 22px; z-index: 2; overflow: hidden; pointer-events: none;
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+  }
+  .hero-marquee-track {
+    display: flex; align-items: center; gap: 26px; width: max-content;
+    font-family: var(--font-display); font-weight: 800; text-transform: uppercase; letter-spacing: -.02em;
+    font-size: clamp(1.7rem, 4.4vw, 3.4rem); line-height: 1.1;
+    animation: hero-marquee 42s linear infinite;
+  }
+  .hero-marquee-track span { color: transparent; -webkit-text-stroke: 1.2px rgb(255 255 255 / .5); }
+  .hero-marquee-track em {
+    font-style: italic; text-transform: none;
+    background: linear-gradient(120deg, var(--accent-lavender), var(--accent-cyan));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .hero-marquee-track i { font-style: normal; font-size: .5em; color: var(--accent-gold); }
+  @keyframes hero-marquee { to { transform: translate3d(-50%, 0, 0); } }
+  @media (prefers-reduced-motion: reduce) {
+    .hero-marquee-track, .hero-card, .hero-chip-dot::after { animation: none; }
+  }
   .hero-subtitle { font-family: var(--font-mono); font-size: .72rem; letter-spacing: .1em; text-transform: uppercase; color: var(--text-faint); margin-bottom: 22px; text-shadow: 0 1px 6px rgba(0,0,0,.25); }
   .hero-lead { font-size: 1.1rem; font-weight: 600; max-width: 420px; margin-bottom: 28px; color: var(--text-high); text-shadow: 0 1px 8px rgba(0,0,0,.3); }
   .hero-actions { display: flex; flex-direction: column; gap: 12px; margin-bottom: 10px; width: 100%; max-width: 360px; }
   .stream-row { display: flex; gap: 10px; width: 100%; max-width: 360px; }
   .stream-row a { flex: 1; }
-  /* Liquid fill: buttons start as an outlined/empty container and fill
-     with color from the bottom up as they scroll into view, draining
-     back on scroll-out — driven by --fill (0-100%), set per-button in
-     main.js's existing scroll-progress loop (same engine already
-     driving the .pop reveal effect, just a second computation added to
-     the same rAF frame, no separate loop). */
+  /* Crystal-liquid buttons. Every .btn (and any .liquid element) is an
+     empty glass container that fills with liquid as it scrolls into
+     view and drains as it scrolls back out. The liquid itself is
+     rendered by components/decor/CrystalLiquid.tsx (WebGL: refraction,
+     caustics, facets, bubbles, spring-simulated slosh) into a
+     .liquid-canvas it inserts; it then adds .btn--gl and keeps
+     --fill-n (0-1) and data-liquid ("on" once the liquid covers the
+     label) updated. Without WebGL/motion, the ::before clip-path fill
+     driven by main.js's --fill takes over as a plain fallback.
+     --liquid-a/b/c must stay plain hex: the engine parses them. */
+  .btn, .liquid {
+    --liquid-a: #4338ca;
+    --liquid-b: #7c3aed;
+    --liquid-c: #0e7490;
+    --liquid-rgb: 124 58 237;
+  }
   .btn {
     position: relative;
     overflow: hidden;
@@ -278,40 +479,61 @@
     display: inline-flex; align-items: center; justify-content: center; gap: 8px;
     padding: 15px 20px; border-radius: var(--radius-control);
     font-family: var(--font-display); font-weight: 700; font-size: .78rem; letter-spacing: .05em; text-transform: uppercase;
-    background: transparent; border: 1.5px solid var(--border-glass-strong); color: var(--text-high);
-    transition: transform .18s ease, filter .18s ease, border-color .4s ease;
+    background: var(--glass-fill-high);
+    -webkit-backdrop-filter: blur(10px) saturate(140%); backdrop-filter: blur(10px) saturate(140%);
+    border: 1.5px solid var(--border-glass-strong); color: var(--text-high);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / .22), inset 0 -1px 0 rgb(0 0 0 / .06);
+    transition: transform .18s ease, filter .18s ease, border-color .4s ease, color .35s ease, text-shadow .35s ease, box-shadow .5s ease;
   }
   .btn::before {
     content: '';
     position: absolute; left: -8%; right: -8%; bottom: -10%; height: 140%;
-    background: var(--liquid-color);
+    background: linear-gradient(135deg, var(--liquid-a), var(--liquid-b) 55%, var(--liquid-c));
     clip-path: inset(calc(100% - var(--fill, 0%)) 0 0 0 round 50% 50% 0 0 / 16px 16px 0 0);
     z-index: -1;
     pointer-events: none;
   }
-  .btn-primary { --liquid-color: linear-gradient(135deg, var(--accent-cyan), var(--accent-lavender)); box-shadow: var(--shadow-cta); }
+  .btn svg { position: relative; flex-shrink: 0; }
+  .liquid { position: relative; overflow: hidden; isolation: isolate; transition: color .35s ease, transform .18s ease, box-shadow .5s ease; }
+  .liquid-canvas {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    z-index: -1; pointer-events: none; border-radius: inherit;
+  }
+  .btn--gl::before { display: none; }
+  .btn.btn--gl, .liquid.btn--gl {
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / .22),
+      0 14px 34px -14px rgb(var(--liquid-rgb) / calc(var(--fill-n, 0) * .85));
+  }
+  .btn--gl[data-liquid="on"] { color: #fff; text-shadow: 0 1px 2px rgb(0 0 0 / .3); }
+  .btn { white-space: nowrap; }
+  .btn-ghost, .liquid { --liquid-a: #0e7490; --liquid-b: #0891b2; --liquid-c: #4f46e5; --liquid-rgb: 8 145 178; }
+  .btn-primary { border-color: color-mix(in srgb, #7c3aed 55%, var(--border-glass-strong)); }
   .btn-primary:hover { filter: brightness(1.08); transform: scale(1.02); }
-  .btn-ghost { --liquid-color: var(--glass-fill-hover); }
   .btn-ghost:hover { border-color: var(--border-cyan-glow); }
+  .btn:active, .liquid:active { transform: scale(.97); }
 
-  /* Brand-colored liquid fill for social/platform buttons — real brand
-     colors (not theme accents), same fill-on-scroll mechanic as every
-     other button. White text/icon at all times rather than the usual
-     theme-dependent --text-high, since --text-high is near-black in
-     light mode and would lose contrast against a saturated red/blue
-     fill once it's mostly filled. */
-  .btn-youtube { --liquid-color: #ff0000; color: #fff; border-color: color-mix(in srgb, #ff0000 45%, var(--border-glass-strong)); }
+  /* Brand liquids — each platform fills with its own color. */
+  .btn-youtube, .liquid-youtube { --liquid-a: #ff1a1a; --liquid-b: #d90012; --liquid-c: #ff4b3e; --liquid-rgb: 255 0 0; }
+  .btn-facebook, .liquid-facebook { --liquid-a: #1877f2; --liquid-b: #0c5ad8; --liquid-c: #3d8bff; --liquid-rgb: 24 119 242; }
+  .btn-spotify, .liquid-spotify { --liquid-a: #17a84c; --liquid-b: #12833b; --liquid-c: #1db954; --liquid-rgb: 29 185 84; }
+  .btn-instagram, .liquid-instagram { --liquid-a: #833ab4; --liquid-b: #e1306c; --liquid-c: #fcaf45; --liquid-rgb: 225 48 108; }
+  .btn-youtube { border-color: color-mix(in srgb, #ff0000 45%, var(--border-glass-strong)); }
   .btn-youtube:hover { border-color: #ff0000; }
-  .btn-facebook { --liquid-color: #1877f2; color: #fff; border-color: color-mix(in srgb, #1877f2 45%, var(--border-glass-strong)); }
+  .btn-facebook { border-color: color-mix(in srgb, #1877f2 45%, var(--border-glass-strong)); }
   .btn-facebook:hover { border-color: #1877f2; }
-  .btn-spotify { --liquid-color: #1db954; color: #fff; border-color: color-mix(in srgb, #1db954 45%, var(--border-glass-strong)); }
+  .btn-spotify { border-color: color-mix(in srgb, #1db954 45%, var(--border-glass-strong)); }
   .btn-spotify:hover { border-color: #1db954; }
-  .btn-instagram { --liquid-color: linear-gradient(135deg, #f58529, #dd2a7b, #8134af, #515bd4); color: #fff; border-color: color-mix(in srgb, #dd2a7b 45%, var(--border-glass-strong)); }
-  .btn-instagram:hover { border-color: #dd2a7b; }
+  .btn-instagram { border-color: color-mix(in srgb, #e1306c 45%, var(--border-glass-strong)); }
+  .btn-instagram:hover { border-color: #e1306c; }
   @media (prefers-reduced-motion: reduce) {
     .btn::before { clip-path: inset(0 0 0 0); }
+    .btn { color: #fff; }
   }
   .btn-sm { padding: 12px 14px; font-size: .68rem; }
+  .stream-row .btn-sm { padding-inline: 8px; gap: 6px; }
+  .section .stream-row { max-width: 600px; flex-wrap: wrap; }
+  .section .stream-row .btn { padding-inline: 14px; flex: 1 1 auto; }
 
   .section { padding-block: 52px; }
   .section-header { margin-bottom: 30px; }
