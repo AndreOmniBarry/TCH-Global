@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { getAllPosts } from '@/lib/sanity';
 import { fallbackPosts } from '@/lib/fallback-posts';
 import { SiteHeader, SiteFooter } from '@/components/SiteChrome';
+import SectionTitleStage from '@/components/decor/SectionTitleStage';
 import { getTrendingSlugs } from '@/lib/analytics';
 
 export const metadata = {
@@ -30,9 +31,10 @@ export default async function BlogIndexPage() {
 
   return (
     <>
+      <SectionTitleStage />
       <SiteHeader />
 
-      <section className="blog-index-hero">
+      <section className="blog-index-hero" data-title="Blog">
         <div className="blog-shell">
           <span className="eyebrow">The Comforters Blog</span>
           <h1>Words for the Everyday Faith</h1>
@@ -41,7 +43,7 @@ export default async function BlogIndexPage() {
         </div>
       </section>
 
-      <section className="section" style={{ paddingTop: 0 }}>
+      <section className="section" data-title="Stories" style={{ paddingTop: 0 }}>
         <div className="blog-shell">
           {trendingPosts && trendingPosts.length > 0 && (
             <div style={{ marginBottom: 32 }}>

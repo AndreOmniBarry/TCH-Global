@@ -45,7 +45,7 @@ const HOME_HTML_BEFORE_LIBRARY = `
       <span>TCH GLOBAL<span class="tagline">The Comforters House Global</span></span>
     </a>
     <div class="header-actions">
-      <button class="theme-toggle" id="theme-toggle" aria-label="Toggle dark mode"><span class="knob" id="theme-knob"></span></button>
+      <button class="theme-toggle" id="theme-toggle" aria-label="Switch light or dark theme" title="Switch theme"><svg class="sun-and-moon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><mask id="moon-mask"><rect x="0" y="0" width="100%" height="100%" fill="white"/><circle class="moon" cx="24" cy="10" r="6" fill="black"/></mask><circle class="sun" cx="12" cy="12" r="6" mask="url(#moon-mask)" fill="currentColor"/><g class="sun-beams" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></g></svg></button>
       <button class="nav-toggle" aria-label="Menu" id="nav-toggle"><svg class="icon-menu" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
       <nav class="main-nav" id="main-nav">
         <ul>
@@ -66,9 +66,8 @@ const HOME_HTML_BEFORE_LIBRARY = `
   </div>
 </header>
 
-<section class="hero-stage" data-title="Home">
+<section class="hero-stage">
   <div class="hero-bg-photo" data-speed="0.22" role="img" aria-label="Worship service at TCH Global with congregation raising hands"></div>
-  <div class="hero-giant-text" data-speed="0.34">TCH</div>
   <div class="shape-mount" id="hero-shapes"></div>
   <div class="hero-spotlight" aria-hidden="true"></div>
   <div class="hero-cards" id="hero-cards"></div>
@@ -117,7 +116,7 @@ const HOME_HTML_BEFORE_LIBRARY = `
 
 `;
 
-const HOME_HTML_AFTER_LIBRARY = `<section class="section pop-stage shape-host" id="pastor-section" data-title="Pastor">
+const HOME_HTML_AFTER_LIBRARY = `<section class="section pop-stage shape-host band-dark" id="pastor-section" data-title="Pastor">
   <div class="shape-mount" id="pastor-shapes"></div>
   <div class="container section-duo">
     <div class="pastor-card pop">
@@ -142,7 +141,7 @@ const HOME_HTML_AFTER_LIBRARY = `<section class="section pop-stage shape-host" i
 `;
 
 const HOME_HTML_TESTIMONIES_TO_EVENTS = `
-<section class="section pop-stage shape-host" id="blog" data-title="Blog">
+<section class="section pop-stage shape-host band-dark" id="blog" data-title="Blog">
   <div class="shape-mount" id="blog-shapes"></div>
   <div class="container">
     <div class="section-header pop">
@@ -210,7 +209,7 @@ const HOME_HTML_TESTIMONIES_TO_EVENTS = `
 `;
 
 const HOME_HTML_EVENTS_TO_MEDIA = `
-<section class="section pop-stage shape-host" id="media" data-title="Media">
+<section class="section pop-stage shape-host band-dark" id="media" data-title="Media">
   <div class="shape-mount" id="media-shapes"></div>
   <div class="container">
     <div class="section-header pop"><span class="eyebrow">Media &amp; Streaming</span><h2>Watch &amp; Listen</h2><p>Our services stream live and are archived here shortly after.</p></div>
@@ -256,7 +255,7 @@ const HOME_HTML_EVENTS_TO_MEDIA = `
   </div>
 </section>
 
-<section class="section pop-stage shape-host" id="contact" data-title="Contact">
+<section class="section pop-stage shape-host band-dark" id="contact" data-title="Contact">
   <div class="shape-mount" id="contact-shapes"></div>
   <div class="container section-duo section-duo--header-top">
     <div class="section-header pop"><span class="eyebrow">Prayer</span><h2>Need Prayer Right Now?</h2></div>
