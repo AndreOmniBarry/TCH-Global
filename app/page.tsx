@@ -14,6 +14,8 @@ import JoinShapes from '@/components/decor/JoinShapes';
 import GiveShapes from '@/components/decor/GiveShapes';
 import SectionTitleStage from '@/components/decor/SectionTitleStage';
 import HeroExtras from '@/components/decor/HeroExtras';
+import { getAllPosts, getUpcomingEvents, getTestimonies } from '@/lib/sanity';
+import { fallbackPosts } from '@/lib/fallback-posts';
 
 // This page bridges the original hand-authored static homepage into
 // Next.js. Most of the markup below is an exact, mechanically-extracted
@@ -73,7 +75,7 @@ const HOME_HTML_BEFORE_LIBRARY = `
   <div class="hero-content container">
     <div id="hero-chip-mount" class="hero-chip-mount"></div>
     <h1 class="hero-title">TCH <em>Global</em></h1>
-    <p class="hero-subtitle">The Comforters House Global</p>
+    <p class="hero-subtitle"><b>T</b>he <b>C</b>omforter&rsquo;s <b>H</b>ouse Global</p>
     <p class="hero-lead">Giving Comfort to Your Living.</p>
     <div class="hero-actions">
       <a href="#service" class="btn btn-primary">Plan Your Visit</a>
@@ -384,18 +386,27 @@ const HOME_HTML_EVENTS_TO_MEDIA = `
         <p style="margin-top:6px;">Sun 7:30 &amp; 9:15 AM<br>Mon Prayer 5:30 PM<br>Wed 5:30 PM</p>
       </div>
     </div>
-    <div class="footer-bottom">&copy; 2026 TCH Global Church. All rights reserved.</div>
+    <div class="footer-bottom"><span>&copy; ${new Date().getFullYear()} TCH Global Church. All rights reserved.</span><span class="footer-credit">Designed &amp; engineered by <b>OmniBarry Inc.</b></span></div>
   </div>
 </footer>
 `;
 
 export default async function HomePage() {
+  const [posts, events, testimonies] = await Promise.all([getAllPosts(), getUpcomingEvents(), getTestimonies()]);
+  const latest = [...(posts ?? fallbackPosts)].sort(
+    (a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
+  )[0];
+  const heroData = {
+    latestPost: latest ? { title: latest.title, slug: latest.slug, meta: [latest.category, latest.readTime].filter(Boolean).join(' · ') } : null,
+    events: (events ?? []).slice(0, 5).map((e) => ({ title: e.title, startsAt: e.startsAt, endsAt: e.endsAt, location: e.location })),
+    testimony: testimonies?.[0] ? { name: testimonies[0].name, quote: testimonies[0].quote } : null,
+  };
   return (
     <>
       <SectionTitleStage />
       <div dangerouslySetInnerHTML={{ __html: HOME_HTML_BEFORE_LIBRARY }} />
       <HeroShapes />
-      <HeroExtras />
+      <HeroExtras {...heroData} />
       <AboutChurchShapes />
       <LibrarySection />
       <AnnouncementsSection />

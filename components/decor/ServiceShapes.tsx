@@ -8,7 +8,7 @@ export default function ServiceShapes() {
   return (
     <ShapeLayer targetId="service-shapes">
       <FloatingShape top="-10%" right="-10%" depth={1.3} rotate={0}>
-        <MeshOrb size={300} color="var(--accent-violet)" style={{ opacity: 0.45, filter: 'blur(6px)' }} />
+        <MeshOrb size={300} color="var(--accent-violet)" style={{ opacity: 0.45 }} />
       </FloatingShape>
       <FloatingShape top="2%" right="-4%" depth={1} rotate={-10}>
         <CrystalShard size={150} color="var(--accent-violet)" style={{ opacity: 0.8 }} />
