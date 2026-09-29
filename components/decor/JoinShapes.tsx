@@ -2,11 +2,14 @@
 
 import ShapeLayer from './ShapeLayer';
 import FloatingShape from './FloatingShape';
-import { Pill, Polygon } from './Shapes';
+import { Pill, Polygon, MeshOrb } from './Shapes';
 
 export default function JoinShapes() {
   return (
     <ShapeLayer targetId="join-shapes">
+      <FloatingShape top="-10%" left="-8%" depth={1.2} rotate={0}>
+        <MeshOrb size={260} color="var(--accent-violet)" style={{ opacity: 0.4, filter: 'blur(6px)' }} />
+      </FloatingShape>
       <FloatingShape top="0%" left="-4%" depth={0.9} rotate={-10}>
         <Pill width={150} height={54} color="var(--accent-violet)" style={{ opacity: 0.5 }} />
       </FloatingShape>

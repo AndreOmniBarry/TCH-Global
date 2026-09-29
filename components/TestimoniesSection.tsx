@@ -18,7 +18,7 @@ export default async function TestimoniesSection() {
   const testimonies = await getTestimonies();
 
   return (
-    <section className="section pop-stage shape-host" id="testimonies">
+    <section className="section pop-stage shape-host" id="testimonies" data-title="Testimonies">
       <FloatingShape top="-4%" right="6%" depth={1} rotate={10}>
         <HollowRing size={170} color="var(--accent-gold)" strokeWidth={16} style={{ opacity: 0.6 }} />
       </FloatingShape>

@@ -57,7 +57,7 @@ const HOME_HTML_BEFORE_LIBRARY = `
   </div>
 </header>
 
-<section class="hero-stage">
+<section class="hero-stage" data-title="Home">
   <div class="hero-bg-photo" data-speed="0.22" role="img" aria-label="Worship service at TCH Global with congregation raising hands"></div>
   <div class="hero-giant-text" data-speed="0.34">TCH</div>
   <div class="shape-mount" id="hero-shapes"></div>
@@ -76,7 +76,7 @@ const HOME_HTML_BEFORE_LIBRARY = `
   </div>
 </section>
 
-<section class="section pop-stage shape-host" id="about-church">
+<section class="section pop-stage shape-host" id="about-church" data-title="About">
   <div class="shape-mount" id="about-shapes"></div>
   <div class="container section-duo">
     <div class="section-header pop">
@@ -99,7 +99,7 @@ const HOME_HTML_BEFORE_LIBRARY = `
 
 `;
 
-const HOME_HTML_AFTER_LIBRARY = `<section class="section pop-stage shape-host" id="pastor-section">
+const HOME_HTML_AFTER_LIBRARY = `<section class="section pop-stage shape-host" id="pastor-section" data-title="Pastor">
   <div class="shape-mount" id="pastor-shapes"></div>
   <div class="container section-duo">
     <div class="pastor-card pop">
@@ -124,7 +124,7 @@ const HOME_HTML_AFTER_LIBRARY = `<section class="section pop-stage shape-host" i
 `;
 
 const HOME_HTML_TESTIMONIES_TO_EVENTS = `
-<section class="section pop-stage shape-host" id="blog">
+<section class="section pop-stage shape-host" id="blog" data-title="Blog">
   <div class="shape-mount" id="blog-shapes"></div>
   <div class="container">
     <div class="section-header pop">
@@ -167,7 +167,7 @@ const HOME_HTML_TESTIMONIES_TO_EVENTS = `
   </div>
 </section>
 
-<section class="section pop-stage shape-host" id="service">
+<section class="section pop-stage shape-host" id="service" data-title="Service">
   <div class="shape-mount" id="service-shapes"></div>
   <div class="container">
     <div class="section-header pop"><span class="eyebrow">Schedule</span><h2>Our Service Days</h2></div>
@@ -192,7 +192,7 @@ const HOME_HTML_TESTIMONIES_TO_EVENTS = `
 `;
 
 const HOME_HTML_EVENTS_TO_MEDIA = `
-<section class="section pop-stage shape-host" id="media">
+<section class="section pop-stage shape-host" id="media" data-title="Media">
   <div class="shape-mount" id="media-shapes"></div>
   <div class="container">
     <div class="section-header pop"><span class="eyebrow">Media &amp; Streaming</span><h2>Watch &amp; Listen</h2><p>Our services stream live and are archived here shortly after.</p></div>
@@ -205,7 +205,7 @@ const HOME_HTML_EVENTS_TO_MEDIA = `
   </div>
 </section>
 
-<section class="section pop-stage shape-host" id="volunteer">
+<section class="section pop-stage shape-host" id="volunteer" data-title="Volunteer">
   <div class="shape-mount" id="volunteer-shapes"></div>
   <div class="container section-duo">
     <div class="section-header pop">
@@ -238,7 +238,7 @@ const HOME_HTML_EVENTS_TO_MEDIA = `
   </div>
 </section>
 
-<section class="section pop-stage shape-host" id="contact">
+<section class="section pop-stage shape-host" id="contact" data-title="Contact">
   <div class="shape-mount" id="contact-shapes"></div>
   <div class="container section-duo section-duo--header-top">
     <div class="section-header pop"><span class="eyebrow">Prayer</span><h2>Need Prayer Right Now?</h2></div>
@@ -263,7 +263,7 @@ const HOME_HTML_EVENTS_TO_MEDIA = `
   </div>
 </section>
 
-<section class="section pop-stage shape-host" id="join">
+<section class="section pop-stage shape-host" id="join" data-title="Join Us">
   <div class="shape-mount" id="join-shapes"></div>
   <div class="container section-duo">
     <div class="section-header pop"><span class="eyebrow">Membership</span><h2>Join Us</h2><p>Already part of the family and ready to take the next step? Start a membership conversation with our pastoral team here.</p></div>
@@ -284,7 +284,7 @@ const HOME_HTML_EVENTS_TO_MEDIA = `
   </div>
 </section>
 
-<section class="section pop-stage shape-host" id="give">
+<section class="section pop-stage shape-host" id="give" data-title="Give">
   <div class="shape-mount" id="give-shapes"></div>
   <div class="container section-duo">
     <div class="section-header pop">

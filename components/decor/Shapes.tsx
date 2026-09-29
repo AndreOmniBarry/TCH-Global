@@ -83,3 +83,56 @@ export function FluidBlob({ size = 200, color = 'var(--accent-cyan)', className,
     </svg>
   );
 }
+
+let shapeIdCounter = 0;
+function nextShapeId(prefix: string) {
+  shapeIdCounter += 1;
+  return `${prefix}-${shapeIdCounter}`;
+}
+
+/** A faceted crystal shard — an irregular gem-cut polygon built from
+ * several adjoining triangular facets, each a slightly different tint
+ * of the same color so it reads as light catching cut glass rather than
+ * a flat single-tone shape. Replaces the plain hollow-ring/pill look in
+ * non-hero sections with something that has real dimensional weight. */
+export function CrystalShard({ size = 160, color = 'var(--accent-cyan)', className, style }: ShapeProps) {
+  const id = nextShapeId('shard');
+  return (
+    <svg width={size} height={size} viewBox="0 0 160 220" className={className} style={style} aria-hidden="true">
+      <defs>
+        <linearGradient id={`${id}-a`} x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor={color} stopOpacity="0.95" />
+          <stop offset="100%" stopColor={color} stopOpacity="0.55" />
+        </linearGradient>
+        <linearGradient id={`${id}-b`} x1="100%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.5" />
+          <stop offset="100%" stopColor={color} stopOpacity="0.15" />
+        </linearGradient>
+      </defs>
+      <polygon points="80,4 138,58 150,140 90,216 30,168 10,80" fill={`url(#${id}-a)`} />
+      <polygon points="80,4 138,58 90,100 42,60" fill={`url(#${id}-b)`} />
+      <polygon points="10,80 42,60 90,100 30,168" fill={color} opacity="0.28" />
+      <polygon points="150,140 90,216 30,168 90,100" fill="#ffffff" opacity="0.18" />
+    </svg>
+  );
+}
+
+/** A soft multi-stop mesh-gradient orb with real blur depth — layered
+ * behind sharper shapes (rings, shards) to give a section's decorative
+ * cluster a sense of atmosphere/depth rather than everything sitting on
+ * one flat plane. */
+export function MeshOrb({ size = 240, color = 'var(--accent-lavender)', className, style }: ShapeProps) {
+  const id = nextShapeId('mesh');
+  return (
+    <svg width={size} height={size} viewBox="0 0 240 240" className={className} style={style} aria-hidden="true">
+      <defs>
+        <radialGradient id={id} cx="38%" cy="34%" r="65%">
+          <stop offset="0%" stopColor={color} stopOpacity="0.9" />
+          <stop offset="55%" stopColor={color} stopOpacity="0.35" />
+          <stop offset="100%" stopColor={color} stopOpacity="0" />
+        </radialGradient>
+      </defs>
+      <circle cx="120" cy="120" r="118" fill={`url(#${id})`} />
+    </svg>
+  );
+}
