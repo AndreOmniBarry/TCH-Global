@@ -7,7 +7,10 @@ const REQUIRED_FIELDS: Record<FormType, string[]> = {
   join: ['name', 'email'],
   give: ['name', 'email'],
   testimony: ['name', 'quote'],
+  newsletter: ['email'],
 };
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 function isFormType(value: unknown): value is FormType {
   return typeof value === 'string' && value in REQUIRED_FIELDS;
@@ -40,6 +43,10 @@ export async function POST(req: NextRequest) {
       if (!cleanFields[required]) {
         return NextResponse.json({ error: 'Please fill in all required fields.' }, { status: 400 });
       }
+    }
+
+    if (cleanFields.email && !EMAIL_RE.test(cleanFields.email)) {
+      return NextResponse.json({ error: 'That email address doesn’t look right — please check it.' }, { status: 400 });
     }
 
     const result = await submitForm(type, cleanFields);

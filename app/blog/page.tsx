@@ -104,8 +104,9 @@ export default async function BlogIndexPage() {
           <div className="newsletter-card" style={{ marginTop: 48 }}>
             <h3>Never Miss a Post</h3>
             <p>Get every Sunday&rsquo;s reflection delivered straight to your inbox, the moment it&rsquo;s published.</p>
-            <form className="newsletter-form-row">
-              <input type="email" placeholder="Enter your email" required style={{ marginBottom: 0 }} />
+            <form className="newsletter-form-row js-newsletter" data-source="blog-index">
+              <input type="email" name="email" placeholder="Enter your email" required autoComplete="email" style={{ marginBottom: 0 }} />
+              <input type="text" name="website" tabIndex={-1} autoComplete="off" className="hp-field" aria-hidden="true" />
               <button type="submit" className="btn btn-primary" style={{ flexShrink: 0 }}>Subscribe</button>
             </form>
           </div>
