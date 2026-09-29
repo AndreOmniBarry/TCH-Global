@@ -16,7 +16,14 @@ export const metadata: Metadata = {
   // Dynamically rendered — bold circular badge, a status dot (live now /
   // fresh post), and a small seasonal accent near Christmas. See
   // app/api/favicon/route.tsx.
-  icons: { icon: '/api/favicon' },
+  icons: {
+    icon: [
+      { url: '/api/favicon?v=5', sizes: '64x64', type: 'image/png' },
+      { url: '/icon-192.png?v=5', sizes: '192x192', type: 'image/png' },
+    ],
+    shortcut: '/favicon.ico?v=5',
+    apple: [{ url: '/apple-touch-icon.png?v=5', sizes: '180x180' }],
+  },
 };
 
 const SPLASH_HTML = `<div id="splash" aria-hidden="true"><div class="splash-orb splash-orb--a"></div><div class="splash-orb splash-orb--b"></div><div class="splash-core"><div class="splash-ring"><div class="splash-vessel"><div class="splash-liquid"><svg class="splash-wave splash-wave--back" viewBox="0 0 240 20" preserveAspectRatio="none"><path d="M0 10 Q30 0 60 10 T120 10 T180 10 T240 10 V20 H0Z"/></svg><svg class="splash-wave" viewBox="0 0 240 20" preserveAspectRatio="none"><path d="M0 10 Q30 20 60 10 T120 10 T180 10 T240 10 V20 H0Z"/></svg></div><img src="/images/logo.jpg" alt="" width="64" height="64" class="splash-logo"></div></div><div class="splash-word"><span style="animation-delay:0.15s">T</span><span style="animation-delay:0.20s">C</span><span style="animation-delay:0.25s">H</span><span style="animation-delay:0.30s">&nbsp;</span><span style="animation-delay:0.35s">G</span><span style="animation-delay:0.40s">L</span><span style="animation-delay:0.45s">O</span><span style="animation-delay:0.50s">B</span><span style="animation-delay:0.55s">A</span><span style="animation-delay:0.60s">L</span></div><div class="splash-sub">The Comforter&rsquo;s House Global</div><div class="splash-pct"><span id="splash-pct">0</span>%</div></div></div>`;

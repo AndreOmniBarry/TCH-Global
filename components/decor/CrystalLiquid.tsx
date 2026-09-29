@@ -30,6 +30,7 @@ uniform float uDark;
 uniform float uSeed;
 uniform vec2 uMouse;
 uniform float uRipple;
+uniform vec3 uDrop;
 
 float hash21(vec2 p) {
   p = fract(p * vec2(123.34, 456.21));
@@ -89,6 +90,9 @@ void main() {
   // + a faint idle ripple so the liquid never looks frozen.
   float x = uv.x - 0.5;
   float X = p.x;
+  float dropAge = t - uDrop.z;
+  float dropAmp = dropAge > 0.0 ? exp(-dropAge * 1.4) : 0.0;
+  float dropR = dropAge * 0.55;
   float mx = uMouse.x * aspect;
   float md = abs(X - mx);
   float surf = uLevel
@@ -96,7 +100,8 @@ void main() {
     + uWave * (0.050 * sin(X * 6.0 - t * 4.2 + uSeed) + 0.028 * sin(X * 11.0 + t * 6.1 + uSeed * 1.7))
     + 0.022 * sin(X * 2.3 + t * 1.15 + uSeed) + 0.013 * sin(X * 4.7 - t * 1.6 + uSeed * 0.5)
     + 0.006 * sin(X * 9.0 - t * 2.4)
-    + uRipple * 0.13 * sin(md * 14.0 - t * 8.0) * exp(-md * 1.6);
+    + uRipple * 0.2 * sin(md * 14.0 - t * 8.0) * exp(-md * 1.3)
+    + dropAmp * 0.07 * sin((abs(X - uDrop.x * aspect) - dropR) * 30.0) * exp(-abs(abs(X - uDrop.x * aspect) - dropR) * 9.0);
   float d = surf - uv.y;
   if (d < -14.0 * px) { gl_FragColor = vec4(0.0); return; }
 
@@ -108,7 +113,11 @@ void main() {
   // the liquid, like looking into cut crystal.
   vec2 m = vec2(mx, uMouse.y);
   float mdist = length(p - m);
-  vec2 rippleWarp = (p - m) / max(mdist, 1e-3) * sin(mdist * 22.0 - t * 9.0) * 0.06 * uRipple * exp(-mdist * 1.8);
+  vec2 rippleWarp = (p - m) / max(mdist, 1e-3) * sin(mdist * 22.0 - t * 9.0) * 0.1 * uRipple * exp(-mdist * 1.4);
+  vec2 dp = vec2(uDrop.x * aspect, uDrop.y);
+  float dd = length(p - dp);
+  float dring = exp(-abs(dd - dropR) * 18.0) * dropAmp;
+  rippleWarp += (p - dp) / max(dd, 1e-3) * dring * 0.04;
   vec2 q = p * 1.6 + vec2(t * 0.35, -t * 0.12) + rippleWarp * 4.0;
   float w = fbm(q + 1.9 * fbm(q * 1.2 + vec2(-t * 0.2, t * 0.08)));
   vec2 rp = p + (w - 0.5) * 0.45 + rippleWarp;
@@ -163,7 +172,8 @@ void main() {
   col += halo * 0.08;
 
   col = mix(vec3(dot(col, vec3(0.299, 0.587, 0.114))), col, 1.24);
-  col += min(uRipple, 1.2) * 0.3 * smoothstep(0.18, 0.0, abs(sin(mdist * 22.0 - t * 9.0))) * exp(-mdist * 2.0) * inside;
+  col += min(uRipple, 1.4) * 0.5 * smoothstep(0.22, 0.0, abs(sin(mdist * 22.0 - t * 9.0))) * exp(-mdist * 1.6) * inside;
+  col += dring * 0.45 * inside;
   col = mix(col, col * 1.08 + 0.02, uDark);
 
   float alpha = max(inside, line * 0.55);
@@ -195,6 +205,8 @@ type Liquid = {
   my: number;
   ripple: number;
   hover: boolean;
+  drop: number[];
+  nextDrop: number;
 };
 
 function parseHex(value: string, fallback: number[]): number[] {
@@ -257,6 +269,7 @@ export default function CrystalLiquid() {
         uSeed: { value: 0 },
         uMouse: { value: [0.5, 0.5] },
         uRipple: { value: 0 },
+        uDrop: { value: [0.5, 0.5, -99] },
       },
     });
     const mesh = new Mesh(gl, { geometry: new Triangle(gl), program });
@@ -317,6 +330,8 @@ export default function CrystalLiquid() {
         my: 0.5,
         ripple: 0,
         hover: false,
+        drop: [0.5, 0.5, -99],
+        nextDrop: Math.random() * 3,
       };
       readColors(l);
       liquids.set(el, l);
@@ -376,7 +391,8 @@ export default function CrystalLiquid() {
     function onPointerDown(e: PointerEvent) {
       onPointerMove(e);
       if (hovered) {
-        hovered.ripple = 1.6;
+        hovered.ripple = 2;
+        hovered.drop = [hovered.mx, hovered.my, (performance.now() - t0) / 1000];
         hovered.wave = 1;
         if (e.pointerType !== 'mouse') hovered.hover = false;
       }
@@ -437,7 +453,11 @@ export default function CrystalLiquid() {
 
         const waveTarget = Math.min(1, Math.abs(l.vel) * 1.4 + Math.abs(l.tiltVel) * 0.25 + Math.abs(scrollVel) * 0.0004);
         l.wave += (waveTarget - l.wave) * (1 - Math.exp(-dt * 6));
-        l.ripple += ((l.hover ? 1 : 0) - l.ripple) * (1 - Math.exp(-dt * (l.hover ? 6 : 1.6)));
+        l.ripple += ((l.hover ? 1.2 : 0) - l.ripple) * (1 - Math.exp(-dt * (l.hover ? 6 : 0.9)));
+        if (time > l.nextDrop) {
+          l.drop = [0.15 + Math.random() * 0.7, Math.max(0.1, Math.min(l.level, 1) * (0.3 + Math.random() * 0.5)), time];
+          l.nextDrop = time + 1.8 + Math.random() * 3;
+        }
 
         const fillN = Math.min(Math.max(l.level, 0), 1);
         if (Math.abs(fillN - l.fillN) > 0.004) {
@@ -488,6 +508,7 @@ export default function CrystalLiquid() {
         u.uSeed.value = l.seed;
         u.uMouse.value = [l.mx, l.my];
         u.uRipple.value = l.ripple;
+        u.uDrop.value = l.drop;
 
         gl.viewport(0, 0, w, h);
         gl.clearColor(0, 0, 0, 0);

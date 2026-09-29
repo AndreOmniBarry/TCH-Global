@@ -31,7 +31,13 @@ function isChristmasSeason(now: Date) {
   return month === 11 && day <= 26;
 }
 
-export async function GET() {
+export async function GET(req: Request) {
+  const reqUrl = new URL(req.url);
+  const byPath = reqUrl.pathname.includes('apple-touch') ? 180 : reqUrl.pathname.includes('192') ? 192 : reqUrl.pathname.endsWith('.ico') ? 48 : NaN;
+  const sParam = Number(reqUrl.searchParams.get('s')) || byPath;
+  const size = Number.isFinite(sParam) && sParam >= 16 && sParam <= 512 ? Math.round(sParam) : 64;
+  const k = size / 64;
+  const px = (n: number) => `${n * k}px`;
   const now = new Date();
   const christmas = isChristmasSeason(now);
 
@@ -51,8 +57,8 @@ export async function GET() {
     (
       <div
         style={{
-          width: '64px',
-          height: '64px',
+          width: px(64),
+          height: px(64),
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -61,42 +67,28 @@ export async function GET() {
       >
         <div
           style={{
-            width: '60px',
-            height: '60px',
-            borderRadius: '50%',
+            width: px(60),
+            height: px(60),
+            borderRadius: px(30),
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            background: 'linear-gradient(135deg, #22d3ee 0%, #7c3aed 48%, #f5c542 100%)',
-            boxShadow: '0 2px 6px rgba(76, 29, 149, 0.55)',
-            position: 'relative',
+            background: 'linear-gradient(135deg, #22d3ee 0%, #7c3aed 50%, #f5c542 100%)',
           }}
         >
           <div
             style={{
-              width: '52px',
-              height: '52px',
-              borderRadius: '50%',
-              overflow: 'hidden',
+              width: px(53),
+              height: px(53),
+              borderRadius: px(26.5),
+              background: '#0d0a1c',
               display: 'flex',
-              border: '2px solid #0d0a1c',
-              position: 'relative',
+              alignItems: 'center',
+              justifyContent: 'center',
             }}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={logoUrl} width={48} height={48} style={{ objectFit: 'cover' }} alt="" />
-            <div
-              style={{
-                position: 'absolute',
-                top: '-10px',
-                left: '4px',
-                width: '40px',
-                height: '26px',
-                borderRadius: '50%',
-                background: 'linear-gradient(180deg, rgba(255,255,255,0.55), rgba(255,255,255,0))',
-                display: 'flex',
-              }}
-            />
+            <img src={logoUrl} width={49 * k} height={49 * k} style={{ borderRadius: px(24.5), objectFit: 'cover' }} alt="" />
           </div>
         </div>
 
@@ -108,8 +100,8 @@ export async function GET() {
           // ring naturally.
           <svg
             viewBox="0 0 64 64"
-            width={64}
-            height={64}
+            width={size}
+            height={size}
             style={{ position: 'absolute', top: 0, left: 0 }}
           >
             <path
@@ -144,11 +136,11 @@ export async function GET() {
               position: 'absolute',
               bottom: '0px',
               left: '0px',
-              width: '18px',
-              height: '18px',
-              borderRadius: '50%',
+              width: px(18),
+              height: px(18),
+              borderRadius: px(9),
               background: dotColor,
-              border: '3px solid #0b0f14',
+              border: `${px(3)} solid #0b0f14`,
               display: 'flex',
             }}
           />
@@ -156,8 +148,8 @@ export async function GET() {
       </div>
     ),
     {
-      width: 64,
-      height: 64,
+      width: size,
+      height: size,
       // Short client cache instead of next/og's 1-year default, so a
       // reload during/after a live stream actually picks up the change.
       headers: { 'Cache-Control': 'public, max-age=300' },
