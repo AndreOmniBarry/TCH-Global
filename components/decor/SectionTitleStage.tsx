@@ -72,8 +72,8 @@ export default function SectionTitleStage() {
 
       // Stage stays tucked below the fold while the hero fills the
       // screen, and slides away as the footer arrives.
-      const heroHide = clamp01((heroBottom - y - vh * 0.55) / (vh * 0.3));
-      const footHide = clamp01((y + vh - footerTop) / (vh * 0.25));
+      const heroHide = clamp01((heroBottom - y - vh * 0.62) / (vh * 0.2));
+      const footHide = clamp01((y + vh - footerTop + vh * 0.22) / (vh * 0.22));
       const hide = Math.max(heroHide, footHide);
       const shift = `translate3d(0,${(hide * 105).toFixed(2)}%,0)`;
       if (shift !== lastStageShift) {
@@ -84,7 +84,7 @@ export default function SectionTitleStage() {
       for (let i = 0; i < words.length; i++) {
         const top = tops[i] - y;
         const bottom = bottoms[i] - y;
-        const rise = i === 0 ? 1 : clamp01((probe - top) / band);
+        const rise = clamp01((probe - top) / band);
         const sink = clamp01((probe + band - bottom) / band);
         const vis = rise > 0 && sink < 1;
         if (vis !== lastVis[i]) {

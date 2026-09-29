@@ -20,9 +20,23 @@
     }
     toggle.addEventListener('click', function () {
       var next = currentIsDark() ? 'light' : 'dark';
-      root.setAttribute('data-theme', next);
-      toggle.dataset.active = next;
-      try { localStorage.setItem('tch-theme', next); } catch (e) {}
+      function apply() {
+        root.setAttribute('data-theme', next);
+        toggle.dataset.active = next;
+        try { localStorage.setItem('tch-theme', next); } catch (e) {}
+      }
+      var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (!document.startViewTransition || reduce) { apply(); return; }
+      // Circular wipe from the toggle to the farthest corner.
+      var r = toggle.getBoundingClientRect();
+      var x = r.left + r.width / 2, y = r.top + r.height / 2;
+      var end = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
+      document.startViewTransition(apply).ready.then(function () {
+        document.documentElement.animate(
+          { clipPath: ['circle(0px at ' + x + 'px ' + y + 'px)', 'circle(' + end + 'px at ' + x + 'px ' + y + 'px)'] },
+          { duration: 650, easing: 'cubic-bezier(.7,0,.25,1)', pseudoElement: '::view-transition-new(root)' }
+        );
+      });
     });
   })();
 

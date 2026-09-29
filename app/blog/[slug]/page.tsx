@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { getPostBySlug, getAllPosts } from '@/lib/sanity';
 import { fallbackPosts, getFallbackPostBySlug } from '@/lib/fallback-posts';
 import { SiteHeader, SiteFooter } from '@/components/SiteChrome';
+import SectionTitleStage from '@/components/decor/SectionTitleStage';
 import TrackView from '@/components/TrackView';
 import { getViewCount } from '@/lib/analytics';
 
@@ -66,9 +67,10 @@ export default async function BlogPostPage({ params }: Props) {
     <>
       <div className="read-progress" id="read-progress" />
       <TrackView slug={post.slug} />
+      <SectionTitleStage />
       <SiteHeader />
 
-      <article className="blog-shell">
+      <article className="blog-shell" data-title="Word">
         <div className="post-header">
           <span className="tag">{post.category}</span>
           <h1>{post.title}</h1>

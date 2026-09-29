@@ -96,7 +96,7 @@ void main() {
     + uWave * (0.050 * sin(X * 6.0 - t * 4.2 + uSeed) + 0.028 * sin(X * 11.0 + t * 6.1 + uSeed * 1.7))
     + 0.022 * sin(X * 2.3 + t * 1.15 + uSeed) + 0.013 * sin(X * 4.7 - t * 1.6 + uSeed * 0.5)
     + 0.006 * sin(X * 9.0 - t * 2.4)
-    + uRipple * 0.07 * sin(md * 16.0 - t * 9.0) * exp(-md * 2.2);
+    + uRipple * 0.13 * sin(md * 14.0 - t * 8.0) * exp(-md * 1.6);
   float d = surf - uv.y;
   if (d < -14.0 * px) { gl_FragColor = vec4(0.0); return; }
 
@@ -108,7 +108,7 @@ void main() {
   // the liquid, like looking into cut crystal.
   vec2 m = vec2(mx, uMouse.y);
   float mdist = length(p - m);
-  vec2 rippleWarp = (p - m) / max(mdist, 1e-3) * sin(mdist * 26.0 - t * 10.0) * 0.03 * uRipple * exp(-mdist * 2.5);
+  vec2 rippleWarp = (p - m) / max(mdist, 1e-3) * sin(mdist * 22.0 - t * 9.0) * 0.06 * uRipple * exp(-mdist * 1.8);
   vec2 q = p * 1.6 + vec2(t * 0.35, -t * 0.12) + rippleWarp * 4.0;
   float w = fbm(q + 1.9 * fbm(q * 1.2 + vec2(-t * 0.2, t * 0.08)));
   vec2 rp = p + (w - 0.5) * 0.45 + rippleWarp;
@@ -163,7 +163,7 @@ void main() {
   col += halo * 0.08;
 
   col = mix(vec3(dot(col, vec3(0.299, 0.587, 0.114))), col, 1.24);
-  col += uRipple * 0.12 * smoothstep(0.02, 0.0, abs(sin(mdist * 26.0 - t * 10.0))) * exp(-mdist * 3.0) * inside;
+  col += min(uRipple, 1.2) * 0.3 * smoothstep(0.18, 0.0, abs(sin(mdist * 22.0 - t * 9.0))) * exp(-mdist * 2.0) * inside;
   col = mix(col, col * 1.08 + 0.02, uDark);
 
   float alpha = max(inside, line * 0.55);
@@ -373,6 +373,15 @@ export default function CrystalLiquid() {
       if (hovered) hovered.hover = false;
       hovered = null;
     }
+    function onPointerDown(e: PointerEvent) {
+      onPointerMove(e);
+      if (hovered) {
+        hovered.ripple = 1.6;
+        hovered.wave = 1;
+        if (e.pointerType !== 'mouse') hovered.hover = false;
+      }
+    }
+    document.addEventListener('pointerdown', onPointerDown, { passive: true });
     document.addEventListener('pointermove', onPointerMove, { passive: true });
     document.addEventListener('pointerleave', onPointerLeaveDoc);
 
@@ -428,7 +437,7 @@ export default function CrystalLiquid() {
 
         const waveTarget = Math.min(1, Math.abs(l.vel) * 1.4 + Math.abs(l.tiltVel) * 0.25 + Math.abs(scrollVel) * 0.0004);
         l.wave += (waveTarget - l.wave) * (1 - Math.exp(-dt * 6));
-        l.ripple += ((l.hover ? 1 : 0) - l.ripple) * (1 - Math.exp(-dt * (l.hover ? 8 : 2.2)));
+        l.ripple += ((l.hover ? 1 : 0) - l.ripple) * (1 - Math.exp(-dt * (l.hover ? 6 : 1.6)));
 
         const fillN = Math.min(Math.max(l.level, 0), 1);
         if (Math.abs(fillN - l.fillN) > 0.004) {
@@ -500,6 +509,7 @@ export default function CrystalLiquid() {
       mq.removeEventListener('change', onThemeChange);
       glCanvas.removeEventListener('webglcontextlost', onLost);
       document.removeEventListener('pointermove', onPointerMove);
+      document.removeEventListener('pointerdown', onPointerDown);
       document.removeEventListener('pointerleave', onPointerLeaveDoc);
       liquids.forEach(detach);
       io.disconnect();

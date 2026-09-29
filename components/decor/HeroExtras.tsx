@@ -143,7 +143,7 @@ function HeroCards({ latestPost, events, testimony }: Props) {
   } else {
     const t = now ?? Date.now();
     const a = nextGathering(t, []);
-    const b = nextGathering(t + a.msUntil + 60 * 60 * 1000, []);
+    const b = nextGathering(t + a.msUntil + 4 * 60 * 60 * 1000, []);
     cardA = (
       <a href="#service" className="hero-card hero-card--a" style={{ ['--depth' as string]: 1.6 }}>
         <span className="hero-card-eyebrow">Coming up this week</span>
