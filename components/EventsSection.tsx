@@ -19,7 +19,7 @@ export default async function EventsSection() {
   const events = await getUpcomingEvents();
 
   return (
-    <section className="section pop-stage shape-host" id="events">
+    <section className="section pop-stage shape-host" id="events" data-title="Events">
       <FloatingShape top="0%" left="-4%" depth={0.9} rotate={-10}>
         <FluidBlob size={240} color="var(--accent-violet)" style={{ opacity: 0.45 }} />
       </FloatingShape>

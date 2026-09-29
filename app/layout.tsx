@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Script from 'next/script';
 import RotatingBackdrop from '@/components/decor/RotatingBackdrop';
 import SplashScreen from '@/components/decor/SplashScreen';
+import CrystalLiquid from '@/components/decor/CrystalLiquid';
 
 export const metadata: Metadata = {
   title: "TCH Global | The Comforter's House Global",
@@ -41,6 +42,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </div>
         <RotatingBackdrop />
         <SplashScreen />
+        <CrystalLiquid />
         {children}
         <Script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
           integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="

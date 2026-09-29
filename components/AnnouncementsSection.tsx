@@ -13,7 +13,7 @@ export default async function AnnouncementsSection() {
   if (!announcements || announcements.length === 0) return null;
 
   return (
-    <section className="section pop-stage" id="announcements">
+    <section className="section pop-stage" id="announcements" data-title="News">
       <div className="container">
         <div className="section-header pop">
           <span className="eyebrow">What&rsquo;s Happening</span>

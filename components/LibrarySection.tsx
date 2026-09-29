@@ -14,7 +14,7 @@ export default async function LibrarySection() {
   const isLive = liveVideos !== null;
 
   return (
-    <section className="section pop-stage" id="library" style={{ paddingTop: 0 }}>
+    <section className="section pop-stage" id="library" data-title="Library" style={{ paddingTop: 0 }}>
       <div className="container">
         <div className="section-header pop">
           <span className="eyebrow">Library</span>
