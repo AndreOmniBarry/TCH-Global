@@ -10,6 +10,7 @@ const SECTIONS: { type: FormType; title: string; fieldOrder: string[] }[] = [
   { type: 'volunteer', title: 'Volunteer Interest', fieldOrder: ['name', 'email', 'team'] },
   { type: 'join', title: 'Membership (Join Us)', fieldOrder: ['name', 'email'] },
   { type: 'give', title: 'Giving Intent', fieldOrder: ['name', 'email', 'amount', 'fund'] },
+  { type: 'newsletter', title: 'Newsletter Sign-ups', fieldOrder: ['email', 'source'] },
 ];
 
 function formatDate(iso: string) {

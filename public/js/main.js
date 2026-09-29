@@ -53,6 +53,59 @@
   // hid the form and showed a fake "thank you" with nothing saved
   // anywhere. Field values are read from each input/select/textarea's
   // id, stripped of its "<type>-" prefix (e.g. "volunteer-name" -> "name").
+  // Inline status line under a form (replaces window.alert).
+  function formStatus(form, kind, text) {
+    var el = form.parentNode.querySelector('.form-status[data-for="' + (form.id || form.dataset.source) + '"]');
+    if (!el) {
+      el = document.createElement('p');
+      el.className = 'form-status';
+      el.setAttribute('role', 'status');
+      el.setAttribute('aria-live', 'polite');
+      el.dataset.for = form.id || form.dataset.source || '';
+      form.parentNode.insertBefore(el, form.nextSibling);
+    }
+    el.dataset.kind = kind;
+    el.textContent = text;
+  }
+
+  function postForm(type, fields, honeypot) {
+    return fetch('/api/forms', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: type, fields: fields, website: honeypot || '' }),
+    }).then(function (res) {
+      return res.json().catch(function () { return {}; }).then(function (data) {
+        return { ok: res.ok, data: data };
+      });
+    });
+  }
+
+  // Newsletter sign-ups (home footer, blog index, every post).
+  Array.prototype.forEach.call(document.querySelectorAll('#newsletter-form, form.js-newsletter'), function (form) {
+    var btn = form.querySelector('button[type="submit"]');
+    var label = btn ? btn.textContent : '';
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var email = form.querySelector('input[type="email"]');
+      var hp = form.querySelector('input[name="website"]');
+      if (btn) { btn.disabled = true; btn.textContent = '…'; }
+      postForm('newsletter', { email: email ? email.value : '', source: form.dataset.source || location.pathname }, hp ? hp.value : '')
+        .then(function (r) {
+          if (btn) { btn.disabled = false; btn.textContent = label; }
+          if (r.ok) {
+            form.reset();
+            formStatus(form, 'ok', 'You’re in — look out for the next reflection in your inbox.');
+          } else {
+            formStatus(form, 'error', r.data.error || 'Something went wrong. Please try again.');
+          }
+        })
+        .catch(function () {
+          if (btn) { btn.disabled = false; btn.textContent = label; }
+          formStatus(form, 'error', 'Network error — please check your connection and try again.');
+        });
+    });
+  });
+
   function wireForm(formId, doneId) {
     var form = document.getElementById(formId);
     var done = document.getElementById(doneId);
@@ -79,18 +132,11 @@
         submitBtn.textContent = 'Sending…';
       }
 
-      fetch('/api/forms', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: type, fields: fields, website: honeypot ? honeypot.value : '' }),
-      })
-        .then(function (res) {
-          return res.json().catch(function () { return {}; }).then(function (data) {
-            return { ok: res.ok, data: data };
-          });
-        })
+      postForm(type, fields, honeypot ? honeypot.value : '')
         .then(function (result) {
           if (result.ok) {
+            var st = form.parentNode.querySelector('.form-status');
+            if (st) st.remove();
             form.hidden = true;
             if (done) done.hidden = false;
           } else {
@@ -98,7 +144,7 @@
               submitBtn.disabled = false;
               submitBtn.textContent = originalLabel;
             }
-            window.alert(result.data.error || 'Something went wrong. Please try again.');
+            formStatus(form, 'error', result.data.error || 'Something went wrong. Please try again.');
           }
         })
         .catch(function () {
@@ -106,7 +152,7 @@
             submitBtn.disabled = false;
             submitBtn.textContent = originalLabel;
           }
-          window.alert('Network error — please check your connection and try again.');
+          formStatus(form, 'error', 'Network error — please check your connection and try again.');
         });
     });
   }

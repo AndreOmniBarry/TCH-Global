@@ -8,6 +8,7 @@ import '@fontsource/jetbrains-mono/latin-600.css';
 import Script from 'next/script';
 import RotatingBackdrop from '@/components/decor/RotatingBackdrop';
 import CrystalLiquid from '@/components/decor/CrystalLiquid';
+import BroadcastFrames from '@/components/decor/BroadcastFrames';
 
 export const metadata: Metadata = {
   title: "TCH Global | The Comforter's House Global",
@@ -73,6 +74,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <div dangerouslySetInnerHTML={{ __html: SPLASH_HTML }} suppressHydrationWarning />
         <script dangerouslySetInnerHTML={{ __html: SPLASH_SCRIPT }} />
         <CrystalLiquid />
+        <BroadcastFrames />
         {children}
         <Script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
           integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="

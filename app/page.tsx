@@ -101,7 +101,7 @@ const HOME_HTML_BEFORE_LIBRARY = `
       <h2>Beyond Walls.<br><span class="accent">Into Light.</span></h2>
       <p>We don't replicate the traditions of the past for their own sake — we build a living, connected house rooted in the Word and in Faith.</p>
     </div>
-    <div class="photo-cycle pop">
+    <div class="photo-cycle pop" data-broadcast="LIVE · SANCTUARY CAM 01">
       <img src="/images/pastor-teaching.webp" alt="Pastor teaching the congregation at TCH Global" style="--slot:0">
       <img src="/images/gallery-4.webp" alt="TCH Global congregation" loading="lazy" width="900" height="600" style="--slot:1">
       <img src="/images/gallery-1.webp" alt="Pastor ministering at TCH Global" loading="lazy" width="900" height="600" style="--slot:2">
@@ -110,6 +110,36 @@ const HOME_HTML_BEFORE_LIBRARY = `
       <img src="/images/gallery-7.webp" alt="TCH Global worship service" loading="lazy" width="900" height="600" style="--slot:5">
       <img src="/images/gallery-5.webp" alt="Pastor ministering at TCH Global" loading="lazy" width="900" height="600" style="--slot:6">
       <span class="photo-tag">The Word &amp; Faith in Action</span>
+    </div>
+  </div>
+
+  <div class="container about-deep">
+    <div class="vm-grid">
+      <article class="vm-card vm-card--vision pop">
+        <span class="eyebrow">Our Vision</span>
+        <h3>A house of comfort <em>in every nation.</em></h3>
+        <p>To see a global family of believers — in cities and on campuses — who carry the comfort of Christ into every home, workplace and generation.</p>
+      </article>
+      <article class="vm-card vm-card--mission pop">
+        <span class="eyebrow">Our Mission</span>
+        <h3>Giving comfort <em>to your living.</em></h3>
+        <p>We teach the Word with simplicity, pray with expectation, and build a connected church family that helps people know Christ and make Him known — beyond walls, into light.</p>
+      </article>
+    </div>
+
+    <div class="about-subhead pop"><span class="eyebrow">What drives us</span><h3>Our Core Values</h3></div>
+    <div class="values-grid"><div class="value-card pop"><span class="value-icon"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 19V5M9 7h6M9 11h6"/></svg></span><h4>The Word</h4><p>Scripture is our foundation — every message, decision and ministry starts from the Bible.</p></div><div class="value-card pop"><span class="value-icon"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18M6 9h12"/></svg></span><h4>Faith</h4><p>We take God at His Word and expect to see Him move — in services, homes and campuses.</p></div><div class="value-card pop"><span class="value-icon"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 5.6-7 10-7 10z"/></svg></span><h4>Comfort</h4><p>We are a house of comfort: a place where the hurting are held, heard and helped.</p></div><div class="value-card pop"><span class="value-icon"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21V11l4-8 4 8v10M8 15h8"/></svg></span><h4>Prayer</h4><p>Prayer is how this house breathes — every week, every service, every request.</p></div><div class="value-card pop"><span class="value-icon"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="8" r="3"/><circle cx="16" cy="8" r="3"/><path d="M2 20c0-3 3-5 6-5s6 2 6 5M12 20c0-3 3-5 6-5s4 1.5 4 3"/></svg></span><h4>Family</h4><p>One family across every nation — no one worships alone at TCH Global.</p></div><div class="value-card pop"><span class="value-icon"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.6 5.6 6 .7-4.5 4.1 1.2 6L12 16.5 6.7 19.4l1.2-6L3.4 9.3l6-.7z"/></svg></span><h4>Excellence</h4><p>We give God our best — in worship, in teaching and in how we serve people.</p></div></div>
+
+    <div class="believe-wrap">
+      <div class="about-subhead pop"><span class="eyebrow">Foundations</span><h3>What We Believe</h3><p>The heart of our faith, in five lines.</p></div>
+      <ol class="believe-list pop"><li>One God, eternally existing as Father, Son and Holy Spirit.</li><li>Jesus Christ — His death, resurrection and return — is the only way to salvation.</li><li>The Bible is the inspired, authoritative Word of God.</li><li>The Holy Spirit empowers believers today, with signs and wonders following.</li><li>The Church is a family called to comfort, disciple and reach every nation.</li></ol>
+    </div>
+
+    <div class="stat-band pop">
+      <div><strong>4</strong><span>gatherings every week</span></div>
+      <div><strong>2</strong><span>Sunday services</span></div>
+      <div><strong>1</strong><span>family, many campuses</span></div>
+      <div><strong>&infin;</strong><span>nations online</span></div>
     </div>
   </div>
 </section>
@@ -127,7 +157,7 @@ const HOME_HTML_AFTER_LIBRARY = `<section class="section pop-stage shape-host ba
       <p class="pastor-bio">Pastor Uzor Echiejile is the Global Lead Pastor of TCH Global (The Comforter's House Global), a network of churches and campus fellowships. He is an anointed minister of the Gospel of our Lord Jesus Christ, who presents the Gospel of Christ in its simplicity, with signs and wonders following in his meetings.</p>
       <p class="pastor-bio-note">Full biography coming soon — placeholder text above, ready to be replaced with your write-up.</p>
     </div>
-    <a href="#media" class="latest-message pop">
+    <a href="#media" class="latest-message pop" data-broadcast="REC · THIS WEEK&rsquo;S WORD">
       <img src="/images/pastor-mic.webp" alt="Pastor Uzor Echiejile ministering with a microphone">
       <span class="latest-message-play"><svg class="icon-play" viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></span>
       <span class="latest-message-body">
@@ -151,7 +181,7 @@ const HOME_HTML_TESTIMONIES_TO_EVENTS = `
     </div>
 
     <a href="/blog/walking-in-faith" class="blog-feature pop">
-      <div class="blog-feature-media">
+      <div class="blog-feature-media" data-broadcast="ON AIR · THE COMFORTERS BLOG">
         <img src="/images/pastor-teaching.webp" alt="Pastor Uzor Echiejile teaching at TCH Global">
       </div>
       <div class="blog-feature-body">
@@ -340,8 +370,9 @@ const HOME_HTML_EVENTS_TO_MEDIA = `
     <div class="footer-cta">
       <h3 style="font-size:1.2rem;text-transform:uppercase;margin-bottom:8px;">Stay Rooted in the Word</h3>
       <p style="font-size:.85rem;color:var(--text-muted);margin-bottom:16px;">Get new messages, series, and announcements in your inbox.</p>
-      <form id="newsletter-form" style="display:flex;gap:8px;max-width:360px;margin:0 auto;">
-        <input type="email" placeholder="Enter your email" required style="margin-bottom:0;">
+      <form id="newsletter-form" data-source="home-footer" style="display:flex;gap:8px;max-width:360px;margin:0 auto;">
+        <input type="email" id="newsletter-email" placeholder="Enter your email" required style="margin-bottom:0;" autocomplete="email">
+        <input type="text" name="website" tabindex="-1" autocomplete="off" class="hp-field" aria-hidden="true">
         <button type="submit" class="btn btn-primary" style="flex-shrink:0;">Join</button>
       </form>
     </div>
