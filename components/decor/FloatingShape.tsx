@@ -22,7 +22,6 @@ type Props = {
   depth?: number;
   /** Rotation drift in degrees over the scroll range. */
   rotate?: number;
-  blur?: boolean;
   zIndex?: number;
 };
 
@@ -34,7 +33,6 @@ export default function FloatingShape({
   bottom,
   depth = 1,
   rotate = 0,
-  blur = true,
   zIndex = 0,
 }: Props) {
   const ref = useRef<HTMLDivElement>(null);
@@ -46,7 +44,7 @@ export default function FloatingShape({
     if (prefersReducedMotion) {
       // Show the shape at rest, fully visible, instead of leaving it
       // stuck at the animation's opacity:0 starting state forever.
-      gsap.set(el, { opacity: 1, scale: 1, yPercent: 0, rotate: 0, filter: 'blur(0px)' });
+      gsap.set(el, { opacity: 1, scale: 1, yPercent: 0, rotate: 0 });
       return;
     }
 
@@ -60,13 +58,12 @@ export default function FloatingShape({
       // depth" effect from the design reference.
       gsap.fromTo(
         el,
-        { yPercent: 12 * depth, scale: 0.82, opacity: 0, rotate: -rotate, filter: blur ? 'blur(6px)' : 'none' },
+        { yPercent: 12 * depth, scale: 0.82, opacity: 0, rotate: -rotate },
         {
           yPercent: -12 * depth,
           scale: 1,
           opacity: 1,
           rotate,
-          filter: 'blur(0px)',
           ease: 'none',
           force3D: true,
           scrollTrigger: {
@@ -80,7 +77,7 @@ export default function FloatingShape({
     }, el);
 
     return () => ctx.revert();
-  }, [depth, rotate, blur]);
+  }, [depth, rotate]);
 
   return (
     <div

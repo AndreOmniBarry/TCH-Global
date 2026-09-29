@@ -8,7 +8,7 @@ export default function PastorShapes() {
   return (
     <ShapeLayer targetId="pastor-shapes">
       <FloatingShape top="-12%" left="-10%" depth={1.3} rotate={0}>
-        <MeshOrb size={300} color="var(--accent-gold)" style={{ opacity: 0.5, filter: 'blur(6px)' }} />
+        <MeshOrb size={300} color="var(--accent-gold)" style={{ opacity: 0.5 }} />
       </FloatingShape>
       <FloatingShape top="-6%" left="-4%" depth={1.1} rotate={-12}>
         <CrystalShard size={170} color="var(--accent-gold)" style={{ opacity: 0.8 }} />

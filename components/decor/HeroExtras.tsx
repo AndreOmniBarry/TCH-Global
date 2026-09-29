@@ -15,9 +15,25 @@ const GATHERINGS = [
   { day: 3, h: 17, m: 30, mins: 120, name: 'Midweek Service' },
 ];
 
-type Next = { name: string; label: string; msUntil: number; inProgress: boolean };
+type Next = { name: string; label: string; msUntil: number; inProgress: boolean; href: string };
 
-function nextGathering(nowMs: number): Next {
+export type HeroEvent = { title: string; startsAt: string; endsAt: string | null; location: string | null };
+type Props = {
+  latestPost: { title: string; slug: string; meta: string } | null;
+  events: HeroEvent[];
+  testimony: { name: string; quote: string } | null;
+};
+
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+function lagosLabel(ms: number, withDate: boolean) {
+  const d = new Date(ms + LAGOS_OFFSET_MS);
+  const h = d.getUTCHours();
+  const m = d.getUTCMinutes();
+  const time = `${((h + 11) % 12) + 1}:${String(m).padStart(2, '0')} ${h < 12 ? 'AM' : 'PM'}`;
+  return withDate ? `${DAYS[d.getUTCDay()]} ${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]} · ${time} WAT` : `${DAYS[d.getUTCDay()]} ${time} WAT`;
+}
+
+function nextGathering(nowMs: number, events: HeroEvent[]): Next {
   const lagos = new Date(nowMs + LAGOS_OFFSET_MS);
   const dayStart = Date.UTC(lagos.getUTCFullYear(), lagos.getUTCMonth(), lagos.getUTCDate());
   const nowLagos = nowMs + LAGOS_OFFSET_MS;
@@ -27,14 +43,24 @@ function nextGathering(nowMs: number): Next {
     let start = dayStart + delta * DAY_MS + (g.h * 60 + g.m) * 60 * 1000;
     const end = start + g.mins * 60 * 1000;
     if (nowLagos >= start && nowLagos < end) {
-      return { name: g.name, label: '', msUntil: 0, inProgress: true };
+      return { name: g.name, label: '', msUntil: 0, inProgress: true, href: '#media' };
     }
     if (start <= nowLagos) start += 7 * DAY_MS;
     const msUntil = start - nowLagos;
     if (!best || msUntil < best.msUntil) {
       const h12 = ((g.h + 11) % 12) + 1;
       const label = `${DAYS[g.day]} ${h12}:${String(g.m).padStart(2, '0')} ${g.h < 12 ? 'AM' : 'PM'} WAT`;
-      best = { name: g.name, label, msUntil, inProgress: false };
+      best = { name: g.name, label, msUntil, inProgress: false, href: '#service' };
+    }
+  }
+  for (const e of events) {
+    const start = new Date(e.startsAt).getTime();
+    if (!Number.isFinite(start)) continue;
+    const end = e.endsAt ? new Date(e.endsAt).getTime() : start + 3 * 60 * 60 * 1000;
+    if (nowMs >= start && nowMs < end) return { name: e.title, label: '', msUntil: 0, inProgress: true, href: '#events' };
+    const msUntil = start - nowMs;
+    if (msUntil > 0 && (!best || msUntil < best.msUntil)) {
+      best = { name: e.title, label: lagosLabel(start, true), msUntil, inProgress: false, href: '#events' };
     }
   }
   return best!;
@@ -50,7 +76,7 @@ function formatCountdown(ms: number) {
   return d > 0 ? `${d}d ${pad(h)}h ${pad(m)}m` : `${pad(h)}:${pad(m)}:${pad(sec)}`;
 }
 
-function NextGatheringChip() {
+function NextGatheringChip({ events }: { events: HeroEvent[] }) {
   const [now, setNow] = useState<number | null>(null);
   const [live, setLive] = useState(false);
 
@@ -65,7 +91,7 @@ function NextGatheringChip() {
   }, []);
 
   if (now === null) return <span className="hero-chip hero-chip--placeholder">&nbsp;</span>;
-  const next = nextGathering(now);
+  const next = nextGathering(now, events);
   const isLive = live || next.inProgress;
 
   if (isLive) {
@@ -90,19 +116,53 @@ function NextGatheringChip() {
   );
 }
 
-function HeroCards() {
+function HeroCards({ latestPost, events, testimony }: Props) {
+  const [now, setNow] = useState<number | null>(null);
+  useEffect(() => setNow(Date.now()), []);
+  const upcoming = now === null ? events[0] : events.find((e) => new Date(e.endsAt ?? e.startsAt).getTime() > now);
+
+  let cardA: React.ReactNode;
+  if (upcoming) {
+    cardA = (
+      <a href="#events" className="hero-card hero-card--a" style={{ ['--depth' as string]: 1.6 }}>
+        <span className="hero-card-eyebrow">Upcoming event</span>
+        <strong className="hero-card-title">{upcoming.title}</strong>
+        <span className="hero-card-ref">{lagosLabel(new Date(upcoming.startsAt).getTime(), true)}</span>
+        {upcoming.location && <span className="hero-card-ref">{upcoming.location}</span>}
+      </a>
+    );
+  } else if (testimony) {
+    const q = testimony.quote.length > 110 ? `${testimony.quote.slice(0, 107).trimEnd()}…` : testimony.quote;
+    cardA = (
+      <a href="#testimonies" className="hero-card hero-card--a" style={{ ['--depth' as string]: 1.6 }}>
+        <span className="hero-card-eyebrow">Recent testimony</span>
+        <p>&ldquo;{q}&rdquo;</p>
+        <span className="hero-card-ref">— {testimony.name}</span>
+      </a>
+    );
+  } else {
+    const t = now ?? Date.now();
+    const a = nextGathering(t, []);
+    const b = nextGathering(t + a.msUntil + 60 * 60 * 1000, []);
+    cardA = (
+      <a href="#service" className="hero-card hero-card--a" style={{ ['--depth' as string]: 1.6 }}>
+        <span className="hero-card-eyebrow">Coming up this week</span>
+        <div className="hero-card-row"><strong>{a.label.replace(' WAT', '')}</strong><span>{a.name}</span></div>
+        <div className="hero-card-row"><strong>{b.label.replace(' WAT', '')}</strong><span>{b.name}</span></div>
+      </a>
+    );
+  }
+
   return (
     <>
-      <div className="hero-card hero-card--a" style={{ ['--depth' as string]: 1.6 }}>
-        <span className="hero-card-eyebrow">Every Sunday</span>
-        <div className="hero-card-row"><strong>7:30 AM</strong><span>First Service</span></div>
-        <div className="hero-card-row"><strong>9:15 AM</strong><span>Second Service</span></div>
-      </div>
-      <div className="hero-card hero-card--b" style={{ ['--depth' as string]: 2.2 }}>
-        <span className="hero-card-eyebrow">Word for the week</span>
-        <p>&ldquo;Blessed are those who mourn, for they shall be <em>comforted</em>.&rdquo;</p>
-        <span className="hero-card-ref">Matthew 5:4</span>
-      </div>
+      {cardA}
+      {latestPost && (
+        <a href={`/blog/${latestPost.slug}`} className="hero-card hero-card--b" style={{ ['--depth' as string]: 2.2 }}>
+          <span className="hero-card-eyebrow">New on the blog</span>
+          <p>&ldquo;{latestPost.title}&rdquo;</p>
+          <span className="hero-card-ref">{latestPost.meta ? `${latestPost.meta} · ` : ''}Read now →</span>
+        </a>
+      )}
       <a href="#media" className="hero-card hero-card--c" style={{ ['--depth' as string]: 1.2 }}>
         <span className="hero-card-orbs" aria-hidden="true"><i /><i /><i /><i /></span>
         <span><strong>One family</strong><br />in every nation — join online</span>
@@ -114,7 +174,7 @@ function HeroCards() {
 /** Hero enrichment: a live next-gathering chip, floating glass info
  * cards (desktop), and a pointer-driven 3D tilt + spotlight. Mount
  * points live in the hero's raw HTML in app/page.tsx. */
-export default function HeroExtras() {
+export default function HeroExtras(props: Props) {
   const [targets, setTargets] = useState<{ chip: HTMLElement | null; cards: HTMLElement | null }>({
     chip: null,
     cards: null,
@@ -176,8 +236,8 @@ export default function HeroExtras() {
 
   return (
     <>
-      {targets.chip && createPortal(<NextGatheringChip />, targets.chip)}
-      {targets.cards && createPortal(<HeroCards />, targets.cards)}
+      {targets.chip && createPortal(<NextGatheringChip events={props.events} />, targets.chip)}
+      {targets.cards && createPortal(<HeroCards {...props} />, targets.cards)}
     </>
   );
 }

@@ -8,7 +8,7 @@ export default function AboutChurchShapes() {
   return (
     <ShapeLayer targetId="about-shapes">
       <FloatingShape top="-14%" right="-10%" depth={1.3} rotate={0}>
-        <MeshOrb size={360} color="var(--accent-lavender)" style={{ opacity: 0.5, filter: 'blur(6px)' }} />
+        <MeshOrb size={360} color="var(--accent-lavender)" style={{ opacity: 0.5 }} />
       </FloatingShape>
       <FloatingShape top="-8%" right="-6%" depth={1.2} rotate={12}>
         <FluidBlob size={300} color="var(--accent-lavender)" style={{ opacity: 0.5 }} />

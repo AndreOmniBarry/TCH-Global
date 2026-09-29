@@ -8,7 +8,7 @@ export default function BlogShapes() {
   return (
     <ShapeLayer targetId="blog-shapes">
       <FloatingShape top="-14%" right="-10%" depth={1.3} rotate={0}>
-        <MeshOrb size={300} color="var(--accent-cyan)" style={{ opacity: 0.45, filter: 'blur(6px)' }} />
+        <MeshOrb size={300} color="var(--accent-cyan)" style={{ opacity: 0.45 }} />
       </FloatingShape>
       <FloatingShape top="-8%" right="-6%" depth={1.1} rotate={12}>
         <FluidBlob size={260} color="var(--accent-cyan)" style={{ opacity: 0.4 }} />

@@ -8,7 +8,7 @@ export default function GiveShapes() {
   return (
     <ShapeLayer targetId="give-shapes">
       <FloatingShape top="-12%" right="-8%" depth={1.2} rotate={0}>
-        <MeshOrb size={300} color="var(--accent-gold)" style={{ opacity: 0.45, filter: 'blur(6px)' }} />
+        <MeshOrb size={300} color="var(--accent-gold)" style={{ opacity: 0.45 }} />
       </FloatingShape>
       <FloatingShape top="-8%" right="-4%" depth={1.1} rotate={14}>
         <FluidBlob size={260} color="var(--accent-gold)" style={{ opacity: 0.45 }} />

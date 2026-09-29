@@ -8,7 +8,7 @@ export default function VolunteerShapes() {
   return (
     <ShapeLayer targetId="volunteer-shapes">
       <FloatingShape top="-10%" right="-6%" depth={1.2} rotate={0}>
-        <MeshOrb size={280} color="var(--accent-gold)" style={{ opacity: 0.4, filter: 'blur(6px)' }} />
+        <MeshOrb size={280} color="var(--accent-gold)" style={{ opacity: 0.4 }} />
       </FloatingShape>
       <FloatingShape top="-4%" right="10%" depth={1} rotate={12}>
         <Polygon size={130} color="var(--accent-gold)" filled style={{ opacity: 0.5 }} />

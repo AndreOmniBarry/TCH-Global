@@ -1,157 +1,190 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import {
-  AnimatePresence,
-  MotionConfig,
-  motion,
-  motionValue,
-  useSpring,
-  useTransform,
-  type MotionValue,
-  type Variants,
-} from 'framer-motion';
 
-const PROBE = 0.55;
-const SINK_BAND = 0.22;
 const RIDGE_TILE = 1200;
 const RIDGE_SPEEDS = [0.04, 0.09, 0.16];
 
-const wordVariants: Variants = {
-  initial: {},
-  enter: { transition: { staggerChildren: 0.045, delayChildren: 0.08 } },
-  exit: { transition: { staggerChildren: 0.03, staggerDirection: -1 } },
+type Item = { title: string; letters: string[] };
+
+const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v);
+const easeOutBack = (t: number) => {
+  const c = 1.45;
+  return 1 + (c + 1) * Math.pow(t - 1, 3) + c * Math.pow(t - 1, 2);
 };
+const easeInCubic = (t: number) => t * t * t;
 
-// Pop-up book: each letter starts lying flat (folded back along its
-// base) below the ridge line and stands up on a spring; leaving, it
-// folds back down and sinks into the ground.
-const letterVariants: Variants = {
-  initial: { y: '105%', rotateX: -88, opacity: 0, filter: 'blur(8px)' },
-  enter: {
-    y: '0%',
-    rotateX: 0,
-    opacity: 1,
-    filter: 'blur(0px)',
-    transition: { type: 'spring', stiffness: 160, damping: 17, mass: 0.9 },
-  },
-  exit: {
-    y: '115%',
-    rotateX: 75,
-    opacity: 0,
-    filter: 'blur(6px)',
-    transition: { duration: 0.6, ease: [0.55, 0, 0.8, 0.25] },
-  },
-};
-
-function Word({ title, sink }: { title: string; sink: MotionValue<number> }) {
-  const s = useSpring(sink, { stiffness: 140, damping: 26, mass: 0.7 });
-  const y = useTransform(s, (v) => `${v * 44}%`);
-  const rotateX = useTransform(s, (v) => v * 55);
-  const scale = useTransform(s, (v) => 1 - v * 0.1);
-  const opacity = useTransform(s, (v) => 1 - v * 0.35);
-  const letters = Array.from(title.toUpperCase()).map((ch) => (ch === ' ' ? ' ' : ch));
-
-  return (
-    <motion.div
-      className="st-word"
-      style={{ y, rotateX, scale, opacity, ['--n' as string]: letters.length }}
-      variants={wordVariants}
-      initial="initial"
-      animate="enter"
-      exit="exit"
-    >
-      {letters.map((ch, i) => (
-        <motion.span key={i} className="st-letter" data-l={ch} variants={letterVariants}>
-          <span className="st-face">{ch}</span>
-        </motion.span>
-      ))}
-    </motion.div>
-  );
-}
-
-/** Mirage-style section title: a giant extruded word per section,
- * standing behind a layered mountain ridge fixed to the bottom of the
- * viewport. As a section scrolls away its word tilts back and sinks
- * into the ridge (scroll-scrubbed), and the next section's word
- * sprouts up letter by letter. Sections opt in with data-title. */
+/** Mirage-style section titles, fully scroll-scrubbed: each section's
+ * word rises letter by letter out of the ridge as the section arrives
+ * and sinks back into it as the section leaves. Every letter's pose is
+ * a pure function of a smoothed scroll position, so scrolling back
+ * replays the exact reverse — there is no discrete "switch" to get
+ * confused mid-way. Sections opt in with data-title. */
 export default function SectionTitleStage() {
-  const [title, setTitle] = useState<string | null>(null);
-  const sinks = useRef(new Map<string, MotionValue<number>>());
+  const [items, setItems] = useState<Item[]>([]);
   const stageRef = useRef<HTMLDivElement>(null);
   const ridgeRefs = useRef<(HTMLDivElement | null)[]>([]);
 
-  function sinkFor(t: string) {
-    let mv = sinks.current.get(t);
-    if (!mv) {
-      mv = motionValue(0);
-      sinks.current.set(t, mv);
-    }
-    return mv;
-  }
-
   useEffect(() => {
     const sections = Array.from(document.querySelectorAll<HTMLElement>('[data-title]'));
-    if (!sections.length) return;
-    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    let current: string | null = null;
+    setItems(
+      sections.map((el) => {
+        const title = el.dataset.title || '';
+        return { title, letters: Array.from(title.toUpperCase()).map((c) => (c === ' ' ? ' ' : c)) };
+      })
+    );
+  }, []);
+
+  useEffect(() => {
+    const stage = stageRef.current;
+    if (!stage || !items.length) return;
+    const sections = Array.from(document.querySelectorAll<HTMLElement>('[data-title]'));
+    const words = Array.from(stage.querySelectorAll<HTMLElement>('.st-word'));
+    const letters = words.map((w) => Array.from(w.querySelectorAll<HTMLElement>('.st-letter')));
+    const hero = document.querySelector<HTMLElement>('.hero-stage');
+    const footer = document.querySelector<HTMLElement>('.site-footer');
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    let tops: number[] = [];
+    let bottoms: number[] = [];
+    let heroBottom = 0;
+    let footerTop = Infinity;
+    function measure() {
+      const sy = window.scrollY;
+      tops = sections.map((s) => s.getBoundingClientRect().top + sy);
+      bottoms = sections.map((s) => s.getBoundingClientRect().bottom + sy);
+      heroBottom = hero ? hero.getBoundingClientRect().bottom + sy : 0;
+      footerTop = footer ? footer.getBoundingClientRect().top + sy : Infinity;
+    }
+    measure();
+
+    const lastPose: string[][] = letters.map((ls) => ls.map(() => ''));
+    const lastVis: boolean[] = words.map(() => false);
+    let lastStageShift = '';
+    let smooth = window.scrollY;
     let raf = 0;
+    let last = performance.now();
 
-    function update() {
-      raf = 0;
+    function render(y: number) {
       const vh = window.innerHeight;
-      const probe = vh * PROBE;
-      let active: HTMLElement | null = null;
-      for (const el of sections) {
-        const r = el.getBoundingClientRect();
-        if (r.top <= probe) active = el;
-        else break;
-      }
-      if (!active) active = sections[0];
-      const t = active.dataset.title || '';
-      const bottom = active.getBoundingClientRect().bottom;
-      const sink = Math.min(Math.max((probe + vh * SINK_BAND - bottom) / (vh * SINK_BAND), 0), 1);
-      sinkFor(t).set(sink);
-      if (t !== current) {
-        current = t;
-        setTitle(t);
+      const probe = vh * 0.62;
+      const band = vh * 0.28;
+
+      // Stage stays tucked below the fold while the hero fills the
+      // screen, and slides away as the footer arrives.
+      const heroHide = clamp01((heroBottom - y - vh * 0.55) / (vh * 0.3));
+      const footHide = clamp01((y + vh - footerTop) / (vh * 0.25));
+      const hide = Math.max(heroHide, footHide);
+      const shift = `translate3d(0,${(hide * 105).toFixed(2)}%,0)`;
+      if (shift !== lastStageShift) {
+        stage!.style.transform = shift;
+        lastStageShift = shift;
       }
 
-      if (!reduceMotion) {
-        const sy = window.scrollY;
-        ridgeRefs.current.forEach((el, i) => {
-          if (!el) return;
-          const shift = (sy * RIDGE_SPEEDS[i]) % RIDGE_TILE;
-          el.style.transform = `translate3d(${-shift}px,0,0)`;
+      for (let i = 0; i < words.length; i++) {
+        const top = tops[i] - y;
+        const bottom = bottoms[i] - y;
+        const rise = i === 0 ? 1 : clamp01((probe - top) / band);
+        const sink = clamp01((probe + band - bottom) / band);
+        const vis = rise > 0 && sink < 1;
+        if (vis !== lastVis[i]) {
+          words[i].style.visibility = vis ? 'visible' : 'hidden';
+          lastVis[i] = vis;
+        }
+        if (!vis) continue;
+
+        const ls = letters[i];
+        const n = ls.length;
+        const stagger = Math.min(0.07, 0.45 / n);
+        const span = 1 - stagger * (n - 1);
+        for (let j = 0; j < n; j++) {
+          let ty: number;
+          let rx: number;
+          let op: number;
+          if (sink > 0) {
+            // Leaving: letters fold back and sink, last letter first.
+            const e = easeInCubic(clamp01((sink - stagger * (n - 1 - j)) / span));
+            ty = e * 112;
+            rx = e * 72;
+            op = 1 - e * e;
+          } else {
+            // Arriving: letters stand up from flat, first letter first,
+            // with a small spring overshoot (pop-up book).
+            const t = clamp01((rise - stagger * j) / span);
+            const e = easeOutBack(t);
+            ty = (1 - e) * 108;
+            rx = (1 - e) * -86;
+            op = Math.min(1, t * 2.5);
+          }
+          const pose = `translate3d(0,${ty.toFixed(2)}%,0) rotateX(${rx.toFixed(2)}deg)|${op.toFixed(3)}`;
+          if (pose !== lastPose[i][j]) {
+            lastPose[i][j] = pose;
+            const [tf, o] = pose.split('|');
+            ls[j].style.transform = tf;
+            ls[j].style.opacity = o;
+          }
+        }
+      }
+
+      if (!reduce) {
+        ridgeRefs.current.forEach((el, k) => {
+          if (el) el.style.transform = `translate3d(${-((y * RIDGE_SPEEDS[k]) % RIDGE_TILE).toFixed(1)}px,0,0)`;
         });
       }
     }
 
-    function schedule() {
-      if (!raf) raf = requestAnimationFrame(update);
+    function frame(now: number) {
+      const dt = Math.min((now - last) / 1000, 0.05);
+      last = now;
+      const target = window.scrollY;
+      smooth = reduce ? target : smooth + (target - smooth) * (1 - Math.exp(-dt * 9));
+      if (Math.abs(target - smooth) < 0.3) smooth = target;
+      render(smooth);
+      raf = smooth !== target ? requestAnimationFrame(frame) : 0;
     }
-    update();
-    window.addEventListener('scroll', schedule, { passive: true });
-    window.addEventListener('resize', schedule);
+    function kick() {
+      if (!raf) {
+        last = performance.now();
+        raf = requestAnimationFrame(frame);
+      }
+    }
+    function onResize() {
+      measure();
+      kick();
+    }
+
+    render(smooth);
+    window.addEventListener('scroll', kick, { passive: true });
+    window.addEventListener('resize', onResize);
+    window.addEventListener('load', onResize);
+    const ro = new ResizeObserver(onResize);
+    ro.observe(document.body);
     return () => {
       cancelAnimationFrame(raf);
-      window.removeEventListener('scroll', schedule);
-      window.removeEventListener('resize', schedule);
+      window.removeEventListener('scroll', kick);
+      window.removeEventListener('resize', onResize);
+      window.removeEventListener('load', onResize);
+      ro.disconnect();
     };
-  }, []);
+  }, [items]);
 
   return (
-    <MotionConfig reducedMotion="user">
-      <div className="st-stage" ref={stageRef} aria-hidden="true">
-        <div className="st-ridge st-ridge--back" ref={(el) => { ridgeRefs.current[0] = el; }} />
-        <div className="st-words">
-          <AnimatePresence initial={false}>
-            {title && <Word key={title} title={title} sink={sinkFor(title)} />}
-          </AnimatePresence>
-        </div>
-        <div className="st-ridge st-ridge--mid" ref={(el) => { ridgeRefs.current[1] = el; }} />
-        <div className="st-ridge st-ridge--front" ref={(el) => { ridgeRefs.current[2] = el; }} />
+    <div className="st-stage" ref={stageRef} aria-hidden="true">
+      <div className="st-veil" />
+      <div className="st-ridge st-ridge--back" ref={(el) => { ridgeRefs.current[0] = el; }} />
+      <div className="st-words">
+        {items.map((it, i) => (
+          <div key={i} className="st-word" style={{ ['--n' as string]: it.letters.length, visibility: 'hidden' }}>
+            {it.letters.map((ch, j) => (
+              <span key={j} className="st-letter" data-l={ch} style={{ opacity: 0 }}>
+                <span className="st-face">{ch}</span>
+              </span>
+            ))}
+          </div>
+        ))}
       </div>
-    </MotionConfig>
+      <div className="st-ridge st-ridge--mid" ref={(el) => { ridgeRefs.current[1] = el; }} />
+      <div className="st-ridge st-ridge--front" ref={(el) => { ridgeRefs.current[2] = el; }} />
+    </div>
   );
 }

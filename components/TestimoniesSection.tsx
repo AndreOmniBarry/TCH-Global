@@ -28,7 +28,7 @@ export default async function TestimoniesSection() {
       <FloatingShape top="42%" right="2%" depth={0.5} rotate={4}>
         <Pill width={110} height={40} color="var(--accent-violet)" style={{ opacity: 0.5 }} />
       </FloatingShape>
-      <div className="container">
+      <div className="container section-duo section-duo--header-top">
         <div className="section-header pop">
           <span className="eyebrow">Changed Lives</span>
           <h2>Testimonies</h2>
@@ -55,7 +55,7 @@ export default async function TestimoniesSection() {
           </div>
         )}
 
-        <div className="join-card pop" style={{ marginTop: 24 }}>
+        <div className="join-card pop testimony-form">
           <h4 style={{ fontSize: '.9rem', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 14 }}>
             Share Your Testimony
           </h4>

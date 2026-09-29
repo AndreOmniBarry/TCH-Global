@@ -61,18 +61,43 @@ export async function GET() {
       >
         <div
           style={{
-            width: '58px',
-            height: '58px',
+            width: '60px',
+            height: '60px',
             borderRadius: '50%',
-            overflow: 'hidden',
             display: 'flex',
-            border: '4px solid #f5c542',
-            boxSizing: 'border-box',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'linear-gradient(135deg, #22d3ee 0%, #7c3aed 48%, #f5c542 100%)',
+            boxShadow: '0 2px 6px rgba(76, 29, 149, 0.55)',
             position: 'relative',
           }}
         >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={logoUrl} width={50} height={50} style={{ objectFit: 'cover' }} alt="" />
+          <div
+            style={{
+              width: '52px',
+              height: '52px',
+              borderRadius: '50%',
+              overflow: 'hidden',
+              display: 'flex',
+              border: '2px solid #0d0a1c',
+              position: 'relative',
+            }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={logoUrl} width={48} height={48} style={{ objectFit: 'cover' }} alt="" />
+            <div
+              style={{
+                position: 'absolute',
+                top: '-10px',
+                left: '4px',
+                width: '40px',
+                height: '26px',
+                borderRadius: '50%',
+                background: 'linear-gradient(180deg, rgba(255,255,255,0.55), rgba(255,255,255,0))',
+                display: 'flex',
+              }}
+            />
+          </div>
         </div>
 
         {christmas && (

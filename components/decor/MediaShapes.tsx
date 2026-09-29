@@ -8,7 +8,7 @@ export default function MediaShapes() {
   return (
     <ShapeLayer targetId="media-shapes">
       <FloatingShape top="-14%" left="-10%" depth={1.3} rotate={0}>
-        <MeshOrb size={320} color="var(--accent-lavender)" style={{ opacity: 0.45, filter: 'blur(6px)' }} />
+        <MeshOrb size={320} color="var(--accent-lavender)" style={{ opacity: 0.45 }} />
       </FloatingShape>
       <FloatingShape top="-10%" left="-6%" depth={1.1} rotate={-14}>
         <FluidBlob size={280} color="var(--accent-lavender)" style={{ opacity: 0.42 }} />
