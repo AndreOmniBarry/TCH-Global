@@ -100,8 +100,8 @@ void main() {
     + uWave * (0.050 * sin(X * 6.0 - t * 4.2 + uSeed) + 0.028 * sin(X * 11.0 + t * 6.1 + uSeed * 1.7))
     + 0.022 * sin(X * 2.3 + t * 1.15 + uSeed) + 0.013 * sin(X * 4.7 - t * 1.6 + uSeed * 0.5)
     + 0.006 * sin(X * 9.0 - t * 2.4)
-    + uRipple * 0.2 * sin(md * 14.0 - t * 8.0) * exp(-md * 1.3)
-    + dropAmp * 0.07 * sin((abs(X - uDrop.x * aspect) - dropR) * 30.0) * exp(-abs(abs(X - uDrop.x * aspect) - dropR) * 9.0);
+    + uRipple * 0.13 * sin(md * 11.0 - t * 6.5) * exp(-md * 1.4)
+    + dropAmp * 0.045 * sin((abs(X - uDrop.x * aspect) - dropR) * 30.0) * exp(-abs(abs(X - uDrop.x * aspect) - dropR) * 9.0);
   float d = surf - uv.y;
   if (d < -14.0 * px) { gl_FragColor = vec4(0.0); return; }
 
@@ -113,11 +113,11 @@ void main() {
   // the liquid, like looking into cut crystal.
   vec2 m = vec2(mx, uMouse.y);
   float mdist = length(p - m);
-  vec2 rippleWarp = (p - m) / max(mdist, 1e-3) * sin(mdist * 22.0 - t * 9.0) * 0.1 * uRipple * exp(-mdist * 1.4);
+  vec2 rippleWarp = (p - m) / max(mdist, 1e-3) * sin(mdist * 16.0 - t * 7.0) * 0.065 * uRipple * exp(-mdist * 1.5);
   vec2 dp = vec2(uDrop.x * aspect, uDrop.y);
   float dd = length(p - dp);
-  float dring = exp(-abs(dd - dropR) * 18.0) * dropAmp;
-  rippleWarp += (p - dp) / max(dd, 1e-3) * dring * 0.04;
+  float dring = exp(-abs(dd - dropR) * 11.0) * dropAmp;
+  rippleWarp += (p - dp) / max(dd, 1e-3) * dring * 0.026;
   vec2 q = p * 1.6 + vec2(t * 0.35, -t * 0.12) + rippleWarp * 4.0;
   float w = fbm(q + 1.9 * fbm(q * 1.2 + vec2(-t * 0.2, t * 0.08)));
   vec2 rp = p + (w - 0.5) * 0.45 + rippleWarp;
@@ -172,8 +172,8 @@ void main() {
   col += halo * 0.08;
 
   col = mix(vec3(dot(col, vec3(0.299, 0.587, 0.114))), col, 1.24);
-  col += min(uRipple, 1.4) * 0.5 * smoothstep(0.22, 0.0, abs(sin(mdist * 22.0 - t * 9.0))) * exp(-mdist * 1.6) * inside;
-  col += dring * 0.45 * inside;
+  col += min(uRipple, 1.4) * 0.32 * smoothstep(0.4, 0.0, abs(sin(mdist * 16.0 - t * 7.0))) * exp(-mdist * 1.7) * inside;
+  col += dring * 0.29 * inside;
   col = mix(col, col * 1.08 + 0.02, uDark);
 
   float alpha = max(inside, line * 0.55);
@@ -371,6 +371,28 @@ export default function CrystalLiquid() {
     const mq = window.matchMedia('(prefers-color-scheme: dark)');
     mq.addEventListener('change', onThemeChange);
 
+    // Phone tilt: the liquid levels against gravity as the phone rolls
+    // (gamma). iOS needs a one-time permission from a user gesture.
+    let deviceTilt = 0;
+    function onOrient(e: DeviceOrientationEvent) {
+      const g = Math.max(-35, Math.min(35, e.gamma ?? 0));
+      deviceTilt += (-(g / 35) * 0.2 - deviceTilt) * 0.2;
+    }
+    let orientAsked = false;
+    function enableTilt() {
+      if (orientAsked) return;
+      orientAsked = true;
+      const DOE = window.DeviceOrientationEvent as unknown as { requestPermission?: () => Promise<string> };
+      if (DOE && typeof DOE.requestPermission === 'function') {
+        DOE.requestPermission().then((r) => { if (r === 'granted') window.addEventListener('deviceorientation', onOrient); }).catch(() => {});
+      } else if ('DeviceOrientationEvent' in window) {
+        window.addEventListener('deviceorientation', onOrient);
+      }
+    }
+    if (window.matchMedia('(pointer: coarse)').matches) {
+      window.addEventListener('touchend', enableTilt, { once: true, passive: true });
+    }
+
     let hovered: Liquid | null = null;
     function onPointerMove(e: PointerEvent) {
       const target = (e.target as Element | null)?.closest?.(SELECTOR) as HTMLElement | null;
@@ -446,7 +468,7 @@ export default function CrystalLiquid() {
 
         // Slosh: tilt chases scroll speed, then rings back and forth
         // (low damping) once scrolling stops.
-        const drive = Math.max(-0.2, Math.min(0.2, scrollVel * 0.00011)) * l.dir;
+        const drive = Math.max(-0.22, Math.min(0.22, scrollVel * 0.00011 * l.dir + deviceTilt));
         const accT = 38 * (drive - l.tilt) - 3.2 * l.tiltVel;
         l.tiltVel += accT * dt;
         l.tilt += l.tiltVel * dt;
@@ -531,6 +553,8 @@ export default function CrystalLiquid() {
       glCanvas.removeEventListener('webglcontextlost', onLost);
       document.removeEventListener('pointermove', onPointerMove);
       document.removeEventListener('pointerdown', onPointerDown);
+      window.removeEventListener('deviceorientation', onOrient);
+      window.removeEventListener('touchend', enableTilt);
       document.removeEventListener('pointerleave', onPointerLeaveDoc);
       liquids.forEach(detach);
       io.disconnect();

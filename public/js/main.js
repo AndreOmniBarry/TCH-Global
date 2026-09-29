@@ -256,3 +256,32 @@
     }).addTo(map);
     L.marker([lat, lng]).addTo(map).bindPopup('The Comforters House Global &mdash; Benin<br>Grace Dome Church').openPopup();
   })();
+
+// Between-page loading bar: shows the moment an internal link to
+// another page is followed, until the next page takes over.
+(function () {
+  var bar = document.createElement('div');
+  bar.id = 'nav-bar';
+  bar.setAttribute('aria-hidden', 'true');
+  document.body.appendChild(bar);
+  document.addEventListener('click', function (e) {
+    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    var a = e.target.closest && e.target.closest('a[href]');
+    if (!a || a.target === '_blank' || a.hasAttribute('download')) return;
+    var url = new URL(a.href, location.href);
+    if (url.origin !== location.origin || (url.pathname === location.pathname && url.search === location.search)) return;
+    bar.classList.remove('go'); void bar.offsetWidth; bar.classList.add('go');
+    var from = location.pathname + location.search, n = 0;
+    var watch = setInterval(function () {
+      n += 1;
+      if (location.pathname + location.search !== from || n > 80) { clearInterval(watch); done(); }
+    }, 100);
+  });
+  function done() {
+    bar.style.transition = 'transform .25s ease, opacity .35s .2s';
+    bar.style.transform = 'scaleX(1)';
+    bar.style.opacity = '0';
+    setTimeout(function () { bar.classList.remove('go'); bar.style.cssText = ''; }, 600);
+  }
+  window.addEventListener('pageshow', function () { bar.classList.remove('go'); });
+})();
