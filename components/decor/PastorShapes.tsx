@@ -2,13 +2,16 @@
 
 import ShapeLayer from './ShapeLayer';
 import FloatingShape from './FloatingShape';
-import { HollowRing, Pill, DottedGrid } from './Shapes';
+import { CrystalShard, Pill, DottedGrid, MeshOrb } from './Shapes';
 
 export default function PastorShapes() {
   return (
     <ShapeLayer targetId="pastor-shapes">
+      <FloatingShape top="-12%" left="-10%" depth={1.3} rotate={0}>
+        <MeshOrb size={300} color="var(--accent-gold)" style={{ opacity: 0.5, filter: 'blur(6px)' }} />
+      </FloatingShape>
       <FloatingShape top="-6%" left="-4%" depth={1.1} rotate={-12}>
-        <HollowRing size={180} color="var(--accent-gold)" strokeWidth={16} style={{ opacity: 0.6 }} />
+        <CrystalShard size={170} color="var(--accent-gold)" style={{ opacity: 0.8 }} />
       </FloatingShape>
       <FloatingShape bottom="4%" right="8%" depth={0.8} rotate={10}>
         <DottedGrid size={120} color="var(--accent-cyan)" style={{ opacity: 0.6 }} />

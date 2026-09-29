@@ -2,11 +2,14 @@
 
 import ShapeLayer from './ShapeLayer';
 import FloatingShape from './FloatingShape';
-import { FluidBlob, Polygon, HollowRing } from './Shapes';
+import { FluidBlob, Polygon, CrystalShard, MeshOrb } from './Shapes';
 
 export default function BlogShapes() {
   return (
     <ShapeLayer targetId="blog-shapes">
+      <FloatingShape top="-14%" right="-10%" depth={1.3} rotate={0}>
+        <MeshOrb size={300} color="var(--accent-cyan)" style={{ opacity: 0.45, filter: 'blur(6px)' }} />
+      </FloatingShape>
       <FloatingShape top="-8%" right="-6%" depth={1.1} rotate={12}>
         <FluidBlob size={260} color="var(--accent-cyan)" style={{ opacity: 0.4 }} />
       </FloatingShape>
@@ -14,7 +17,7 @@ export default function BlogShapes() {
         <Polygon size={100} color="var(--accent-violet)" style={{ opacity: 0.55 }} />
       </FloatingShape>
       <FloatingShape top="35%" right="10%" depth={0.5} rotate={6}>
-        <HollowRing size={90} color="var(--accent-gold)" strokeWidth={12} style={{ opacity: 0.55 }} />
+        <CrystalShard size={110} color="var(--accent-gold)" style={{ opacity: 0.75 }} />
       </FloatingShape>
     </ShapeLayer>
   );
