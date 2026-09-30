@@ -243,18 +243,41 @@
     updateFrame();
   })();
 
-  // Live map — OpenStreetMap via Leaflet, no API key required.
+  // Live map — OpenStreetMap via Leaflet, no API key required. Leaflet
+  // (JS + CSS) is only fetched when the map is about to scroll into
+  // view, so it never delays the first paint of any page.
   (function () {
     var el = document.getElementById('church-map');
-    if (!el || typeof L === 'undefined') return;
-    // 6°21'13.0"N 5°41'51.0"E — Grace Dome Church, Benin City
-    var lat = 6.353611, lng = 5.6975;
-    var map = L.map(el, { scrollWheelZoom: false }).setView([lat, lng], 15);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors',
-      maxZoom: 19,
-    }).addTo(map);
-    L.marker([lat, lng]).addTo(map).bindPopup('The Comforters House Global &mdash; Benin<br>Grace Dome Church').openPopup();
+    if (!el) return;
+    function init() {
+      // 6°21'13.0"N 5°41'51.0"E — Grace Dome Church, Benin City
+      var lat = 6.353611, lng = 5.6975;
+      var map = L.map(el, { scrollWheelZoom: false }).setView([lat, lng], 15);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors',
+        maxZoom: 19,
+      }).addTo(map);
+      L.marker([lat, lng]).addTo(map).bindPopup('The Comforters House Global &mdash; Benin<br>Grace Dome Church').openPopup();
+    }
+    function load() {
+      var css = document.createElement('link');
+      css.rel = 'stylesheet';
+      css.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+      css.integrity = 'sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=';
+      css.crossOrigin = '';
+      document.head.appendChild(css);
+      var js = document.createElement('script');
+      js.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+      js.integrity = 'sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=';
+      js.crossOrigin = '';
+      js.onload = init;
+      document.body.appendChild(js);
+    }
+    if (!('IntersectionObserver' in window)) return load();
+    var io = new IntersectionObserver(function (entries) {
+      if (entries[0].isIntersecting) { io.disconnect(); load(); }
+    }, { rootMargin: '600px 0px' });
+    io.observe(el);
   })();
 
 // Between-page loading bar: shows the moment an internal link to

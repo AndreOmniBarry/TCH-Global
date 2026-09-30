@@ -1,12 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-
-if (typeof window !== 'undefined') {
-  gsap.registerPlugin(ScrollTrigger);
-}
+import { track } from './scrollEngine';
 
 type Props = {
   children: React.ReactNode;
@@ -40,43 +35,28 @@ export default function FloatingShape({
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (prefersReducedMotion) {
-      // Show the shape at rest, fully visible, instead of leaving it
-      // stuck at the animation's opacity:0 starting state forever.
-      gsap.set(el, { opacity: 1, scale: 1, yPercent: 0, rotate: 0 });
-      return;
-    }
-
-    const section = el.closest('section') || el.parentElement;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const section = (el.closest('section') || el.parentElement) as HTMLElement | null;
     if (!section) return;
-
-    const ctx = gsap.context(() => {
-      // Peel-in from a collapsed/background state as the section enters,
-      // hold at full depth while it's in view, collapse back as it
-      // exits — the "locks into the backdrop, then separates with
-      // depth" effect from the design reference.
-      gsap.fromTo(
-        el,
-        { yPercent: 12 * depth, scale: 0.82, opacity: 0, rotate: -rotate },
-        {
-          yPercent: -12 * depth,
-          scale: 1,
-          opacity: 1,
-          rotate,
-          ease: 'none',
-          force3D: true,
-          scrollTrigger: {
-            trigger: section,
-            start: 'top bottom',
-            end: 'bottom top',
-            scrub: 1,
-          },
-        }
-      );
-    }, el);
-
-    return () => ctx.revert();
+    // Peel in from the backdrop as the section enters, drift through,
+    // settle back as it leaves (section top at viewport bottom -> 0,
+    // section bottom at viewport top -> 1).
+    return track(
+      el,
+      () => {
+        const r = section.getBoundingClientRect();
+        const vh = window.innerHeight;
+        return Math.min(Math.max((vh - r.top) / (vh + r.height), 0), 1);
+      },
+      (node, p) => {
+        const y = 12 * depth * (1 - 2 * p);
+        const s = 0.82 + 0.18 * Math.min(1, p * 2);
+        const rot = -rotate + 2 * rotate * p;
+        node.style.transform = `translate3d(0,${y.toFixed(2)}%,0) scale(${s.toFixed(3)}) rotate(${rot.toFixed(2)}deg)`;
+        node.style.opacity = Math.min(1, p * 2.4).toFixed(3);
+      },
+      section
+    );
   }, [depth, rotate]);
 
   return (
@@ -91,7 +71,6 @@ export default function FloatingShape({
         bottom,
         zIndex,
         pointerEvents: 'none',
-        willChange: 'transform, opacity',
       }}
     >
       {children}
