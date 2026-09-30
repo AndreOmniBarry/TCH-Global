@@ -1,6 +1,4 @@
 import { getTestimonies } from '@/lib/sanity';
-import FloatingShape from '@/components/decor/FloatingShape';
-import { HollowRing, DottedGrid, Pill } from '@/components/decor/Shapes';
 
 // Self-contained section (own <section>/.container) — see EventsSection
 // for why: each dangerouslySetInnerHTML chunk in app/page.tsx is its own
@@ -19,15 +17,6 @@ export default async function TestimoniesSection() {
 
   return (
     <section className="section pop-stage shape-host" id="testimonies" data-title="Testimonies">
-      <FloatingShape top="-4%" right="6%" depth={1} rotate={10}>
-        <HollowRing size={170} color="var(--accent-gold)" strokeWidth={16} style={{ opacity: 0.6 }} />
-      </FloatingShape>
-      <FloatingShape bottom="8%" left="3%" depth={0.7} rotate={-8}>
-        <DottedGrid size={130} color="var(--accent-cyan)" style={{ opacity: 0.65 }} />
-      </FloatingShape>
-      <FloatingShape top="42%" right="2%" depth={0.5} rotate={4}>
-        <Pill width={110} height={40} color="var(--accent-violet)" style={{ opacity: 0.5 }} />
-      </FloatingShape>
       <div className="container section-duo section-duo--header-top">
         <div className="section-header pop">
           <span className="eyebrow">Changed Lives</span>

@@ -2,16 +2,6 @@ import LibrarySection from '@/components/LibrarySection';
 import AnnouncementsSection from '@/components/AnnouncementsSection';
 import EventsSection from '@/components/EventsSection';
 import TestimoniesSection from '@/components/TestimoniesSection';
-import HeroShapes from '@/components/decor/HeroShapes';
-import AboutChurchShapes from '@/components/decor/AboutChurchShapes';
-import PastorShapes from '@/components/decor/PastorShapes';
-import BlogShapes from '@/components/decor/BlogShapes';
-import ServiceShapes from '@/components/decor/ServiceShapes';
-import MediaShapes from '@/components/decor/MediaShapes';
-import VolunteerShapes from '@/components/decor/VolunteerShapes';
-import ContactShapes from '@/components/decor/ContactShapes';
-import JoinShapes from '@/components/decor/JoinShapes';
-import GiveShapes from '@/components/decor/GiveShapes';
 import SectionTitleStage from '@/components/decor/SectionTitleStage';
 import HeroExtras from '@/components/decor/HeroExtras';
 import { getAllPosts, getUpcomingEvents, getTestimonies } from '@/lib/sanity';
@@ -68,7 +58,6 @@ const HOME_HTML_BEFORE_LIBRARY = `
 
 <section class="hero-stage">
   <div class="hero-bg-photo" data-speed="0.22" role="img" aria-label="Worship service at TCH Global with congregation raising hands"></div>
-  <div class="shape-mount" id="hero-shapes"></div>
   <div class="hero-spotlight" aria-hidden="true"></div>
   <div class="hero-cards" id="hero-cards"></div>
   <div class="hero-content container">
@@ -94,7 +83,6 @@ const HOME_HTML_BEFORE_LIBRARY = `
 </section>
 
 <section class="section pop-stage shape-host" id="about-church" data-title="About">
-  <div class="shape-mount" id="about-shapes"></div>
   <div class="container section-duo">
     <div class="section-header pop">
       <span class="eyebrow">Word &amp; Faith</span>
@@ -147,7 +135,6 @@ const HOME_HTML_BEFORE_LIBRARY = `
 `;
 
 const HOME_HTML_AFTER_LIBRARY = `<section class="section pop-stage shape-host band-dark" id="pastor-section" data-title="Pastor">
-  <div class="shape-mount" id="pastor-shapes"></div>
   <div class="container section-duo">
     <div class="pastor-card pop">
       <div class="pastor-portrait"><img src="/images/pastor-portrait.webp" alt="Portrait of Pastor Uzor Echiejile"></div>
@@ -172,7 +159,6 @@ const HOME_HTML_AFTER_LIBRARY = `<section class="section pop-stage shape-host ba
 
 const HOME_HTML_TESTIMONIES_TO_EVENTS = `
 <section class="section pop-stage shape-host band-dark" id="blog" data-title="Blog">
-  <div class="shape-mount" id="blog-shapes"></div>
   <div class="container">
     <div class="section-header pop">
       <span class="eyebrow">The Comforters Blog</span>
@@ -215,7 +201,6 @@ const HOME_HTML_TESTIMONIES_TO_EVENTS = `
 </section>
 
 <section class="section pop-stage shape-host" id="service" data-title="Service">
-  <div class="shape-mount" id="service-shapes"></div>
   <div class="container">
     <div class="section-header pop"><span class="eyebrow">Schedule</span><h2>Our Service Days</h2></div>
     <div class="gather-list pop">
@@ -240,7 +225,6 @@ const HOME_HTML_TESTIMONIES_TO_EVENTS = `
 
 const HOME_HTML_EVENTS_TO_MEDIA = `
 <section class="section pop-stage shape-host band-dark" id="media" data-title="Media">
-  <div class="shape-mount" id="media-shapes"></div>
   <div class="container">
     <div class="section-header pop"><span class="eyebrow">Media &amp; Streaming</span><h2>Watch &amp; Listen</h2><p>Our services stream live and are archived here shortly after.</p></div>
     <div class="stream-row pop">
@@ -253,7 +237,6 @@ const HOME_HTML_EVENTS_TO_MEDIA = `
 </section>
 
 <section class="section pop-stage shape-host" id="volunteer" data-title="Volunteer">
-  <div class="shape-mount" id="volunteer-shapes"></div>
   <div class="container section-duo">
     <div class="section-header pop">
       <span class="eyebrow">Serve</span>
@@ -286,7 +269,6 @@ const HOME_HTML_EVENTS_TO_MEDIA = `
 </section>
 
 <section class="section pop-stage shape-host band-dark" id="contact" data-title="Contact">
-  <div class="shape-mount" id="contact-shapes"></div>
   <div class="container section-duo section-duo--header-top">
     <div class="section-header pop"><span class="eyebrow">Prayer</span><h2>Need Prayer Right Now?</h2></div>
     <div class="prayer-card pop">
@@ -311,7 +293,6 @@ const HOME_HTML_EVENTS_TO_MEDIA = `
 </section>
 
 <section class="section pop-stage shape-host" id="join" data-title="Join Us">
-  <div class="shape-mount" id="join-shapes"></div>
   <div class="container section-duo">
     <div class="section-header pop"><span class="eyebrow">Membership</span><h2>Join Us</h2><p>Already part of the family and ready to take the next step? Start a membership conversation with our pastoral team here.</p></div>
     <div class="join-card pop">
@@ -332,7 +313,6 @@ const HOME_HTML_EVENTS_TO_MEDIA = `
 </section>
 
 <section class="section pop-stage shape-host" id="give" data-title="Give">
-  <div class="shape-mount" id="give-shapes"></div>
   <div class="container section-duo">
     <div class="section-header pop">
       <span class="eyebrow">Generous Stewardship</span>
@@ -435,24 +415,14 @@ export default async function HomePage() {
     <>
       <SectionTitleStage />
       <div dangerouslySetInnerHTML={{ __html: HOME_HTML_BEFORE_LIBRARY }} />
-      <HeroShapes />
       <HeroExtras {...heroData} />
-      <AboutChurchShapes />
       <LibrarySection />
       <AnnouncementsSection />
       <div dangerouslySetInnerHTML={{ __html: HOME_HTML_AFTER_LIBRARY }} />
-      <PastorShapes />
       <TestimoniesSection />
       <div dangerouslySetInnerHTML={{ __html: HOME_HTML_TESTIMONIES_TO_EVENTS }} />
-      <BlogShapes />
       <EventsSection />
       <div dangerouslySetInnerHTML={{ __html: HOME_HTML_EVENTS_TO_MEDIA }} />
-      <ServiceShapes />
-      <MediaShapes />
-      <VolunteerShapes />
-      <ContactShapes />
-      <JoinShapes />
-      <GiveShapes />
     </>
   );
 }

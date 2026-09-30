@@ -1,6 +1,4 @@
 import { getUpcomingEvents } from '@/lib/sanity';
-import FloatingShape from '@/components/decor/FloatingShape';
-import { Polygon, FluidBlob } from '@/components/decor/Shapes';
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
@@ -20,12 +18,6 @@ export default async function EventsSection() {
 
   return (
     <section className="section pop-stage shape-host" id="events" data-title="Events">
-      <FloatingShape top="0%" left="-4%" depth={0.9} rotate={-10}>
-        <FluidBlob size={240} color="var(--accent-violet)" style={{ opacity: 0.45 }} />
-      </FloatingShape>
-      <FloatingShape bottom="6%" right="4%" depth={0.7} rotate={8}>
-        <Polygon size={110} color="var(--accent-gold)" filled style={{ opacity: 0.5 }} />
-      </FloatingShape>
       <div className="container">
         <div className="section-header pop">
           <span className="eyebrow">Calendar</span>
