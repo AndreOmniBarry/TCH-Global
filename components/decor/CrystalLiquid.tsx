@@ -240,7 +240,7 @@ export default function CrystalLiquid() {
         dpr: 1,
         alpha: true,
         premultipliedAlpha: true,
-        preserveDrawingBuffer: true,
+        preserveDrawingBuffer: false,
         antialias: false,
         depth: false,
       });
@@ -430,6 +430,8 @@ export default function CrystalLiquid() {
     }
     glCanvas.addEventListener('webglcontextlost', onLost);
 
+    const coarse = window.matchMedia('(pointer: coarse)').matches;
+    let frameNo = 0;
     let raf = 0;
     let last = performance.now();
     let lastScroll = window.scrollY;
@@ -449,7 +451,10 @@ export default function CrystalLiquid() {
       const vh = window.innerHeight;
       const start = vh * 0.98;
       const end = vh * 0.62;
-      const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+      const dpr = Math.min(window.devicePixelRatio || 1, coarse ? 1 : 1.5);
+      let drawnThisFrame = 0;
+      frameNo += 1;
+      const drawThisFrame = !coarse || frameNo % 2 === 0;
       const time = (now - t0) / 1000;
 
       liquids.forEach((l) => {
@@ -510,6 +515,11 @@ export default function CrystalLiquid() {
           }
           return;
         }
+
+        if (!drawThisFrame) return;
+        // Phones: at most 4 liquid buttons rendered per frame.
+        if (coarse && drawnThisFrame >= 4) return;
+        drawnThisFrame += 1;
 
         if (w > glW || h > glH) {
           glW = Math.max(glW, w);
