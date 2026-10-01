@@ -96,7 +96,7 @@ function NextGatheringChip({ events }: { events: HeroEvent[] }) {
 
   if (isLive) {
     return (
-      <a href="#media" className="hero-chip hero-chip--live">
+      <a href="/live" className="hero-chip hero-chip--live">
         <span className="hero-chip-dot" aria-hidden="true" />
         <strong>Live now</strong>
         <span className="hero-chip-sep" aria-hidden="true">·</span>

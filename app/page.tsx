@@ -228,9 +228,9 @@ const HOME_HTML_EVENTS_TO_MEDIA = `
   <div class="container">
     <div class="section-header pop"><span class="eyebrow">Media &amp; Streaming</span><h2>Watch &amp; Listen</h2><p>Our services stream live and are archived here shortly after.</p></div>
     <div class="stream-row pop">
-      <a href="https://www.youtube.com" target="_blank" rel="noopener" class="btn btn-primary btn-youtube">${ICON_YOUTUBE} YouTube Channel</a>
+      <a href="/live" class="btn btn-primary btn-youtube">${ICON_YOUTUBE} Watch Live</a>
       <a href="https://www.facebook.com" target="_blank" rel="noopener" class="btn btn-ghost btn-facebook">${ICON_FACEBOOK} Facebook Live</a>
-      <a href="https://open.spotify.com" target="_blank" rel="noopener" class="btn btn-ghost btn-spotify">${ICON_SPOTIFY} Spotify</a>
+      <a href="${process.env.NEXT_PUBLIC_SPOTIFY_SHOW_URL || 'https://open.spotify.com'}" target="_blank" rel="noopener" class="btn btn-ghost btn-spotify">${ICON_SPOTIFY} Spotify</a>
     </div>
     <p style="font-size:.72rem;color:var(--text-faint);margin-top:12px;font-family:var(--font-mono);">Messages are also available as a podcast on Spotify.</p>
   </div>
@@ -365,7 +365,7 @@ const HOME_HTML_EVENTS_TO_MEDIA = `
           <a href="https://www.facebook.com" target="_blank" rel="noopener" aria-label="Facebook" class="liquid liquid-facebook">${ICON_FACEBOOK}</a>
           <a href="https://www.youtube.com" target="_blank" rel="noopener" aria-label="YouTube" class="liquid liquid-youtube">${ICON_YOUTUBE}</a>
           <a href="https://www.instagram.com" target="_blank" rel="noopener" aria-label="Instagram" class="liquid liquid-instagram">${ICON_INSTAGRAM}</a>
-          <a href="https://open.spotify.com" target="_blank" rel="noopener" aria-label="Spotify" class="liquid liquid-spotify">${ICON_SPOTIFY}</a>
+          <a href="${process.env.NEXT_PUBLIC_SPOTIFY_SHOW_URL || 'https://open.spotify.com'}" target="_blank" rel="noopener" aria-label="Spotify" class="liquid liquid-spotify">${ICON_SPOTIFY}</a>
         </div>
       </div>
       <div class="footer-col">
