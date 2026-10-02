@@ -37,8 +37,41 @@ function parseIsoDurationSeconds(duration?: string): number | undefined {
   return (Number(h) || 0) * 3600 + (Number(m) || 0) * 60 + (Number(s) || 0);
 }
 
+// No-API-key fallback: every channel publishes its latest ~15 uploads as
+// a public RSS feed. Used when YOUTUBE_API_KEY is missing or rejected.
+async function getVideosFromFeed(limit: number): Promise<YouTubeVideo[] | null> {
+  if (!CHANNEL_ID) return null;
+  try {
+    const res = await fetch(`https://www.youtube.com/feeds/videos.xml?channel_id=${encodeURIComponent(CHANNEL_ID)}`, { next: { revalidate: 1800 } });
+    if (!res.ok) throw new Error(`feed ${res.status}`);
+    const xml = await res.text();
+    const decode = (t: string) => t.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
+    const videos = Array.from(xml.matchAll(/<entry>([\s\S]*?)<\/entry>/g))
+      .map((m) => {
+        const e = m[1];
+        const id = e.match(/<yt:videoId>([^<]+)<\/yt:videoId>/)?.[1];
+        const title = e.match(/<title>([^<]*)<\/title>/)?.[1];
+        const link = e.match(/<link rel="alternate" href="([^"]+)"/)?.[1] ?? '';
+        if (!id || !title || link.includes('/shorts/')) return null;
+        return {
+          id,
+          title: decode(title),
+          thumbnail: `https://i.ytimg.com/vi/${id}/hqdefault.jpg`,
+          publishedAt: e.match(/<published>([^<]+)<\/published>/)?.[1] ?? '',
+          url: `https://www.youtube.com/watch?v=${id}`,
+        };
+      })
+      .filter((v): v is YouTubeVideo => v !== null);
+    return videos.slice(0, limit);
+  } catch (err) {
+    console.error('YouTube feed fallback failed:', err);
+    return null;
+  }
+}
+
 export async function getLatestVideos(limit = 6): Promise<YouTubeVideo[] | null> {
-  if (!API_KEY || !CHANNEL_ID) return null;
+  if (!CHANNEL_ID) return null;
+  if (!API_KEY) return getVideosFromFeed(limit);
 
   if (cache && Date.now() - cache.fetchedAt < CACHE_TTL_MS) {
     return cache.data.slice(0, limit);
@@ -107,7 +140,7 @@ export async function getLatestVideos(limit = 6): Promise<YouTubeVideo[] | null>
     cache = { data: videos, fetchedAt: Date.now() };
     return videos.slice(0, limit);
   } catch (err) {
-    console.error('YouTube fetch failed, caller should fall back to placeholder content:', err);
-    return null;
+    console.error('YouTube API failed, trying the public channel feed:', err);
+    return getVideosFromFeed(limit);
   }
 }
