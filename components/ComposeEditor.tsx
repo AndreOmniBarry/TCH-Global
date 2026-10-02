@@ -1,5 +1,8 @@
 'use client';
 
+import { markdownToHtml } from '@/lib/markdown';
+import PublishPanel from '@/components/PublishPanel';
+
 import { useMemo, useRef, useState } from 'react';
 
 // A minimal, dependency-free markdown-lite syntax, chosen to map
@@ -16,29 +19,7 @@ import { useMemo, useRef, useState } from 'react';
 // [[bible:John 3:16]]    -> tappable Bible verse reference
 // ![alt text](url)       -> image (figure.post-image, matches published posts)
 // blank line             -> paragraph break
-function parseToHtml(source: string): string {
-  const blocks = source.split(/\n\s*\n/).map((b) => b.trim()).filter(Boolean);
-
-  const inline = (text: string) =>
-    text
-      .replace(/\[\[bible:([^\]]+)\]\]/g, (_m, ref) => `<span class="bible-ref" data-ref="${ref}">${ref}</span>`)
-      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-      .replace(/__(.+?)__/g, '<u>$1</u>')
-      .replace(/\*(.+?)\*/g, '<em>$1</em>');
-
-  const imageMatch = (block: string) => block.match(/^!\[([^\]]*)\]\(([^)]+)\)$/);
-
-  return blocks
-    .map((block) => {
-      const img = imageMatch(block);
-      if (img) return `<figure class="post-image"><img src="${img[2]}" alt="${img[1]}" loading="lazy"></figure>`;
-      if (block.startsWith('### ')) return `<h3>${inline(block.slice(4))}</h3>`;
-      if (block.startsWith('## ')) return `<h2>${inline(block.slice(3))}</h2>`;
-      if (block.startsWith('> ')) return `<blockquote class="pull-quote">${inline(block.slice(2))}</blockquote>`;
-      return `<p>${inline(block)}</p>`;
-    })
-    .join('\n');
-}
+const parseToHtml = markdownToHtml;
 
 type ProofreadMatch = {
   message: string;
@@ -150,10 +131,7 @@ export default function ComposeEditor() {
         <div className="section-header">
           <span className="eyebrow">Draft &amp; Proofread</span>
           <h2 style={{ textTransform: 'none', fontSize: '1.8rem' }}>Write a Post</h2>
-          <p>
-            Draft, format, and proofread here, then copy the finished text into the Sanity Studio editor to actually
-            publish it. (Direct one-click publishing from this page is a further step — see <code>sanity/README.md</code>.)
-          </p>
+          <p>Draft, format and proofread here, then publish instantly or schedule it for later.</p>
         </div>
 
         <input
@@ -227,6 +205,8 @@ export default function ComposeEditor() {
             </div>
           </div>
         </div>
+
+        <PublishPanel title={title} body={body} />
       </div>
 
       <style>{`

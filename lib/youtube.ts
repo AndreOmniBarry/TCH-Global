@@ -58,7 +58,7 @@ export async function getLatestVideos(limit = 6): Promise<YouTubeVideo[] | null>
     // Step 2: pull the most recent items from that playlist. Fetch extra
     // (up to the API max of 50) since Shorts get filtered out below and
     // we still need enough regular videos left to satisfy `limit`.
-    const fetchCount = Math.min(50, Math.max(limit * 3, 15));
+    const fetchCount = 50;
     const playlistRes = await fetch(
       `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${uploadsPlaylistId}&maxResults=${fetchCount}&key=${API_KEY}`,
       { next: { revalidate: 3600 } }

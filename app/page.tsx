@@ -1,4 +1,4 @@
-import LibrarySection from '@/components/LibrarySection';
+import PudlibPreview from '@/components/pudlib/PudlibPreview';
 import AnnouncementsSection from '@/components/AnnouncementsSection';
 import EventsSection from '@/components/EventsSection';
 import TestimoniesSection from '@/components/TestimoniesSection';
@@ -43,6 +43,7 @@ const HOME_HTML_BEFORE_LIBRARY = `
           <li><a href="#about-church">About Church</a></li>
           <li><a href="#pastor-section">Meet the Pastor</a></li>
           <li><a href="#testimonies">Testimonies</a></li>
+          <li><a href="/library">PUDLIB!</a></li>
           <li><a href="/blog">Blog</a></li>
           <li><a href="#service">Service &amp; Events</a></li>
           <li><a href="#media">Media &amp; Streaming</a></li>
@@ -401,6 +402,8 @@ const HOME_HTML_EVENTS_TO_MEDIA = `
 </footer>
 `;
 
+export const revalidate = 60;
+
 export default async function HomePage() {
   const [posts, events, testimonies] = await Promise.all([getAllPosts(), getUpcomingEvents(), getTestimonies()]);
   const latest = [...(posts ?? fallbackPosts)].sort(
@@ -416,7 +419,7 @@ export default async function HomePage() {
       <SectionTitleStage />
       <div dangerouslySetInnerHTML={{ __html: HOME_HTML_BEFORE_LIBRARY }} />
       <HeroExtras {...heroData} />
-      <LibrarySection />
+      <PudlibPreview />
       <AnnouncementsSection />
       <div dangerouslySetInnerHTML={{ __html: HOME_HTML_AFTER_LIBRARY }} />
       <TestimoniesSection />

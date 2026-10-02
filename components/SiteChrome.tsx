@@ -19,6 +19,7 @@ export function SiteHeader() {
               <li><a href="/#about-church">About Church</a></li>
               <li><a href="/#pastor-section">Meet the Pastor</a></li>
               <li><a href="/#testimonies">Testimonies</a></li>
+              <li><a href="/library">PUDLIB!</a></li>
               <li><a href="/blog">Blog</a></li>
               <li><a href="/#service">Service &amp; Events</a></li>
               <li><a href="/#media">Media &amp; Streaming</a></li>

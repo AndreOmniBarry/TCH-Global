@@ -36,7 +36,7 @@ export type Post = {
   body: any; // Portable Text array when sourced from Sanity, or HTML string for fallback posts
 };
 
-const POSTS_QUERY = `*[_type == "post"] | order(publishedAt desc) {
+const POSTS_QUERY = `*[_type == "post" && publishedAt <= now()] | order(publishedAt desc) {
   _id,
   title,
   "slug": slug.current,
@@ -44,13 +44,13 @@ const POSTS_QUERY = `*[_type == "post"] | order(publishedAt desc) {
   category,
   publishedAt,
   readTime,
-  "coverImage": coverImage.asset->url,
-  "authorName": author->name,
+  "coverImage": coalesce(coverImage.asset->url, coverImageUrl, "/images/pastor-teaching.webp"),
+  "authorName": coalesce(author->name, authorName, "Pastor Uzor Echiejile"),
   "authorImage": author->image.asset->url,
-  body
+  "body": coalesce(bodyHtml, pt::text(body))
 }`;
 
-const POST_BY_SLUG_QUERY = `*[_type == "post" && slug.current == $slug][0] {
+const POST_BY_SLUG_QUERY = `*[_type == "post" && slug.current == $slug && publishedAt <= now()][0] {
   _id,
   title,
   "slug": slug.current,
@@ -58,10 +58,10 @@ const POST_BY_SLUG_QUERY = `*[_type == "post" && slug.current == $slug][0] {
   category,
   publishedAt,
   readTime,
-  "coverImage": coverImage.asset->url,
-  "authorName": author->name,
+  "coverImage": coalesce(coverImage.asset->url, coverImageUrl, "/images/pastor-teaching.webp"),
+  "authorName": coalesce(author->name, authorName, "Pastor Uzor Echiejile"),
   "authorImage": author->image.asset->url,
-  body
+  "body": coalesce(bodyHtml, pt::text(body))
 }`;
 
 export async function getAllPosts(): Promise<Post[] | null> {

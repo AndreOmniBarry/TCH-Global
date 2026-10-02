@@ -18,7 +18,10 @@ export const post = {
     },
     { name: 'coverImage', title: 'Cover Image', type: 'image', options: { hotspot: true } },
     { name: 'author', title: 'Author', type: 'reference', to: [{ type: 'author' }] },
-    { name: 'publishedAt', title: 'Published At', type: 'datetime' },
+    { name: 'publishedAt', title: 'Published At', type: 'datetime', description: 'Set a future date/time to schedule the post — it appears on the site automatically at that moment.' },
+    { name: 'bodyHtml', title: 'Body (from /write)', type: 'text', readOnly: true, description: 'Filled automatically when a post is published from the /write editor.' },
+    { name: 'coverImageUrl', title: 'Cover Image URL (from /write)', type: 'url' },
+    { name: 'authorName', title: 'Author Name (from /write)', type: 'string' },
     { name: 'readTime', title: 'Read Time', type: 'string', description: 'e.g. "6 min read" — set manually or compute from word count.' },
     {
       name: 'body',
@@ -97,4 +100,36 @@ export const testimony = {
   ],
 };
 
-export const schemaTypes = [post, author, announcement, event, testimony];
+// PUDLIB! — Pastor Uzor Digital Library
+export const audioMessage = {
+  name: 'audioMessage',
+  title: 'PUDLIB! Audio',
+  type: 'document',
+  fields: [
+    { name: 'title', title: 'Title', type: 'string', validation: (R: any) => R.required() },
+    { name: 'audioFile', title: 'Audio file (MP3)', type: 'file', options: { accept: 'audio/*' }, description: 'Upload the MP3 here — or paste a link below instead.' },
+    { name: 'audioUrl', title: 'Audio link (optional)', type: 'url', description: 'A direct MP3 link (e.g. from Spotify for Podcasters / Anchor RSS) if not uploading.' },
+    { name: 'series', title: 'Series (optional)', type: 'string', description: 'Messages in the same series are recommended together.' },
+    { name: 'cover', title: 'Cover art (optional)', type: 'image' },
+    { name: 'description', title: 'Description', type: 'text', rows: 3 },
+    { name: 'publishedAt', title: 'Date', type: 'datetime' },
+  ],
+  orderings: [{ title: 'Newest First', name: 'publishedAtDesc', by: [{ field: 'publishedAt', direction: 'desc' }] }],
+};
+
+export const book = {
+  name: 'book',
+  title: 'PUDLIB! Book',
+  type: 'document',
+  fields: [
+    { name: 'title', title: 'Title', type: 'string', validation: (R: any) => R.required() },
+    { name: 'cover', title: 'Cover', type: 'image', validation: (R: any) => R.required() },
+    { name: 'description', title: 'Description', type: 'text', rows: 4 },
+    { name: 'price', title: 'Price (e.g. "₦5,000")', type: 'string' },
+    { name: 'orderLink', title: 'Order link (optional)', type: 'url', description: 'WhatsApp, store or form link. Leave blank to order by email.' },
+    { name: 'featured', title: 'Feature on the homepage', type: 'boolean' },
+    { name: 'publishedAt', title: 'Release date', type: 'datetime' },
+  ],
+};
+
+export const schemaTypes = [post, author, announcement, event, testimony, audioMessage, book];
