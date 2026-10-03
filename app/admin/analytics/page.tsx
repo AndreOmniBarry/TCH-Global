@@ -13,57 +13,14 @@ import {
   analyticsConfigured,
 } from '@/lib/analytics';
 import { SiteHeader, SiteFooter } from '@/components/SiteChrome';
-import TrendChart from '@/components/TrendChart';
+import { AreaCompare, BarList, Donut, Funnel, KpiCard, WeekdayBars } from '@/components/analytics/Charts';
+import { getLibrary } from '@/lib/library';
 
 export const metadata = { title: 'Analytics | TCH Global Admin' };
 export const dynamic = 'force-dynamic'; // always read fresh counts, never cache this page
 
 function getPostTitle(slug: string, posts: { slug: string; title: string }[]) {
   return posts.find((p) => p.slug === slug)?.title || slug;
-}
-
-function StatTile({ label, value, sub }: { label: string; value: string; sub?: string }) {
-  return (
-    <div style={{ border: '1px solid var(--border-glass)', borderRadius: 'var(--radius-card)', padding: '16px 18px', flex: '1 1 160px' }}>
-      <div style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--text-faint)', marginBottom: 6 }}>
-        {label}
-      </div>
-      <div style={{ fontSize: '1.6rem', fontWeight: 700 }}>{value}</div>
-      {sub && <div style={{ fontSize: '.75rem', color: 'var(--text-faint)', marginTop: 2 }}>{sub}</div>}
-    </div>
-  );
-}
-
-function Table({ title, rows }: { title: string; rows: { slug: string; title: string; views: number | null }[] }) {
-  return (
-    <div style={{ marginBottom: 40 }}>
-      <h3 style={{ fontSize: '1rem', marginBottom: 12 }}>{title}</h3>
-      {rows.length === 0 ? (
-        <p style={{ fontSize: '.85rem', color: 'var(--text-faint)' }}>No data yet.</p>
-      ) : (
-        <div style={{ border: '1px solid var(--border-glass)', borderRadius: 'var(--radius-card)', overflow: 'hidden' }}>
-          {rows.map((row, i) => (
-            <div
-              key={row.slug}
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                gap: 12,
-                padding: '10px 16px',
-                borderTop: i === 0 ? 'none' : '1px solid var(--border-glass)',
-                fontSize: '.85rem',
-              }}
-            >
-              <span>{row.title}</span>
-              <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--accent-cyan)', whiteSpace: 'nowrap' }}>
-                {row.views ?? 0} views
-              </span>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
 }
 
 export default async function AdminAnalyticsPage() {
@@ -97,9 +54,14 @@ export default async function AdminAnalyticsPage() {
     getTrendingSlugs(10),
     getMostWatchedSlugs(postSlugs, 10),
     getLatestVideos(20),
-    getSiteDailyViews(postSlugs, 14),
+    getSiteDailyViews(postSlugs, 28),
     getWeekOverWeekGrowth(postSlugs),
   ]);
+  const lib = await getLibrary().catch(() => null);
+  const libMedia = (lib?.items ?? []).filter((i) => i.kind !== 'book');
+  const libRows = [...libMedia].sort((a, b) => b.views - a.views).filter((i) => i.views > 0).slice(0, 8);
+  const libVideoPlays = libMedia.filter((i) => i.kind === 'video').reduce((s, i) => s + i.views, 0);
+  const libAudioPlays = libMedia.filter((i) => i.kind === 'audio').reduce((s, i) => s + i.views, 0);
 
   const videoIds = (videos ?? []).map((v) => `yt:${v.id}`);
   const mostWatchedVideoSlugs = videoIds.length ? await getMostWatchedSlugs(videoIds, 10) : [];
@@ -146,58 +108,95 @@ export default async function AdminAnalyticsPage() {
   const totalViews = engagementRows.reduce((s, r) => s + r.views, 0);
   const totalUniques = engagementRows.reduce((s, r) => s + r.uniques, 0);
   const totalShares = engagementRows.reduce((s, r) => s + r.shares, 0);
+  const totalCompletes = engagementRows.reduce((s, r) => s + r.completes, 0);
+  const readRate = totalViews ? Math.round((totalCompletes / totalViews) * 100) : 0;
+  const daily = siteDailyViews ?? [];
+  const current = daily.slice(-14);
+  const previous = daily.length >= 28 ? daily.slice(0, 14) : undefined;
+  const curTotal = current.reduce((s, d) => s + d.views, 0);
+  const prevTotal = (previous ?? []).reduce((s, d) => s + d.views, 0);
+  const periodDelta = prevTotal ? Math.round(((curTotal - prevTotal) / prevTotal) * 100) : null;
 
   return (
     <>
       <SiteHeader />
       <section className="section">
-        <div className="container" style={{ maxWidth: 760 }}>
+        <div className="container an-dash">
           <div className="section-header">
             <span className="eyebrow">Admin</span>
             <h2 style={{ textTransform: 'none', fontSize: '1.8rem' }}>Analytics</h2>
             <p>Blog reads and YouTube watches, tracked on this site directly (separate from YouTube's own count).</p>
           </div>
 
-          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 32 }}>
-            <StatTile label="Total Views" value={totalViews.toLocaleString()} />
-            <StatTile label="Unique Visitors" value={totalUniques.toLocaleString()} sub="approximate, no personal data stored" />
-            <StatTile label="Shares" value={totalShares.toLocaleString()} />
-            <StatTile
-              label="Week over Week"
-              value={growth === null ? '—' : `${growth > 0 ? '+' : ''}${growth}%`}
-              sub={growth === null ? 'not enough history yet' : 'vs. the previous 7 days'}
-            />
+          <div className="an-kpis">
+            <KpiCard label="Views (14 days)" value={curTotal} delta={periodDelta} spark={current.map((d) => d.views)} />
+            <KpiCard label="Unique visitors" value={totalUniques} note="All time, anonymous" />
+            <KpiCard label="Avg. read-through" value={`${readRate}%`} note="Reached the end of a post" />
+            <KpiCard label="Shares" value={totalShares} note="All time" />
+            <KpiCard label="PUDLIB! plays" value={libVideoPlays + libAudioPlays} note="Video + audio, all time" />
+            <KpiCard label="Week over week" value={growth === null ? '\u2014' : `${growth > 0 ? '+' : ''}${growth}%`} note={growth === null ? 'Not enough history yet' : 'Last 7 days vs the 7 before'} />
           </div>
 
-          <div style={{ marginBottom: 40 }}>
-            <h3 style={{ fontSize: '1rem', marginBottom: 12 }}>Views — Last 14 Days</h3>
-            {siteDailyViews ? <TrendChart data={siteDailyViews} /> : <p style={{ fontSize: '.85rem', color: 'var(--text-faint)' }}>No data yet.</p>}
+          <div className="an-card an-span">
+            <div className="an-card-head"><h3>Views</h3><span className="an-muted">Last 14 days compared with the 14 before</span></div>
+            {curTotal + prevTotal > 0 ? <AreaCompare current={current} previous={previous} /> : <p className="an-empty">No views yet in this window.</p>}
           </div>
 
-          <Table title="Trending This Week" rows={trendingRows} />
-          <Table title="Most Watched — Blog Posts (All Time)" rows={mostWatchedPostRows} />
-          <Table title="Most Watched — Videos (All Time)" rows={mostWatchedVideoRows} />
-
-          <div style={{ marginBottom: 40 }}>
-            <h3 style={{ fontSize: '1rem', marginBottom: 12 }}>Engagement per Post</h3>
-            <div style={{ border: '1px solid var(--border-glass)', borderRadius: 'var(--radius-card)', overflow: 'hidden' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr', gap: 8, padding: '8px 16px', fontFamily: 'var(--font-mono)', fontSize: '9.5px', letterSpacing: '.05em', textTransform: 'uppercase', color: 'var(--text-faint)', borderBottom: '1px solid var(--border-glass)' }}>
-                <span>Post</span><span>Views</span><span>Unique</span><span>Shares</span><span>Read %</span>
-              </div>
-              {engagementRows.map((row) => (
-                <div key={row.slug} style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr', gap: 8, padding: '10px 16px', fontSize: '.82rem', borderTop: '1px solid var(--border-glass)' }}>
-                  <span>{row.title}</span>
-                  <span>{row.views}</span>
-                  <span>{row.uniques}</span>
-                  <span>{row.shares}</span>
-                  <span>{row.views ? Math.round((row.completes / row.views) * 100) : 0}%</span>
-                </div>
-              ))}
+          <div className="an-grid">
+            <div className="an-card">
+              <div className="an-card-head"><h3>Engagement funnel</h3><span className="an-muted">Blog, all time</span></div>
+              <Funnel stages={[
+                { label: 'Views', value: totalViews },
+                { label: 'Unique readers', value: totalUniques },
+                { label: 'Read to the end', value: totalCompletes },
+                { label: 'Shared', value: totalShares },
+              ]} />
             </div>
-            <p style={{ fontSize: '.72rem', color: 'var(--text-faint)', marginTop: 10, fontFamily: 'var(--font-mono)' }}>
-              &ldquo;Read %&rdquo; is readers who scrolled to roughly the end of the post, as a share of total views —
-              a proxy for completion, not a guarantee everyone read every word.
-            </p>
+            <div className="an-card">
+              <div className="an-card-head"><h3>Content mix</h3><span className="an-muted">Where attention goes</span></div>
+              <Donut parts={[
+                { label: 'Blog reads', value: totalViews, color: 'var(--accent-cyan)' },
+                { label: 'Video plays', value: libVideoPlays, color: 'var(--accent-violet)' },
+                { label: 'Audio plays', value: libAudioPlays, color: '#f5c542' },
+              ]} />
+            </div>
+            <div className="an-card">
+              <div className="an-card-head"><h3>Best days</h3><span className="an-muted">Views by weekday, 28 days</span></div>
+              <WeekdayBars data={daily} />
+            </div>
+            <div className="an-card">
+              <div className="an-card-head"><h3>Trending this week</h3></div>
+              <BarList rows={trendingRows.map((r) => ({ label: r.title, value: r.views ?? 0 }))} color="linear-gradient(90deg, var(--accent-violet), var(--accent-cyan))" />
+            </div>
+            <div className="an-card">
+              <div className="an-card-head"><h3>Top blog posts</h3><span className="an-muted">All time</span></div>
+              <BarList rows={mostWatchedPostRows.map((r) => ({ label: r.title, value: r.views ?? 0 }))} color="var(--accent-cyan)" />
+            </div>
+            <div className="an-card">
+              <div className="an-card-head"><h3>Top in PUDLIB!</h3><span className="an-muted">Plays, all time</span></div>
+              <BarList rows={(libRows.length ? libRows.map((i) => ({ label: i.title, value: i.views })) : mostWatchedVideoRows.map((r) => ({ label: r.title, value: r.views ?? 0 })))} color="#f5c542" unit="plays" />
+            </div>
+          </div>
+
+          <div className="an-card an-span">
+            <div className="an-card-head"><h3>Engagement per post</h3></div>
+            <div className="an-table-wrap">
+              <table className="an-table">
+                <thead><tr><th>Post</th><th>Views</th><th>Unique</th><th>Shares</th><th>Read-through</th></tr></thead>
+                <tbody>
+                  {[...engagementRows].sort((a, b) => b.views - a.views).map((row) => {
+                    const rate = row.views ? Math.round((row.completes / row.views) * 100) : 0;
+                    return (
+                      <tr key={row.slug}>
+                        <td>{row.title}</td><td>{row.views}</td><td>{row.uniques}</td><td>{row.shares}</td>
+                        <td><span className="an-rate"><span style={{ width: `${rate}%` }} /></span>{rate}%</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+            <p className="an-muted" style={{ fontSize: '.72rem', marginTop: 10 }}>Read-through is readers who scrolled to roughly the end, as a share of views.</p>
           </div>
 
           <div style={{ border: '1px dashed var(--border-glass)', borderRadius: 'var(--radius-card)', padding: 16, fontSize: '.8rem', color: 'var(--text-faint)' }}>
