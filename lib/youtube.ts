@@ -19,7 +19,8 @@ export type YouTubeVideo = {
 };
 
 const API_KEY = process.env.YOUTUBE_API_KEY;
-const CHANNEL_ID = process.env.YOUTUBE_CHANNEL_ID;
+// The church channel ID is public; the env var can override it.
+export const CHANNEL_ID = process.env.YOUTUBE_CHANNEL_ID || 'UCN1NLcg1KaPz_yo3dqjQkEQ';
 
 // In-memory cache so a burst of concurrent page loads doesn't each fire
 // their own API call and burn through the daily quota. Next.js's own

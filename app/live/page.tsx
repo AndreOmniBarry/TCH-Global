@@ -1,5 +1,6 @@
 import { SiteHeader, SiteFooter } from '@/components/SiteChrome';
 import { isLiveNow } from '@/lib/analytics';
+import { CHANNEL_ID } from '@/lib/youtube';
 
 export const metadata = {
   title: 'Watch Live | TCH Global',
@@ -17,7 +18,7 @@ const SCHEDULE = [
 ];
 
 export default async function LivePage() {
-  const channelId = process.env.YOUTUBE_CHANNEL_ID;
+  const channelId = CHANNEL_ID;
   const facebookUrl = process.env.NEXT_PUBLIC_FACEBOOK_URL || 'https://www.facebook.com';
   const live = await isLiveNow();
 
