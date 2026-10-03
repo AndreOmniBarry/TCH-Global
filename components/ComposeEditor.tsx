@@ -2,6 +2,7 @@
 
 import { markdownToHtml } from '@/lib/markdown';
 import PublishPanel from '@/components/PublishPanel';
+import EventPanel from '@/components/EventPanel';
 
 import { useMemo, useRef, useState } from 'react';
 
@@ -207,6 +208,7 @@ export default function ComposeEditor() {
         </div>
 
         <PublishPanel title={title} body={body} />
+        <EventPanel />
       </div>
 
       <style>{`

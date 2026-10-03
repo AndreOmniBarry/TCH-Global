@@ -79,6 +79,7 @@ export const event = {
     { name: 'location', title: 'Location', type: 'string', description: 'e.g. "Main Auditorium" or "Grace Dome Church" — leave blank to just show "TCH Global".' },
     { name: 'flyerImage', title: 'Flyer Image (optional)', type: 'image', options: { hotspot: true } },
     { name: 'link', title: 'Link (optional)', type: 'url', description: 'RSVP page, ticket link, or more-info page.' },
+    { name: 'flyerUrl', title: 'Flyer link (set from /write)', type: 'url', hidden: true },
   ],
   orderings: [
     { title: 'Start Date, Soonest First', name: 'startsAtAsc', by: [{ field: 'startsAt', direction: 'asc' }] },

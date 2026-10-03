@@ -1,13 +1,15 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import { fmtDate, fmtTime, parseLagosLocal } from '@/lib/church-time';
 
 type Scheduled = { _id: string; title: string; slug: string; publishedAt: string };
 const CATEGORIES = ['Faith', 'Hope', 'Grace', 'Community', 'Family', 'Prayer', 'Testimony'];
 const PW_KEY = 'tch_write_pw';
 
 function fmt(iso: string) {
-  return new Date(iso).toLocaleString(undefined, { weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' });
+  const ms = new Date(iso).getTime();
+  return `${fmtDate(ms)}, ${fmtTime(ms)} WAT`;
 }
 
 export default function PublishPanel({ title, body }: { title: string; body: string }) {
@@ -39,7 +41,7 @@ export default function PublishPanel({ title, body }: { title: string; body: str
     if (!password) return setStatus({ kind: 'error', text: 'Enter the publishing password.' });
     let publishAt: string | undefined;
     if (mode === 'schedule') {
-      const d = new Date(when);
+      const d = new Date(parseLagosLocal(when));
       if (!when || Number.isNaN(d.getTime())) return setStatus({ kind: 'error', text: 'Pick a date and time to schedule.' });
       if (d.getTime() <= Date.now() + 60_000) return setStatus({ kind: 'error', text: 'Pick a time at least a minute from now, or choose Publish now.' });
       publishAt = d.toISOString();
@@ -80,7 +82,7 @@ export default function PublishPanel({ title, body }: { title: string; body: str
       </div>
       {mode === 'schedule' && (
         <>
-          <label htmlFor="publish-when">Publish on (your local time)</label>
+          <label htmlFor="publish-when">Publish on (Benin City time, WAT)</label>
           <input id="publish-when" type="datetime-local" value={when} onChange={(e) => setWhen(e.target.value)} />
         </>
       )}

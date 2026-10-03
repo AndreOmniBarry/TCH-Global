@@ -127,14 +127,14 @@ export type ChurchEvent = {
 };
 
 // Only events that haven't ended yet (or have no end date), soonest first.
-const EVENTS_QUERY = `*[_type == "event" && (endsAt > now() || (!defined(endsAt) && startsAt > now()))] | order(startsAt asc) {
+const EVENTS_QUERY = `*[_type == "event" && dateTime(coalesce(endsAt, startsAt)) + 60*60*3 > dateTime(now())] | order(startsAt asc) {
   _id,
   title,
   description,
   startsAt,
   endsAt,
   location,
-  "flyerImage": flyerImage.asset->url,
+  "flyerImage": coalesce(flyerImage.asset->url, flyerUrl),
   link
 }`;
 
