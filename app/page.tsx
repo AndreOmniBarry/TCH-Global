@@ -7,6 +7,10 @@ import HeroExtras from '@/components/decor/HeroExtras';
 import { getAllPosts, getUpcomingEvents, getTestimonies } from '@/lib/sanity';
 import { fallbackPosts } from '@/lib/fallback-posts';
 
+const FACEBOOK_URL = process.env.NEXT_PUBLIC_FACEBOOK_URL || 'https://www.facebook.com/profile.php?id=61557996937416';
+// Spotify buttons stay hidden until the podcast exists.
+const SPOTIFY_URL = process.env.NEXT_PUBLIC_SPOTIFY_SHOW_URL || '';
+
 // This page bridges the original hand-authored static homepage into
 // Next.js. Most of the markup below is an exact, mechanically-extracted
 // copy of the former root index.html body content (paths rewritten to
@@ -72,7 +76,7 @@ const HOME_HTML_BEFORE_LIBRARY = `
     </div>
     <div class="stream-row">
       <a href="https://www.youtube.com" class="btn btn-ghost btn-sm btn-youtube" target="_blank" rel="noopener">${ICON_YOUTUBE} YouTube</a>
-      <a href="https://www.facebook.com" class="btn btn-ghost btn-sm btn-facebook" target="_blank" rel="noopener">${ICON_FACEBOOK} Facebook</a>
+      <a href="${FACEBOOK_URL}" class="btn btn-ghost btn-sm btn-facebook" target="_blank" rel="noopener">${ICON_FACEBOOK} Facebook</a>
       <a href="https://www.instagram.com" class="btn btn-ghost btn-sm btn-instagram" target="_blank" rel="noopener">${ICON_INSTAGRAM} Instagram</a>
     </div>
   </div>
@@ -230,10 +234,10 @@ const HOME_HTML_EVENTS_TO_MEDIA = `
     <div class="section-header pop"><span class="eyebrow">Media &amp; Streaming</span><h2>Watch &amp; Listen</h2><p>Our services stream live and are archived here shortly after.</p></div>
     <div class="stream-row pop">
       <a href="/live" class="btn btn-primary btn-youtube">${ICON_YOUTUBE} Watch Live</a>
-      <a href="https://www.facebook.com" target="_blank" rel="noopener" class="btn btn-ghost btn-facebook">${ICON_FACEBOOK} Facebook Live</a>
-      <a href="${process.env.NEXT_PUBLIC_SPOTIFY_SHOW_URL || 'https://open.spotify.com'}" target="_blank" rel="noopener" class="btn btn-ghost btn-spotify">${ICON_SPOTIFY} Spotify</a>
+      <a href="${FACEBOOK_URL}" target="_blank" rel="noopener" class="btn btn-ghost btn-facebook">${ICON_FACEBOOK} Facebook Live</a>
+      ${SPOTIFY_URL ? `<a href="${SPOTIFY_URL}" target="_blank" rel="noopener" class="btn btn-ghost btn-spotify">${ICON_SPOTIFY} Spotify</a>` : ''}
     </div>
-    <p style="font-size:.72rem;color:var(--text-faint);margin-top:12px;font-family:var(--font-mono);">Messages are also available as a podcast on Spotify.</p>
+    ${SPOTIFY_URL ? '<p style="font-size:.72rem;color:var(--text-faint);margin-top:12px;font-family:var(--font-mono);">Messages are also available as a podcast on Spotify.</p>' : ''}
   </div>
 </section>
 
@@ -363,10 +367,10 @@ const HOME_HTML_EVENTS_TO_MEDIA = `
         <h4>TCH Global</h4>
         <p>The Comforter's House Global — a church for every nation, gathering people to know Christ and make Him known.</p>
         <div class="social-row">
-          <a href="https://www.facebook.com" target="_blank" rel="noopener" aria-label="Facebook" class="liquid liquid-facebook">${ICON_FACEBOOK}</a>
+          <a href="${FACEBOOK_URL}" target="_blank" rel="noopener" aria-label="Facebook" class="liquid liquid-facebook">${ICON_FACEBOOK}</a>
           <a href="https://www.youtube.com" target="_blank" rel="noopener" aria-label="YouTube" class="liquid liquid-youtube">${ICON_YOUTUBE}</a>
           <a href="https://www.instagram.com" target="_blank" rel="noopener" aria-label="Instagram" class="liquid liquid-instagram">${ICON_INSTAGRAM}</a>
-          <a href="${process.env.NEXT_PUBLIC_SPOTIFY_SHOW_URL || 'https://open.spotify.com'}" target="_blank" rel="noopener" aria-label="Spotify" class="liquid liquid-spotify">${ICON_SPOTIFY}</a>
+          ${SPOTIFY_URL ? `<a href="${SPOTIFY_URL}" target="_blank" rel="noopener" aria-label="Spotify" class="liquid liquid-spotify">${ICON_SPOTIFY}</a>` : ''}
         </div>
       </div>
       <div class="footer-col">

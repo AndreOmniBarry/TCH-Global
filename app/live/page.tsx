@@ -19,7 +19,7 @@ const SCHEDULE = [
 
 export default async function LivePage() {
   const channelId = CHANNEL_ID;
-  const facebookUrl = process.env.NEXT_PUBLIC_FACEBOOK_URL || 'https://www.facebook.com';
+  const facebookUrl = process.env.NEXT_PUBLIC_FACEBOOK_URL || 'https://www.facebook.com/profile.php?id=61557996937416';
   const live = await isLiveNow();
 
   return (
