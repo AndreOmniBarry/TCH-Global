@@ -96,7 +96,7 @@ const HOME_HTML_BEFORE_LIBRARY = `
       <h2>Beyond Walls.<br><span class="accent">Into Light.</span></h2>
       <p>We don't replicate the traditions of the past for their own sake — we build a living, connected house rooted in the Word and in Faith.</p>
     </div>
-    <div class="photo-cycle pop" data-broadcast="LIVE · SANCTUARY CAM 01">
+    <a href="/live" class="photo-cycle pop" data-broadcast="LIVE · SANCTUARY CAM 01" aria-label="Watch the live stream">
       <img src="/images/pastor-teaching.webp" alt="Pastor teaching the congregation at TCH Global" style="--slot:0">
       <img src="/images/gallery-4.webp" alt="TCH Global congregation" loading="lazy" width="900" height="600" style="--slot:1">
       <img src="/images/gallery-1.webp" alt="Pastor ministering at TCH Global" loading="lazy" width="900" height="600" style="--slot:2">
@@ -105,7 +105,7 @@ const HOME_HTML_BEFORE_LIBRARY = `
       <img src="/images/gallery-7.webp" alt="TCH Global worship service" loading="lazy" width="900" height="600" style="--slot:5">
       <img src="/images/gallery-5.webp" alt="Pastor ministering at TCH Global" loading="lazy" width="900" height="600" style="--slot:6">
       <span class="photo-tag">The Word &amp; Faith in Action</span>
-    </div>
+    </a>
   </div>
 
   <div class="container about-deep">
@@ -240,8 +240,11 @@ const HOME_HTML_EVENTS_TO_MEDIA = `
           <label class="chip-opt"><input type="checkbox" name="team" value="Sanitation &amp; Facilities"><span>Sanitation &amp; Facilities</span></label>
           <label class="chip-opt"><input type="checkbox" name="team" value="Follow-up &amp; Counselling"><span>Follow-up &amp; Counselling</span></label>
           <label class="chip-opt"><input type="checkbox" name="team" value="Administration"><span>Administration</span></label>
-          <label class="chip-opt chip-other"><input type="checkbox" name="team" value="__other" data-other-toggle><span>Other</span></label>
-          <input type="text" id="volunteer-other" class="chip-other-input" placeholder="Tell us where you'd like to serve" hidden>
+          <label class="chip-opt chip-other"><input type="checkbox" name="team" value="__other" data-other-toggle><span>Not listed? Describe it</span></label>
+          <div class="chip-other-input" hidden>
+            <label for="volunteer-other">Describe the team you'd like to serve in</label>
+            <textarea id="volunteer-other" rows="3" placeholder="e.g. A drama team for youth programmes, or a welfare team that visits the sick. Tell us what it would do and how you'd help."></textarea>
+          </div>
         </fieldset>
         <button type="submit" class="btn btn-primary" style="width:100%;">Submit Interest</button>
       </form>

@@ -1261,3 +1261,11 @@ body { max-width: 100%; overflow-x: clip; }
 [data-theme="dark"] .tw-badge { color: #f5c542; }
 .tw-meta { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 10px; font-size: .74rem; color: var(--text-faint); }
 .tw-more { justify-self: start; border: 0; background: none; color: var(--accent-cyan); font: 600 .84rem var(--font-body); cursor: pointer; padding: 4px 0; }
+
+a.photo-cycle { display: block; color: inherit; text-decoration: none; cursor: pointer; }
+/* Long-press on photos (iPhone) shouldn't pop the raw image out. */
+.pastor-portrait img, .blog-avatar img, .photo-cycle img, .hero img, .blog-feature-media img {
+  -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; -webkit-user-drag: none;
+}
+.chip-other-input { width: 100%; margin-top: 6px; }
+.chip-other-input textarea { margin-bottom: 0; }

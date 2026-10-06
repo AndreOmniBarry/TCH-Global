@@ -93,7 +93,8 @@
     var input = box.closest('fieldset').querySelector('.chip-other-input');
     box.addEventListener('change', function () {
       input.hidden = !box.checked;
-      if (box.checked) input.focus();
+      var field = input.querySelector('textarea, input') || input;
+      if (box.checked) field.focus();
     });
   });
 
@@ -138,21 +139,27 @@
       var teamBoxes = form.querySelectorAll('input[type="checkbox"][name="team"]');
       if (teamBoxes.length) {
         var picked = [];
+        var missingOther = false;
         Array.prototype.forEach.call(teamBoxes, function (b) {
           if (!b.checked) return;
           if (b.value === '__other') {
-            var o = form.querySelector('.chip-other-input');
-            if (o && o.value.trim()) picked.push('Other: ' + o.value.trim());
+            var o = form.querySelector('#volunteer-other');
+            if (!o || !o.value.trim()) { missingOther = true; return; }
+            picked.push('New team idea: ' + o.value.trim());
           } else picked.push(b.value);
         });
+        if (missingOther) {
+          formStatus(form, 'error', 'Describe the team you have in mind, or untick “Not listed”.');
+          return;
+        }
         if (!picked.length) {
-          formStatus(form, 'error', 'Pick at least one team, or choose Other and tell us.');
+          formStatus(form, 'error', 'Pick at least one team, or choose “Not listed” and describe it.');
           return;
         }
         fields.team = picked.join(', ');
       }
       Array.prototype.forEach.call(form.querySelectorAll('input, select, textarea'), function (el) {
-        if (!el.id || el.type === 'submit' || el.type === 'checkbox' || el.name === 'website' || el.classList.contains('chip-other-input')) return;
+        if (!el.id || el.type === 'submit' || el.type === 'checkbox' || el.name === 'website' || el.id === 'volunteer-other') return;
         var prefix = type + '-';
         var key = el.id.indexOf(prefix) === 0 ? el.id.slice(prefix.length) : el.id;
         fields[key] = el.value;
@@ -248,7 +255,7 @@
       var btnEnd = vh * 0.5;
       btnEls.forEach(function (el) {
         var rect = el.getBoundingClientRect();
-        var raw = (btnStart - rect.top) / (btnStart - btnEnd);
+        var raw = rect.top + scrollY < vh * 0.95 ? 1 : (btnStart - rect.top) / (btnStart - btnEnd);
         var progress = Math.min(Math.max(raw, 0), 1);
         el.style.setProperty('--fill', (progress * 100).toFixed(1) + '%');
       });

@@ -509,7 +509,10 @@ export default function CrystalLiquid() {
         const rect = l.el.getBoundingClientRect();
         if (!rect.width || !rect.height) continue;
 
-        const progress = Math.min(Math.max((start - rect.top) / (start - end), 0), 1);
+        // Buttons already on the first screen can't be scrolled any higher,
+        // so they fill completely instead of sitting half full.
+        const aboveFold = rect.top + sy < vh * 0.95;
+        const progress = aboveFold ? 1 : Math.min(Math.max((start - rect.top) / (start - end), 0), 1);
         const target = -0.14 + progress * 1.34;
 
         // Level: slightly underdamped spring — lags the scroll, overshoots
