@@ -154,14 +154,18 @@ export type Testimony = {
   quote: string;
   image: string | null;
   submittedAt: string | null;
+  category?: string | null;
+  featured?: boolean;
 };
 
-const TESTIMONIES_QUERY = `*[_type == "testimony"] | order(submittedAt desc) [0...12] {
+const TESTIMONIES_QUERY = `*[_type == "testimony"] | order(coalesce(submittedAt, _createdAt) desc) [0...60] {
   _id,
   name,
   quote,
   "image": image.asset->url,
-  submittedAt
+  "submittedAt": coalesce(submittedAt, _createdAt),
+  category,
+  "featured": coalesce(featured, false)
 }`;
 
 export async function getTestimonies(): Promise<Testimony[] | null> {

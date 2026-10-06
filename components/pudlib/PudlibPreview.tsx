@@ -15,7 +15,17 @@ export default async function PudlibPreview() {
             <PudlibLogo size={48} />
             <p>The Pastor Uzor Digital Library &mdash; {[counts.video && `${counts.video} messages`, counts.audio && `${counts.audio} audio`, counts.book && `${counts.book} books`].filter(Boolean).join(' · ')}, picked for you.</p>
           </div>
-          <a href="/library" className="btn btn-primary">Open PUDLIB!</a>
+          <a href="/library" className="pud-btn">
+            <span className="pud-btn-icon" aria-hidden="true">
+              <svg viewBox="0 0 36 36">
+                <circle className="pud-ring-bg" cx="18" cy="18" r="15" />
+                <circle className="pud-ring" cx="18" cy="18" r="15" />
+                <path className="pud-tri" d="M14.5 11.5v13l10.5-6.5z" />
+              </svg>
+            </span>
+            <span className="pud-btn-label">Open PUDLIB!</span>
+            <span className="pud-btn-bar" aria-hidden="true"><i /><b /></span>
+          </a>
         </div>
         <div className="pl-preview-grid pop">
           {preview.map((it) => (

@@ -1,4 +1,5 @@
 import { getTestimonies } from '@/lib/sanity';
+import TestimonyWall from '@/components/testimonies/TestimonyWall';
 
 // Self-contained section (own <section>/.container) — see EventsSection
 // for why: each dangerouslySetInnerHTML chunk in app/page.tsx is its own
@@ -25,19 +26,12 @@ export default async function TestimoniesSection() {
         </div>
 
         {testimonies && testimonies.length > 0 ? (
-          <div className="testimony-grid pop">
-            {testimonies.map((t) => (
-              <div className="testimony-card" key={t._id}>
-                <p className="testimony-quote">&ldquo;{t.quote}&rdquo;</p>
-                <div className="testimony-name">{t.name}</div>
-              </div>
-            ))}
-          </div>
+          <div className="pop"><TestimonyWall items={testimonies} /></div>
         ) : (
           <div className="testimony-grid pop">
             <div className="testimony-card">
               <p className="testimony-quote">
-                Be the first to share how God has moved in your life through TCH Global — every story here starts
+                Be the first to share how God has moved in your life through TCH Global. Every story here starts
                 with someone willing to tell it.
               </p>
             </div>
@@ -59,6 +53,10 @@ export default async function TestimoniesSection() {
             />
             <label htmlFor="testimony-name">Your Name</label>
             <input type="text" id="testimony-name" placeholder="How you'd like to be credited" required />
+            <label htmlFor="testimony-category">What happened?</label>
+            <select id="testimony-category" defaultValue="Healing">
+              {['Healing', 'Provision', 'Deliverance', 'Family', 'Breakthrough', 'Salvation', 'Other'].map((c) => <option key={c}>{c}</option>)}
+            </select>
             <label htmlFor="testimony-quote">Your Story</label>
             <textarea id="testimony-quote" rows={4} placeholder="Share how God has moved in your life..." required />
             <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>

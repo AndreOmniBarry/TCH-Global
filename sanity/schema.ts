@@ -95,6 +95,8 @@ export const testimony = {
     { name: 'quote', title: 'Testimony', type: 'text', rows: 4, validation: (R: any) => R.required() },
     { name: 'image', title: 'Photo (optional)', type: 'image', options: { hotspot: true } },
     { name: 'submittedAt', title: 'Date', type: 'datetime' },
+    { name: 'category', title: 'Category', type: 'string', options: { list: ['Healing', 'Provision', 'Deliverance', 'Family', 'Breakthrough', 'Salvation', 'Other'] } },
+    { name: 'featured', title: 'Miracle / highlight', type: 'boolean', description: 'Shows in the Miracles spotlight on the homepage.', initialValue: false },
   ],
   orderings: [
     { title: 'Newest First', name: 'submittedAtDesc', by: [{ field: 'submittedAt', direction: 'desc' }] },

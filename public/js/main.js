@@ -68,17 +68,34 @@
     el.textContent = text;
   }
 
-  function postForm(type, fields, honeypot) {
+  // One automatic retry: phones on patchy data often drop the first
+  // request, which used to surface as a scary "network error".
+  function postForm(type, fields, honeypot, attempt) {
+    attempt = attempt || 1;
     return fetch('/api/forms', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ type: type, fields: fields, website: honeypot || '' }),
     }).then(function (res) {
       return res.json().catch(function () { return {}; }).then(function (data) {
-        return { ok: res.ok, data: data };
+        return { ok: res.ok, data: data || {} };
       });
+    }, function (err) {
+      if (attempt < 2) {
+        return new Promise(function (r) { setTimeout(r, 1200); }).then(function () { return postForm(type, fields, honeypot, attempt + 1); });
+      }
+      throw err;
     });
   }
+
+  // Volunteer team chips: "Other" reveals a free-text box.
+  Array.prototype.forEach.call(document.querySelectorAll('[data-other-toggle]'), function (box) {
+    var input = box.closest('fieldset').querySelector('.chip-other-input');
+    box.addEventListener('change', function () {
+      input.hidden = !box.checked;
+      if (box.checked) input.focus();
+    });
+  });
 
   // Newsletter sign-ups (home footer, blog index, every post).
   Array.prototype.forEach.call(document.querySelectorAll('#newsletter-form, form.js-newsletter'), function (form) {
@@ -101,7 +118,7 @@
         })
         .catch(function () {
           if (btn) { btn.disabled = false; btn.textContent = label; }
-          formStatus(form, 'error', 'Network error — please check your connection and try again.');
+          formStatus(form, 'error', 'We couldn’t reach the server. Check your internet connection and tap the button again.');
         });
     });
   });
@@ -118,8 +135,24 @@
       e.preventDefault();
 
       var fields = {};
+      var teamBoxes = form.querySelectorAll('input[type="checkbox"][name="team"]');
+      if (teamBoxes.length) {
+        var picked = [];
+        Array.prototype.forEach.call(teamBoxes, function (b) {
+          if (!b.checked) return;
+          if (b.value === '__other') {
+            var o = form.querySelector('.chip-other-input');
+            if (o && o.value.trim()) picked.push('Other: ' + o.value.trim());
+          } else picked.push(b.value);
+        });
+        if (!picked.length) {
+          formStatus(form, 'error', 'Pick at least one team, or choose Other and tell us.');
+          return;
+        }
+        fields.team = picked.join(', ');
+      }
       Array.prototype.forEach.call(form.querySelectorAll('input, select, textarea'), function (el) {
-        if (!el.id || el.type === 'submit' || el.name === 'website') return;
+        if (!el.id || el.type === 'submit' || el.type === 'checkbox' || el.name === 'website' || el.classList.contains('chip-other-input')) return;
         var prefix = type + '-';
         var key = el.id.indexOf(prefix) === 0 ? el.id.slice(prefix.length) : el.id;
         fields[key] = el.value;
@@ -152,7 +185,7 @@
             submitBtn.disabled = false;
             submitBtn.textContent = originalLabel;
           }
-          formStatus(form, 'error', 'Network error — please check your connection and try again.');
+          formStatus(form, 'error', 'We couldn’t reach the server. Check your internet connection and tap the button again.');
         });
     });
   }
@@ -162,14 +195,6 @@
   wireForm('volunteer-form', 'volunteer-done');
   wireForm('testimony-form', 'testimony-done');
 
-  var newsletterForm = document.getElementById('newsletter-form');
-  if (newsletterForm) {
-    newsletterForm.addEventListener('submit', function (e) {
-      e.preventDefault();
-      newsletterForm.querySelector('input').value = '';
-      newsletterForm.querySelector('button').textContent = 'Joined!';
-    });
-  }
 
   // Pop-up book depth engine. Every scroll frame, each layer's transform is
   // derived fresh from the live scroll position — nothing here is a
@@ -219,8 +244,8 @@
       // clip-path — fills as a button scrolls into view, drains back on
       // scroll-out. A faster start/end window than .pop so buttons feel
       // responsive rather than lagging the section around them.
-      var btnStart = vh * 0.98;
-      var btnEnd = vh * 0.62;
+      var btnStart = vh * 0.86;
+      var btnEnd = vh * 0.5;
       btnEls.forEach(function (el) {
         var rect = el.getBoundingClientRect();
         var raw = (btnStart - rect.top) / (btnStart - btnEnd);

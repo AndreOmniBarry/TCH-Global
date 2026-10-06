@@ -79,12 +79,26 @@ vec2 voronoi(vec2 p, float t) {
   return vec2(f1, f2);
 }
 
+// A dropped-stone wave packet: three rings trailing the front, each
+// longer and weaker than the last (water waves disperse as they travel).
+float dropWave(float r, float front) {
+  float w = 0.0;
+  for (int k = 0; k < 3; k++) {
+    float fk = float(k);
+    float rk = front - fk * 0.07;
+    if (rk < 0.0) continue;
+    float lam = 0.05 + fk * 0.02;
+    w += sin((r - rk) / lam * 6.2831) * exp(-pow((r - rk) / (lam * 0.9), 2.0)) * (1.0 - fk * 0.3);
+  }
+  return w;
+}
+
 void main() {
   vec2 uv = vUv;
   float aspect = uRes.x / uRes.y;
   vec2 p = vec2(uv.x * aspect, uv.y);
   float px = 1.0 / uRes.y;
-  float t = uTime;
+  float t = uTime + uSeed * 7.31;
 
   // Free surface: level + slosh tilt + scroll-excited travelling waves
   // + a faint idle ripple so the liquid never looks frozen.
@@ -101,7 +115,7 @@ void main() {
     + 0.022 * sin(X * 2.3 + t * 1.15 + uSeed) + 0.013 * sin(X * 4.7 - t * 1.6 + uSeed * 0.5)
     + 0.006 * sin(X * 9.0 - t * 2.4)
     + uRipple * 0.13 * sin(md * 11.0 - t * 6.5) * exp(-md * 1.4)
-    + dropAmp * 0.045 * sin((abs(X - uDrop.x * aspect) - dropR) * 30.0) * exp(-abs(abs(X - uDrop.x * aspect) - dropR) * 9.0);
+    + dropAmp * 0.040 * dropWave(abs(X - uDrop.x * aspect), dropR);
   float d = surf - uv.y;
   if (d < -14.0 * px) { gl_FragColor = vec4(0.0); return; }
 
@@ -116,8 +130,8 @@ void main() {
   vec2 rippleWarp = (p - m) / max(mdist, 1e-3) * sin(mdist * 16.0 - t * 7.0) * 0.065 * uRipple * exp(-mdist * 1.5);
   vec2 dp = vec2(uDrop.x * aspect, uDrop.y);
   float dd = length(p - dp);
-  float dring = exp(-abs(dd - dropR) * 11.0) * dropAmp;
-  rippleWarp += (p - dp) / max(dd, 1e-3) * dring * 0.026;
+  float dring = dropWave(dd, dropR) * dropAmp;
+  rippleWarp += (p - dp) / max(dd, 1e-3) * dring * 0.02;
   vec2 q = p * 1.6 + vec2(t * 0.35, -t * 0.12) + rippleWarp * 4.0;
   float w = fbm(q + 1.9 * fbm(q * 1.2 + vec2(-t * 0.2, t * 0.08)));
   vec2 rp = p + (w - 0.5) * 0.45 + rippleWarp;
@@ -130,13 +144,33 @@ void main() {
 
   // Cut-glass facets: large slow voronoi cells, bright ridges on cell edges.
   vec2 vf = voronoi(rp * 2.4 + vec2(t * 0.25, 0.0), t * 0.5);
-  col += (0.5 - vf.x) * 0.08;
-  col += (1.0 - smoothstep(0.0, 0.22, vf.y - vf.x)) * 0.05;
+  col += (0.5 - vf.x) * 0.025;
+  col += (1.0 - smoothstep(0.0, 0.22, vf.y - vf.x)) * 0.015;
 
   // Caustics: fine fast voronoi network, strongest near the surface.
   vec2 vc = voronoi(rp * 4.2 + vec2(t * 0.4, t * 0.3), t * 0.8);
   float caus = pow(1.0 - smoothstep(0.0, 0.32, vc.y - vc.x), 2.2);
-  col += caus * (0.18 + 0.12 * uDark) * (1.0 - depth * 0.6);
+  float causPulse = 0.55 + 0.45 * sin(t * 0.6 + w * 4.0);
+  col += caus * (0.13 + 0.09 * uDark) * causPulse * (1.0 - depth * 0.6);
+
+  // Current: thin streaks drifting along the surface layer, so the fill
+  // reads as moving water rather than a still tank.
+  float flowN = noise(vec2(p.x * 2.2 - t * 0.9, uv.y * 22.0 + w * 3.0));
+  col += smoothstep(0.62, 0.95, flowN) * 0.11 * (1.0 - smoothstep(0.0, 0.45, d));
+
+  // Glints: a few points on the surface, each flaring on its own random
+  // schedule instead of all at once.
+  for (int i = 0; i < 3; i++) {
+    float fi = float(i);
+    float h = hash21(vec2(fi * 5.7, uSeed));
+    float life = fract(t * (0.13 + 0.07 * h) + h * 3.0);
+    float flare = pow(sin(3.1416 * life), 12.0);
+    float gx = fract(h * 13.1 + floor(t * (0.13 + 0.07 * h) + h * 3.0) * 0.37) * aspect;
+    vec2 gp = vec2(gx, surf - 0.03);
+    vec2 dg = (p - gp) * vec2(1.0, 1.6);
+    float star = exp(-length(dg) * 90.0) + exp(-abs(dg.y) * 260.0) * exp(-abs(dg.x) * 34.0) * 0.6;
+    col += star * flare * 0.9;
+  }
 
   // Subsurface light just under the surface.
   float band = smoothstep(0.0, 0.06, d) * (1.0 - smoothstep(0.06, 0.35, d));
@@ -384,7 +418,7 @@ export default function CrystalLiquid() {
       orientAsked = true;
       const DOE = window.DeviceOrientationEvent as unknown as { requestPermission?: () => Promise<string> };
       if (DOE && typeof DOE.requestPermission === 'function') {
-        DOE.requestPermission().then((r) => { if (r === 'granted') window.addEventListener('deviceorientation', onOrient); }).catch(() => {});
+        return;
       } else if ('DeviceOrientationEvent' in window) {
         window.addEventListener('deviceorientation', onOrient);
       }
@@ -430,6 +464,16 @@ export default function CrystalLiquid() {
     }
     glCanvas.addEventListener('webglcontextlost', onLost);
 
+    // Leaving the page: give the canvas memory back. iPhone Safari keeps
+    // the previous page alive for the back button, and a page full of
+    // button canvases plus the next page was enough to crash the tab.
+    function onPageHide() {
+      liquids.forEach((l) => { l.canvas.width = 0; l.canvas.height = 0; l.w = 0; l.h = 0; l.cleared = true; });
+      glW = 0; glH = 0;
+      renderer.setSize(1, 1);
+    }
+    window.addEventListener('pagehide', onPageHide);
+
     const coarse = window.matchMedia('(pointer: coarse)').matches;
     let frameNo = 0;
     let raf = 0;
@@ -449,18 +493,21 @@ export default function CrystalLiquid() {
       scrollVel += (rawVel - scrollVel) * 0.25;
 
       const vh = window.innerHeight;
-      const start = vh * 0.98;
-      const end = vh * 0.62;
+      const start = vh * 0.86;
+      const end = vh * 0.5;
       const dpr = Math.min(window.devicePixelRatio || 1, coarse ? 1 : 1.5);
       let drawnThisFrame = 0;
       frameNo += 1;
       const drawThisFrame = !coarse || frameNo % 2 === 0;
       const time = (now - t0) / 1000;
 
-      liquids.forEach((l) => {
-        if (!l.visible) return;
+      const order = Array.from(liquids.values());
+      const offset = order.length ? frameNo % order.length : 0;
+      for (let k = 0; k < order.length; k++) {
+        const l = order[(k + offset) % order.length];
+        if (!l.visible) continue;
         const rect = l.el.getBoundingClientRect();
-        if (!rect.width || !rect.height) return;
+        if (!rect.width || !rect.height) continue;
 
         const progress = Math.min(Math.max((start - rect.top) / (start - end), 0), 1);
         const target = -0.14 + progress * 1.34;
@@ -513,12 +560,13 @@ export default function CrystalLiquid() {
             l.ctx.clearRect(0, 0, w, h);
             l.cleared = true;
           }
-          return;
+          continue;
         }
 
-        if (!drawThisFrame) return;
-        // Phones: at most 4 liquid buttons rendered per frame.
-        if (coarse && drawnThisFrame >= 4) return;
+        if (!drawThisFrame) continue;
+        // Phones: at most 4 liquid buttons rendered per frame, rotating
+        // which ones go first so every button keeps animating.
+        if (coarse && drawnThisFrame >= 4) continue;
         drawnThisFrame += 1;
 
         if (w > glW || h > glH) {
@@ -550,7 +598,7 @@ export default function CrystalLiquid() {
         l.ctx.clearRect(0, 0, w, h);
         l.ctx.drawImage(glCanvas, 0, glCanvas.height - h, w, h, 0, 0, w, h);
         l.cleared = false;
-      });
+      }
     }
     raf = requestAnimationFrame(frame);
 
@@ -561,6 +609,7 @@ export default function CrystalLiquid() {
       themeMo.disconnect();
       mq.removeEventListener('change', onThemeChange);
       glCanvas.removeEventListener('webglcontextlost', onLost);
+      window.removeEventListener('pagehide', onPageHide);
       document.removeEventListener('pointermove', onPointerMove);
       document.removeEventListener('pointerdown', onPointerDown);
       window.removeEventListener('deviceorientation', onOrient);

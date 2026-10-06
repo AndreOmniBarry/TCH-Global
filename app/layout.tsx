@@ -6,7 +6,6 @@ import '@fontsource/plus-jakarta-sans/latin-500.css';
 import '@fontsource/plus-jakarta-sans/latin-600.css';
 import '@fontsource/jetbrains-mono/latin-600.css';
 import Script from 'next/script';
-import RotatingBackdrop from '@/components/decor/RotatingBackdrop';
 import CrystalLiquid from '@/components/decor/CrystalLiquid';
 import BroadcastFrames from '@/components/decor/BroadcastFrames';
 
@@ -73,7 +72,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <div className="blob blob-3" data-speed="0.03" />
           <div className="blob blob-4" data-speed="-0.05" />
         </div>
-        <RotatingBackdrop />
         <div dangerouslySetInnerHTML={{ __html: SPLASH_HTML }} suppressHydrationWarning />
         <script dangerouslySetInnerHTML={{ __html: SPLASH_SCRIPT }} />
         <CrystalLiquid />

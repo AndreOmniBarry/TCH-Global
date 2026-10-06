@@ -9,6 +9,8 @@ import { fallbackPosts } from '@/lib/fallback-posts';
 
 const FACEBOOK_URL = process.env.NEXT_PUBLIC_FACEBOOK_URL || 'https://www.facebook.com/profile.php?id=61557996937416';
 // Spotify buttons stay hidden until the podcast exists.
+const YOUTUBE_URL = 'https://www.youtube.com/channel/UCN1NLcg1KaPz_yo3dqjQkEQ';
+const INSTAGRAM_URL = process.env.NEXT_PUBLIC_INSTAGRAM_URL || 'https://www.instagram.com';
 const SPOTIFY_URL = process.env.NEXT_PUBLIC_SPOTIFY_SHOW_URL || '';
 
 // This page bridges the original hand-authored static homepage into
@@ -75,9 +77,9 @@ const HOME_HTML_BEFORE_LIBRARY = `
       <a href="#media" class="btn btn-ghost">Watch a Message</a>
     </div>
     <div class="stream-row">
-      <a href="https://www.youtube.com" class="btn btn-ghost btn-sm btn-youtube" target="_blank" rel="noopener">${ICON_YOUTUBE} YouTube</a>
+      <a href="${YOUTUBE_URL}" class="btn btn-ghost btn-sm btn-youtube" target="_blank" rel="noopener">${ICON_YOUTUBE} YouTube</a>
       <a href="${FACEBOOK_URL}" class="btn btn-ghost btn-sm btn-facebook" target="_blank" rel="noopener">${ICON_FACEBOOK} Facebook</a>
-      <a href="https://www.instagram.com" class="btn btn-ghost btn-sm btn-instagram" target="_blank" rel="noopener">${ICON_INSTAGRAM} Instagram</a>
+      <a href="${INSTAGRAM_URL}" class="btn btn-ghost btn-sm btn-instagram" target="_blank" rel="noopener">${ICON_INSTAGRAM} Instagram</a>
     </div>
   </div>
   <div class="hero-marquee" aria-hidden="true">
@@ -171,36 +173,7 @@ const HOME_HTML_TESTIMONIES_TO_EVENTS = `
       <p>Weekly reflections from TCH Global, published every Sunday — free to read, share, and grow from.</p>
     </div>
 
-    <a href="/blog/walking-in-faith" class="blog-feature pop">
-      <div class="blog-feature-media" data-broadcast="ON AIR · THE COMFORTERS BLOG">
-        <img src="/images/pastor-teaching.webp" alt="Pastor Uzor Echiejile teaching at TCH Global">
-      </div>
-      <div class="blog-feature-body">
-        <span class="blog-tag">Faith</span>
-        <h3>Walking in Faith When You Can't See the Way</h3>
-        <p>Faith was never meant to require full visibility. This week we look at what it means to take the next step when the whole path hasn't been shown to you yet.</p>
-        <div class="blog-byline">
-          <span class="blog-avatar"><img src="/images/pastor-portrait.webp" alt="Pastor Uzor Echiejile"></span>
-          <span class="blog-byline-text">
-            <strong>Pastor Uzor Echiejile</strong>
-            <span>Sep 27, 2026 &middot; 6 min read</span>
-          </span>
-        </div>
-      </div>
-    </a>
-
-    <div class="blog-grid pop">
-      <a href="/blog/anchored-in-hope" class="blog-card">
-        <span class="blog-tag">Hope</span>
-        <h4>Anchored in Hope: A Word for Weary Seasons</h4>
-        <span class="blog-meta">Pastor Uzor Echiejile &middot; Sep 20, 2026</span>
-      </a>
-      <a href="/blog/the-comforters-house" class="blog-card">
-        <span class="blog-tag">Community</span>
-        <h4>The Comforter's House: Why We Gather</h4>
-        <span class="blog-meta">Pastor Uzor Echiejile &middot; Sep 13, 2026</span>
-      </a>
-    </div>
+__BLOG_POSTS__
     <a href="/blog" class="resource-cta" style="display:inline-block;margin-top:20px;">Read The Comforters Blog &rarr;</a>
   </div>
 </section>
@@ -255,15 +228,21 @@ const HOME_HTML_EVENTS_TO_MEDIA = `
         <input type="text" id="volunteer-name" placeholder="Your name" required>
         <label for="volunteer-email">Email</label>
         <input type="email" id="volunteer-email" placeholder="you@example.com" required>
-        <label for="volunteer-team">Team of Interest</label>
-        <select id="volunteer-team">
-          <option>Ushering &amp; Hospitality</option>
-          <option>Media &amp; Live Stream</option>
-          <option>Worship &amp; Music</option>
-          <option>Children's Ministry</option>
-          <option>Outreach &amp; Missions</option>
-          <option>Administration</option>
-        </select>
+        <fieldset class="chip-group">
+          <legend>Teams of Interest <span class="chip-hint">pick as many as you like</span></legend>
+          <label class="chip-opt"><input type="checkbox" name="team" value="Ushering &amp; Hospitality"><span>Ushering &amp; Hospitality</span></label>
+          <label class="chip-opt"><input type="checkbox" name="team" value="Media &amp; Live Stream"><span>Media &amp; Live Stream</span></label>
+          <label class="chip-opt"><input type="checkbox" name="team" value="Worship &amp; Music"><span>Worship &amp; Music</span></label>
+          <label class="chip-opt"><input type="checkbox" name="team" value="Children's Ministry"><span>Children's Ministry</span></label>
+          <label class="chip-opt"><input type="checkbox" name="team" value="Outreach &amp; Missions"><span>Outreach &amp; Missions</span></label>
+          <label class="chip-opt"><input type="checkbox" name="team" value="Prayer Team"><span>Prayer Team</span></label>
+          <label class="chip-opt"><input type="checkbox" name="team" value="Protocol &amp; Security"><span>Protocol &amp; Security</span></label>
+          <label class="chip-opt"><input type="checkbox" name="team" value="Sanitation &amp; Facilities"><span>Sanitation &amp; Facilities</span></label>
+          <label class="chip-opt"><input type="checkbox" name="team" value="Follow-up &amp; Counselling"><span>Follow-up &amp; Counselling</span></label>
+          <label class="chip-opt"><input type="checkbox" name="team" value="Administration"><span>Administration</span></label>
+          <label class="chip-opt chip-other"><input type="checkbox" name="team" value="__other" data-other-toggle><span>Other</span></label>
+          <input type="text" id="volunteer-other" class="chip-other-input" placeholder="Tell us where you'd like to serve" hidden>
+        </fieldset>
         <button type="submit" class="btn btn-primary" style="width:100%;">Submit Interest</button>
       </form>
       <div class="give-form done" id="volunteer-done" hidden>
@@ -368,8 +347,8 @@ const HOME_HTML_EVENTS_TO_MEDIA = `
         <p>The Comforter's House Global — a church for every nation, gathering people to know Christ and make Him known.</p>
         <div class="social-row">
           <a href="${FACEBOOK_URL}" target="_blank" rel="noopener" aria-label="Facebook" class="liquid liquid-facebook">${ICON_FACEBOOK}</a>
-          <a href="https://www.youtube.com" target="_blank" rel="noopener" aria-label="YouTube" class="liquid liquid-youtube">${ICON_YOUTUBE}</a>
-          <a href="https://www.instagram.com" target="_blank" rel="noopener" aria-label="Instagram" class="liquid liquid-instagram">${ICON_INSTAGRAM}</a>
+          <a href="${YOUTUBE_URL}" target="_blank" rel="noopener" aria-label="YouTube" class="liquid liquid-youtube">${ICON_YOUTUBE}</a>
+          <a href="${INSTAGRAM_URL}" target="_blank" rel="noopener" aria-label="Instagram" class="liquid liquid-instagram">${ICON_INSTAGRAM}</a>
           ${SPOTIFY_URL ? `<a href="${SPOTIFY_URL}" target="_blank" rel="noopener" aria-label="Spotify" class="liquid liquid-spotify">${ICON_SPOTIFY}</a>` : ''}
         </div>
       </div>
@@ -408,11 +387,48 @@ const HOME_HTML_EVENTS_TO_MEDIA = `
 
 export const revalidate = 60;
 
+const esc = (v: string) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
+const shortDate = (iso: string) => new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'Africa/Lagos' });
+
+// Homepage blog block: newest post as the feature, the next two as cards,
+// so the links always point at posts that really exist.
+function blogHtml(list: { slug: string; title: string; excerpt?: string | null; category?: string | null; publishedAt: string; readTime?: string | null; coverImage?: string | null; authorName?: string | null }[]) {
+  const [f, ...rest] = list;
+  if (!f) return '';
+  const author = esc(f.authorName || 'Pastor Uzor Echiejile');
+  const feature = `
+    <a href="/blog/${esc(f.slug)}" class="blog-feature pop">
+      <div class="blog-feature-media" data-broadcast="ON AIR · THE COMFORTERS BLOG">
+        <img src="${esc(f.coverImage || '/images/pastor-teaching.webp')}" alt="">
+      </div>
+      <div class="blog-feature-body">
+        ${f.category ? `<span class="blog-tag">${esc(f.category)}</span>` : ''}
+        <h3>${esc(f.title)}</h3>
+        ${f.excerpt ? `<p>${esc(f.excerpt)}</p>` : ''}
+        <div class="blog-byline">
+          <span class="blog-avatar"><img src="/images/pastor-portrait.webp" alt="Pastor Uzor Echiejile"></span>
+          <span class="blog-byline-text">
+            <strong>${author}</strong>
+            <span>${shortDate(f.publishedAt)}${f.readTime ? ` &middot; ${esc(f.readTime)}` : ''}</span>
+          </span>
+        </div>
+      </div>
+    </a>`;
+  const cards = rest.slice(0, 2).map((p) => `
+      <a href="/blog/${esc(p.slug)}" class="blog-card">
+        ${p.category ? `<span class="blog-tag">${esc(p.category)}</span>` : ''}
+        <h4>${esc(p.title)}</h4>
+        <span class="blog-meta">${esc(p.authorName || 'Pastor Uzor Echiejile')} &middot; ${shortDate(p.publishedAt)}</span>
+      </a>`).join('');
+  return feature + (cards ? `\n    <div class="blog-grid pop">${cards}\n    </div>` : '');
+}
+
 export default async function HomePage() {
   const [posts, events, testimonies] = await Promise.all([getAllPosts(), getUpcomingEvents(), getTestimonies()]);
-  const latest = [...(posts ?? fallbackPosts)].sort(
+  const sorted = [...(posts ?? fallbackPosts)].sort(
     (a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
-  )[0];
+  );
+  const latest = sorted[0];
   const heroData = {
     latestPost: latest ? { title: latest.title, slug: latest.slug, meta: [latest.category, latest.readTime].filter(Boolean).join(' · ') } : null,
     events: (events ?? []).slice(0, 5).map((e) => ({ title: e.title, startsAt: e.startsAt, endsAt: e.endsAt, location: e.location })),
@@ -427,7 +443,7 @@ export default async function HomePage() {
       <AnnouncementsSection />
       <div dangerouslySetInnerHTML={{ __html: HOME_HTML_AFTER_LIBRARY }} />
       <TestimoniesSection />
-      <div dangerouslySetInnerHTML={{ __html: HOME_HTML_TESTIMONIES_TO_EVENTS }} />
+      <div dangerouslySetInnerHTML={{ __html: HOME_HTML_TESTIMONIES_TO_EVENTS.replace('__BLOG_POSTS__', blogHtml(sorted)) }} />
       <EventsSection />
       <div dangerouslySetInnerHTML={{ __html: HOME_HTML_EVENTS_TO_MEDIA }} />
     </>

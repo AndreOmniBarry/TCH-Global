@@ -1,11 +1,12 @@
 import { listSubmissions, formsConfigured, FormType, FormSubmission } from '@/lib/forms';
 import { SiteHeader, SiteFooter } from '@/components/SiteChrome';
+import TestimonyAdmin from '@/components/testimonies/TestimonyAdmin';
+import { getTestimonies } from '@/lib/sanity';
 
 export const metadata = { title: 'Submissions | TCH Global Admin' };
 export const dynamic = 'force-dynamic';
 
 const SECTIONS: { type: FormType; title: string; fieldOrder: string[] }[] = [
-  { type: 'testimony', title: 'Testimonies (pending review)', fieldOrder: ['name', 'quote'] },
   { type: 'prayer', title: 'Prayer Requests', fieldOrder: ['message'] },
   { type: 'volunteer', title: 'Volunteer Interest', fieldOrder: ['name', 'email', 'team'] },
   { type: 'join', title: 'Membership (Join Us)', fieldOrder: ['name', 'email'] },
@@ -57,7 +58,11 @@ export default async function AdminSubmissionsPage() {
     );
   }
 
-  const results = await Promise.all(SECTIONS.map((s) => listSubmissions(s.type, 100)));
+  const [results, pendingTestimonies, liveTestimonies] = await Promise.all([
+    Promise.all(SECTIONS.map((s) => listSubmissions(s.type, 100))),
+    listSubmissions('testimony', 200),
+    getTestimonies(),
+  ]);
 
   return (
     <>
@@ -69,6 +74,8 @@ export default async function AdminSubmissionsPage() {
             <h2 style={{ textTransform: 'none', fontSize: '1.8rem' }}>Submissions</h2>
             <p>Prayer requests, volunteer interest, membership, and giving-intent forms — newest first.</p>
           </div>
+
+          <TestimonyAdmin pending={pendingTestimonies ?? []} live={(liveTestimonies ?? []).map((t) => ({ _id: t._id, name: t.name, quote: t.quote, category: t.category, featured: t.featured, submittedAt: t.submittedAt }))} />
 
           {SECTIONS.map((section, i) => {
             const entries = results[i] ?? [];

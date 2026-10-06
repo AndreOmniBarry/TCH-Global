@@ -1,6 +1,6 @@
 import { SiteHeader, SiteFooter } from '@/components/SiteChrome';
 import { isLiveNow } from '@/lib/analytics';
-import { CHANNEL_ID } from '@/lib/youtube';
+import { CHANNEL_ID, getLatestVideos } from '@/lib/youtube';
 
 export const metadata = {
   title: 'Watch Live | TCH Global',
@@ -20,7 +20,15 @@ const SCHEDULE = [
 export default async function LivePage() {
   const channelId = CHANNEL_ID;
   const facebookUrl = process.env.NEXT_PUBLIC_FACEBOOK_URL || 'https://www.facebook.com/profile.php?id=61557996937416';
-  const live = await isLiveNow();
+  const [live, videos] = await Promise.all([isLiveNow(), getLatestVideos(1).catch(() => null)]);
+  const latest = videos?.[0] ?? null;
+  // YouTube's live_stream embed shows "video unavailable" when nothing is
+  // live, so off-air we play the newest upload instead.
+  const embedSrc = live
+    ? `https://www.youtube-nocookie.com/embed/live_stream?channel=${encodeURIComponent(channelId)}&rel=0`
+    : latest
+      ? `https://www.youtube-nocookie.com/embed/${encodeURIComponent(latest.id)}?rel=0&modestbranding=1`
+      : `https://www.youtube-nocookie.com/embed/videoseries?list=${encodeURIComponent(channelId.replace(/^UC/, 'UU'))}&rel=0`;
 
   return (
     <>
@@ -30,18 +38,18 @@ export default async function LivePage() {
           <div className="section-header">
             <span className="eyebrow">Media &amp; Streaming</span>
             <h2>Watch <span className="accent">Live</span></h2>
-            <p>Join the service from anywhere in the world. When we&rsquo;re not live, the player shows our latest message.</p>
+            <p>Join the service from anywhere in the world. When we&rsquo;re not live, you can watch and follow messages or use the <a href="/library">PUDLIB!</a></p>
           </div>
 
           <div className={`live-status${live ? ' live-status--on' : ''}`} role="status">
             <span className="live-dot" aria-hidden="true" />
-            {live ? 'We are live now' : 'Not live right now — the next service is listed below'}
+            {live ? 'We are live now' : <>Not live right now. Playing our latest message{latest ? <>: <strong>{latest.title}</strong></> : ''}</>}
           </div>
 
           <div className="live-player" data-broadcast={live ? 'LIVE · TCH GLOBAL' : 'REPLAY · LATEST MESSAGE'}>
             {channelId ? (
               <iframe
-                src={`https://www.youtube-nocookie.com/embed/live_stream?channel=${encodeURIComponent(channelId)}&rel=0`}
+                src={embedSrc}
                 title="TCH Global live stream"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                 allowFullScreen
