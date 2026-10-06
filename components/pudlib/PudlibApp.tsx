@@ -2,10 +2,12 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { LibItem, LibKind } from '@/lib/library';
+import { buildModel, recommend, similar, TOPICS, type CoPlay } from '@/lib/recommend';
 import PudlibLogo from './PudlibLogo';
 import {
-  IconPlay, IconPause, IconBack, IconForward, IconVolume, IconMute, IconFull, IconMinimize,
+  IconPlay, IconPause, IconBack, IconForward, IconVolume, IconMute, IconMinimize,
   IconExpand, IconClose, IconNext, IconHistory, IconBook, IconAudio, IconVideo,
+  IconPortrait, IconLandscape, IconExitFull, IconPlaylist, IconPlus, IconCheck,
 } from './icons';
 
 type HistoryEntry = { at: number; progress: number; t?: number };
@@ -18,9 +20,6 @@ function loadHistory(): History {
 }
 function saveHistory(h: History) {
   try { localStorage.setItem(HIST_KEY, JSON.stringify(h)); } catch {}
-}
-function tokens(s: string) {
-  return new Set(s.toLowerCase().replace(/[^a-z0-9 ]/g, ' ').split(/\s+/).filter((w) => w.length > 3));
 }
 function fmtTime(sec: number) {
   if (!Number.isFinite(sec) || sec < 0) sec = 0;
@@ -38,34 +37,6 @@ function ago(ts: number) {
 }
 function track(id: string) {
   fetch('/api/track-view', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ slug: `media:${id}`, event: 'view' }) }).catch(() => {});
-}
-
-// Personal ranking: base score + similarity to what this visitor played
-// recently (same series counts most), minus things already finished.
-function personalise(items: LibItem[], history: History) {
-  const recent = Object.entries(history).sort((a, b) => b[1].at - a[1].at).slice(0, 8);
-  const byId = new Map(items.map((i) => [i.id, i]));
-  const seenSeries = new Set<string>();
-  const seenTokens = new Set<string>();
-  for (const [id] of recent) {
-    const it = byId.get(id);
-    if (!it) continue;
-    if (it.series) seenSeries.add(it.series.toLowerCase());
-    tokens(it.title).forEach((t) => seenTokens.add(t));
-  }
-  return [...items]
-    .map((it) => {
-      let s = it.score;
-      if (it.series && seenSeries.has(it.series.toLowerCase())) s += 0.6;
-      let overlap = 0;
-      tokens(it.title).forEach((t) => { if (seenTokens.has(t)) overlap += 1; });
-      s += Math.min(0.4, overlap * 0.12);
-      const h = history[it.id];
-      if (h && h.progress > 0.92) s -= 0.8;
-      return { it, s };
-    })
-    .sort((a, b) => b.s - a.s)
-    .map((x) => x.it);
 }
 
 /* ---------------- Seek bar with hover-time preview ---------------- */
@@ -147,6 +118,14 @@ function VideoPlayer({ item, upNext, resumeAt, mini, setMini, onClose, onPlay, o
   const [speedOpen, setSpeedOpen] = useState(false);
   const [idle, setIdle] = useState(false);
   const idleTimer = useRef(0);
+  const [fs, setFs] = useState<null | 'landscape' | 'portrait'>(null);
+
+  useEffect(() => {
+    function onChange() { if (!document.fullscreenElement && !(document as any).webkitFullscreenElement) setFs(null); }
+    document.addEventListener('fullscreenchange', onChange);
+    document.addEventListener('webkitfullscreenchange', onChange);
+    return () => { document.removeEventListener('fullscreenchange', onChange); document.removeEventListener('webkitfullscreenchange', onChange); };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -195,12 +174,12 @@ function VideoPlayer({ item, upNext, resumeAt, mini, setMini, onClose, onPlay, o
     function onKey(e: KeyboardEvent) {
       const tag = (e.target as HTMLElement).tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA') return;
-      if (e.key === 'Escape') setMini(true);
+      if (e.key === 'Escape') { if (fs) exitFs(); else setMini(true); }
       if (e.key === ' ' || e.key === 'k') { e.preventDefault(); toggle(); }
       if (e.key === 'ArrowRight') seekBy(10);
       if (e.key === 'ArrowLeft') seekBy(-10);
       if (e.key === 'm') toggleMute();
-      if (e.key === 'f') fullscreen();
+      if (e.key === 'f') (fs ? exitFs() : enterFs('landscape'));
     }
     window.addEventListener('keydown', onKey);
     document.documentElement.style.overflow = 'hidden';
@@ -213,10 +192,21 @@ function VideoPlayer({ item, upNext, resumeAt, mini, setMini, onClose, onPlay, o
   function toggleMute() { const p = playerRef.current; if (!p?.isMuted) return; if (p.isMuted()) { p.unMute(); setMuted(false); } else { p.mute(); setMuted(true); } }
   function changeVolume(v: number) { const p = playerRef.current; if (!p?.setVolume) return; p.setVolume(v); setVolume(v); if (v > 0 && p.isMuted()) { p.unMute(); setMuted(false); } }
   function changeSpeed(s: number) { playerRef.current?.setPlaybackRate?.(s); setSpeed(s); setSpeedOpen(false); }
-  function fullscreen() {
+  // Two fullscreen modes. Where the browser allows real fullscreen we use
+  // it and lock the orientation; on iPhone (no element fullscreen) the
+  // frame covers the screen itself, and landscape rotates the picture.
+  function enterFs(mode: 'landscape' | 'portrait') {
     const el = frameRef.current as any;
-    if (document.fullscreenElement) document.exitFullscreen();
-    else (el?.requestFullscreen || el?.webkitRequestFullscreen)?.call(el);
+    setFs(mode);
+    const req = el?.requestFullscreen || el?.webkitRequestFullscreen;
+    const p = req ? req.call(el) : null;
+    Promise.resolve(p).then(() => (screen.orientation as any)?.lock?.(mode)).catch(() => {});
+  }
+  function exitFs() {
+    setFs(null);
+    try { (screen.orientation as any)?.unlock?.(); } catch {}
+    const d = document as any;
+    if (d.fullscreenElement || d.webkitFullscreenElement) (d.exitFullscreen || d.webkitExitFullscreen)?.call(d);
   }
   function wake() {
     setIdle(false);
@@ -225,7 +215,7 @@ function VideoPlayer({ item, upNext, resumeAt, mini, setMini, onClose, onPlay, o
   }
 
   const frame = (
-    <div className={`pl-frame${idle && playing && !mini ? ' idle' : ''}`} ref={frameRef} onPointerMove={wake} onPointerDown={wake}>
+    <div className={`pl-frame${idle && playing && !mini ? ' idle' : ''}${fs ? ` fs fs-${fs}` : ''}`} ref={frameRef} onPointerMove={wake} onPointerDown={wake}>
       <div className="pl-yt" ref={hostRef} />
       <button type="button" className="pl-shield" aria-label={playing ? 'Pause' : 'Play'} onClick={mini ? () => setMini(false) : toggle} />
       {!ready && <div className="pl-loading" aria-hidden="true"><span /></div>}
@@ -266,7 +256,14 @@ function VideoPlayer({ item, upNext, resumeAt, mini, setMini, onClose, onPlay, o
                 )}
               </div>
               <button type="button" className="pl-icon-btn" onClick={() => setMini(true)} aria-label="Minimise player"><IconMinimize /></button>
-              <button type="button" className="pl-icon-btn" onClick={fullscreen} aria-label="Fullscreen"><IconFull /></button>
+              {fs ? (
+                <button type="button" className="pl-icon-btn" onClick={exitFs} aria-label="Exit fullscreen"><IconExitFull /></button>
+              ) : (
+                <>
+                  <button type="button" className="pl-icon-btn" onClick={() => enterFs('portrait')} aria-label="Fullscreen portrait"><IconPortrait /></button>
+                  <button type="button" className="pl-icon-btn" onClick={() => enterFs('landscape')} aria-label="Fullscreen landscape"><IconLandscape /></button>
+                </>
+              )}
             </div>
           </div>
         </>
@@ -348,14 +345,34 @@ function AudioBar({ item, resumeAt, onClose, onProgress, onEnded }: { item: LibI
 
 /* ---------------- Library app ---------------- */
 
-type Tab = 'all' | LibKind | 'history';
+type Tab = 'all' | LibKind | 'playlists' | 'history';
 const TABS: { key: Tab; label: string }[] = [
   { key: 'all', label: 'For you' },
   { key: 'video', label: 'Videos' },
   { key: 'audio', label: 'Audio' },
+  { key: 'playlists', label: 'Playlists' },
   { key: 'book', label: 'Books' },
   { key: 'history', label: 'History' },
 ];
+type Sort = 'best' | 'new' | 'old' | 'popular' | 'az';
+const SORTS: { key: Sort; label: string }[] = [
+  { key: 'best', label: 'Best for you' },
+  { key: 'new', label: 'Newest' },
+  { key: 'old', label: 'Oldest' },
+  { key: 'popular', label: 'Most played' },
+  { key: 'az', label: 'Title A–Z' },
+];
+
+type Playlist = { id: string; name: string; ids: string[] };
+const PL_KEY = 'pudlib_playlists';
+function loadPlaylists(): Playlist[] {
+  try {
+    const v = JSON.parse(localStorage.getItem(PL_KEY) || 'null');
+    if (Array.isArray(v)) return v;
+  } catch {}
+  return [{ id: 'later', name: 'Watch later', ids: [] }];
+}
+function savePlaylists(p: Playlist[]) { try { localStorage.setItem(PL_KEY, JSON.stringify(p)); } catch {} }
 
 function KindBadge({ kind }: { kind: LibKind }) {
   return (
@@ -366,7 +383,9 @@ function KindBadge({ kind }: { kind: LibKind }) {
   );
 }
 
-function Card({ it, onOpen, entry }: { it: LibItem; onOpen: (it: LibItem) => void; entry?: HistoryEntry }) {
+type SaveFn = (it: LibItem) => void;
+
+function Card({ it, onOpen, entry, onSave }: { it: LibItem; onOpen: (it: LibItem) => void; entry?: HistoryEntry; onSave?: SaveFn }) {
   if (it.kind === 'book') {
     return (
       <div className="pl-card pl-card--book">
@@ -380,44 +399,97 @@ function Card({ it, onOpen, entry }: { it: LibItem; onOpen: (it: LibItem) => voi
   const playable = Boolean(it.youtubeId || it.audioSrc);
   const p = entry?.progress ?? 0;
   return (
-    <button type="button" className="pl-card" onClick={() => onOpen(it)} disabled={!playable}>
-      <span className="pl-thumb">
-        <img src={it.image} alt="" loading="lazy" />
-        <KindBadge kind={it.kind} />
-        <b className="pl-play" aria-hidden="true"><IconPlay size={18} /></b>
-        {p > 0.02 && <span className="pl-progress"><span style={{ width: `${Math.min(100, p * 100)}%` }} /></span>}
-      </span>
-      <span className="pl-title">{it.title}</span>
-      <span className="pl-sub">
-        {entry ? (p > 0.92 ? `Watched · ${ago(entry.at)}` : p > 0.02 ? `${Math.round(p * 100)}% · ${ago(entry.at)}` : it.series ?? '') : it.series ?? ''}
-      </span>
-    </button>
+    <div className="pl-card-wrap">
+      <button type="button" className="pl-card" onClick={() => onOpen(it)} disabled={!playable}>
+        <span className="pl-thumb">
+          <img src={it.image} alt="" loading="lazy" />
+          <KindBadge kind={it.kind} />
+          <b className="pl-play" aria-hidden="true"><IconPlay size={18} /></b>
+          {p > 0.02 && <span className="pl-progress"><span style={{ width: `${Math.min(100, p * 100)}%` }} /></span>}
+        </span>
+        <span className="pl-title">{it.title}</span>
+        <span className="pl-sub">
+          {entry ? (p > 0.92 ? `Watched · ${ago(entry.at)}` : p > 0.02 ? `${Math.round(p * 100)}% · ${ago(entry.at)}` : it.series ?? '') : it.series ?? ''}
+        </span>
+      </button>
+      {onSave && <button type="button" className="pl-save" onClick={() => onSave(it)} aria-label={`Save ${it.title} to a playlist`}><IconPlus size={16} /></button>}
+    </div>
   );
 }
 
-function Row({ title, items, onOpen, history, action }: { title: string; items: LibItem[]; onOpen: (it: LibItem) => void; history: History; action?: React.ReactNode }) {
+function Row({ title, items, onOpen, history, action, onSave }: { title: string; items: LibItem[]; onOpen: (it: LibItem) => void; history: History; action?: React.ReactNode; onSave?: SaveFn }) {
   if (!items.length) return null;
   return (
     <section className="pl-section">
       <div className="pl-section-head"><h2>{title}</h2>{action}</div>
       <div className="pl-rail">
-        {items.map((it) => <Card key={it.id} it={it} onOpen={onOpen} entry={history[it.id]} />)}
+        {items.map((it) => <Card key={it.id} it={it} onOpen={onOpen} entry={history[it.id]} onSave={onSave} />)}
       </div>
     </section>
   );
 }
 
+function SaveSheet({ item, playlists, onToggle, onCreate, onClose }: { item: LibItem; playlists: Playlist[]; onToggle: (pl: string) => void; onCreate: (name: string) => void; onClose: () => void }) {
+  const [name, setName] = useState('');
+  return (
+    <div className="pl-sheet-back" onClick={onClose}>
+      <div className="pl-sheet" role="dialog" aria-label="Save to playlist" onClick={(e) => e.stopPropagation()}>
+        <div className="pl-sheet-head"><strong>Save to playlist</strong><button type="button" className="pl-icon-btn" onClick={onClose} aria-label="Close"><IconClose /></button></div>
+        <p className="pl-sub">{item.title}</p>
+        {playlists.map((pl) => {
+          const on = pl.ids.includes(item.id);
+          return (
+            <button type="button" key={pl.id} className={`pl-sheet-row${on ? ' on' : ''}`} onClick={() => onToggle(pl.id)}>
+              <span className="pl-sheet-check">{on && <IconCheck size={14} />}</span>{pl.name}<span className="pl-sub">{pl.ids.length}</span>
+            </button>
+          );
+        })}
+        <form className="pl-sheet-new" onSubmit={(e) => { e.preventDefault(); if (name.trim()) { onCreate(name.trim()); setName(''); } }}>
+          <input value={name} onChange={(e) => setName(e.target.value)} placeholder="New playlist name" maxLength={40} aria-label="New playlist name" />
+          <button type="submit" className="pl-text-btn pl-text-btn--dark">Create</button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function sortItems(list: LibItem[], sort: Sort, best: LibItem[]) {
+  const by = [...list];
+  if (sort === 'new') return by.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  if (sort === 'old') return by.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+  if (sort === 'popular') return by.sort((a, b) => b.views - a.views);
+  if (sort === 'az') return by.sort((a, b) => a.title.localeCompare(b.title));
+  const rank = new Map(best.map((x, i) => [x.id, i]));
+  return by.sort((a, b) => (rank.get(a.id) ?? 9999) - (rank.get(b.id) ?? 9999) || b.score - a.score);
+}
+
 export default function PudlibApp({ items, videosConnected, initialPlay }: { items: LibItem[]; videosConnected: boolean; initialPlay?: string }) {
   const [tab, setTab] = useState<Tab>('all');
   const [q, setQ] = useState('');
+  const [topic, setTopic] = useState<string>('');
+  const [sort, setSort] = useState<Sort>('best');
   const [history, setHistory] = useState<History>({});
   const [video, setVideo] = useState<LibItem | null>(null);
   const [mini, setMini] = useState(false);
   const [audio, setAudio] = useState<LibItem | null>(null);
+  const [playlists, setPlaylists] = useState<Playlist[]>([]);
+  const [saving, setSaving] = useState<LibItem | null>(null);
+  const [queue, setQueue] = useState<string[]>([]);
+  const [coplay, setCoplay] = useState<CoPlay>({});
   const histRef = useRef<History>({});
   const lastSave = useRef(0);
 
-  useEffect(() => { histRef.current = loadHistory(); setHistory(histRef.current); }, []);
+  useEffect(() => { histRef.current = loadHistory(); setHistory(histRef.current); setPlaylists(loadPlaylists()); }, []);
+
+  const model = useMemo(() => buildModel(items), [items]);
+  const byId = useMemo(() => new Map(items.map((i) => [i.id, i])), [items]);
+
+  // Collaborative signal for what this visitor played most recently.
+  const recentKey = Object.entries(history).sort((a, b) => b[1].at - a[1].at).slice(0, 6).map(([id]) => id).filter((id) => !id.startsWith('bk-')).join(',');
+  useEffect(() => {
+    if (!recentKey) return;
+    fetch(`/api/pudlib/coplay?ids=${encodeURIComponent(recentKey)}`).then((r) => r.json()).then((d) => setCoplay(d.coplay || {})).catch(() => {});
+  }, [recentKey]);
 
   const onProgress = useCallback((id: string, p: number, t: number) => {
     histRef.current = { ...histRef.current, [id]: { at: Date.now(), progress: p, t } };
@@ -432,6 +504,8 @@ export default function PudlibApp({ items, videosConnected, initialPlay }: { ite
   const open = useCallback((it: LibItem) => {
     if (it.kind === 'video' && it.youtubeId) { setAudio(null); setVideo(it); setMini(false); }
     else if (it.kind === 'audio' && it.audioSrc) { setAudio(it); setVideo(null); }
+    const recent = Object.entries(histRef.current).sort((a, b) => b[1].at - a[1].at).slice(0, 5).map(([id]) => id);
+    fetch('/api/pudlib/coplay', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: it.id, recent }) }).catch(() => {});
     if (!histRef.current[it.id]) {
       histRef.current = { ...histRef.current, [it.id]: { at: Date.now(), progress: 0.001, t: 0 } };
       saveHistory(histRef.current);
@@ -439,16 +513,21 @@ export default function PudlibApp({ items, videosConnected, initialPlay }: { ite
     }
   }, []);
 
+  const playList = useCallback((ids: string[]) => {
+    const list = ids.map((id) => byId.get(id)).filter((x): x is LibItem => Boolean(x && x.kind !== 'book'));
+    if (!list.length) return;
+    setQueue(list.slice(1).map((x) => x.id));
+    open(list[0]);
+  }, [byId, open]);
+
   useEffect(() => {
     if (!initialPlay) return;
     const it = items.find((i) => i.id === initialPlay);
     if (it) open(it);
   }, [initialPlay, items, open]);
 
-  const ranked = useMemo(() => personalise(items, history), [items, history]);
-  const media = ranked.filter((i) => i.kind !== 'book');
-  const byKind = (k: LibKind) => ranked.filter((i) => i.kind === k);
-  const byId = useMemo(() => new Map(items.map((i) => [i.id, i])), [items]);
+  const forYou = useMemo(() => recommend(items, model, history, coplay, 30), [items, model, history, coplay]);
+  const byKind = (k: LibKind) => items.filter((i) => i.kind === k);
   const recentlyPlayed = useMemo(
     () => Object.entries(history).sort((a, b) => b[1].at - a[1].at).map(([id]) => byId.get(id)).filter((i): i is LibItem => Boolean(i && i.kind !== 'book')),
     [history, byId]
@@ -456,13 +535,43 @@ export default function PudlibApp({ items, videosConnected, initialPlay }: { ite
   const continueItems = recentlyPlayed.filter((i) => { const p = history[i.id]?.progress ?? 0; return p > 0.02 && p < 0.92; });
   const latest = [...items].filter((i) => i.kind !== 'book').sort((a, b) => (b.date || '').localeCompare(a.date || '')).slice(0, 14);
   const popular = [...items].filter((i) => i.kind !== 'book' && i.views > 0).sort((a, b) => b.views - a.views).slice(0, 14);
+  const topicCounts = useMemo(() => {
+    const c = new Map<string, number>();
+    items.forEach((it) => (model.topics.get(it.id) ?? []).forEach((t) => c.set(t, (c.get(t) ?? 0) + 1)));
+    return TOPICS.map((t) => t.name).filter((n) => (c.get(n) ?? 0) > 0).map((n) => ({ name: n, n: c.get(n)! }));
+  }, [items, model]);
+  const topTopics = topicCounts.slice().sort((a, b) => b.n - a.n).slice(0, 3);
+
+  // Auto playlists: every series with two or more parts, in order.
+  const seriesLists = useMemo(() => {
+    const m = new Map<string, LibItem[]>();
+    items.forEach((it) => { if (it.series && it.kind !== 'book') m.set(it.series, [...(m.get(it.series) ?? []), it]); });
+    return Array.from(m.entries()).filter(([, l]) => l.length > 1).map(([name, l]) => ({ name, items: l.sort((a, b) => (a.date || '').localeCompare(b.date || '')) }));
+  }, [items]);
 
   const upNext = useMemo(() => {
     if (!video) return [];
-    const sameSeries = video.series ? media.filter((m) => m.id !== video.id && m.series === video.series) : [];
-    const rest = media.filter((m) => m.id !== video.id && !sameSeries.includes(m) && m.kind === 'video' && (history[m.id]?.progress ?? 0) < 0.92);
-    return [...sameSeries, ...rest].slice(0, 10);
-  }, [video, media, history]);
+    const queued = queue.map((id) => byId.get(id)).filter((x): x is LibItem => Boolean(x && x.id !== video.id));
+    const sim = similar(video, items, model, coplay, 12).filter((x) => !queued.includes(x) && (history[x.id]?.progress ?? 0) < 0.92);
+    return [...queued, ...sim].slice(0, 12);
+  }, [video, queue, byId, items, model, coplay, history]);
+
+  function playFromPlayer(it: LibItem) {
+    setQueue((qq) => qq.filter((id) => id !== it.id));
+    open(it);
+  }
+
+  function updatePlaylists(next: Playlist[]) { setPlaylists(next); savePlaylists(next); }
+  function togglePl(plId: string, it: LibItem) {
+    updatePlaylists(playlists.map((pl) => pl.id !== plId ? pl : { ...pl, ids: pl.ids.includes(it.id) ? pl.ids.filter((x) => x !== it.id) : [...pl.ids, it.id] }));
+  }
+  function createPl(name: string, it: LibItem) {
+    updatePlaylists([...playlists, { id: `pl-${Date.now().toString(36)}`, name, ids: [it.id] }]);
+  }
+  function deletePl(plId: string) {
+    if (plId === 'later') updatePlaylists(playlists.map((p) => (p.id === 'later' ? { ...p, ids: [] } : p)));
+    else updatePlaylists(playlists.filter((p) => p.id !== plId));
+  }
 
   function clearHistory() {
     histRef.current = {};
@@ -472,13 +581,36 @@ export default function PudlibApp({ items, videosConnected, initialPlay }: { ite
 
   const query = q.trim().toLowerCase();
   const results = query
-    ? ranked.filter((i) => (tab === 'all' || tab === 'history' || i.kind === tab) && `${i.title} ${i.series ?? ''} ${i.description ?? ''}`.toLowerCase().includes(query))
+    ? sortItems(items.filter((i) => (tab === 'all' || tab === 'history' || tab === 'playlists' || i.kind === tab) && `${i.title} ${i.series ?? ''} ${i.description ?? ''} ${(model.topics.get(i.id) ?? []).join(' ')}`.toLowerCase().includes(query)), sort, forYou)
     : null;
   const resumeAt = (it: LibItem | null) => {
     if (!it) return 0;
     const h = history[it.id];
     return h && h.progress > 0.02 && h.progress < 0.92 ? h.t ?? 0 : 0;
   };
+  const save: SaveFn = (it) => setSaving(it);
+
+  const browse = (kind: LibKind) => {
+    const list = byKind(kind).filter((i) => !topic || (model.topics.get(i.id) ?? []).includes(topic));
+    return sortItems(list, sort, forYou);
+  };
+
+  const filters = (
+    <div className="pl-filters">
+      <div className="pl-chips" role="group" aria-label="Topic">
+        <button type="button" className={!topic ? 'on' : ''} onClick={() => setTopic('')}>All topics</button>
+        {topicCounts.map((t) => (
+          <button type="button" key={t.name} className={topic === t.name ? 'on' : ''} onClick={() => setTopic(topic === t.name ? '' : t.name)}>{t.name} <span>{t.n}</span></button>
+        ))}
+      </div>
+      <label className="pl-sort">
+        <span>Sort</span>
+        <select value={sort} onChange={(e) => setSort(e.target.value as Sort)}>
+          {SORTS.map((s2) => <option key={s2.key} value={s2.key}>{s2.label}</option>)}
+        </select>
+      </label>
+    </div>
+  );
 
   return (
     <div className={`pl-app${audio || (video && mini) ? ' has-dock' : ''}`}>
@@ -486,12 +618,12 @@ export default function PudlibApp({ items, videosConnected, initialPlay }: { ite
         <PudlibLogo size={56} />
         <p>Pastor Uzor Digital Library. Messages, audio and books, in one place.</p>
         <div className="pl-search">
-          <input type="search" placeholder="Search messages, series, books" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Search the library" />
+          <input type="search" placeholder="Search messages, series, topics, books" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Search the library" />
         </div>
         <div className="pl-tabs" role="tablist">
           {TABS.map((t) => (
             <button key={t.key} type="button" role="tab" aria-selected={tab === t.key} className={tab === t.key ? 'on' : ''} onClick={() => setTab(t.key)}>
-              {t.key === 'history' && <IconHistory size={15} />}{t.label}
+              {t.key === 'history' && <IconHistory size={15} />}{t.key === 'playlists' && <IconPlaylist size={15} />}{t.label}
             </button>
           ))}
         </div>
@@ -502,19 +634,68 @@ export default function PudlibApp({ items, videosConnected, initialPlay }: { ite
       {results ? (
         <section className="pl-section">
           <div className="pl-section-head"><h2>{results.length} result{results.length === 1 ? '' : 's'}</h2></div>
-          <div className="pl-grid">{results.map((it) => <Card key={it.id} it={it} onOpen={open} entry={history[it.id]} />)}</div>
+          <div className="pl-grid">{results.map((it) => <Card key={it.id} it={it} onOpen={open} entry={history[it.id]} onSave={save} />)}</div>
         </section>
       ) : tab === 'all' ? (
         <>
-          <Row title="Continue" items={continueItems} onOpen={open} history={history} />
-          <Row title="Recommended for you" items={media.slice(0, 14)} onOpen={open} history={history} />
-          <Row title="Recently played" items={recentlyPlayed.slice(0, 14)} onOpen={open} history={history}
+          <Row title="Continue" items={continueItems} onOpen={open} history={history} onSave={save} />
+          <Row title={recentlyPlayed.length ? 'Recommended for you' : 'Start here'} items={forYou.slice(0, 14)} onOpen={open} history={history} onSave={save} />
+          <Row title="Recently played" items={recentlyPlayed.slice(0, 14)} onOpen={open} history={history} onSave={save}
             action={<button type="button" className="pl-link-btn" onClick={() => setTab('history')}>See all</button>} />
-          <Row title="Latest" items={latest} onOpen={open} history={history} />
-          <Row title="Most played" items={popular} onOpen={open} history={history} />
-          <Row title="Audio messages" items={byKind('audio').slice(0, 14)} onOpen={open} history={history} />
+          {topTopics.map((t) => (
+            <Row key={t.name} title={t.name} items={sortItems(items.filter((i) => i.kind !== 'book' && (model.topics.get(i.id) ?? []).includes(t.name)), 'best', forYou).slice(0, 14)} onOpen={open} history={history} onSave={save}
+              action={<button type="button" className="pl-link-btn" onClick={() => { setTopic(t.name); setTab('video'); }}>See all</button>} />
+          ))}
+          <Row title="Latest" items={latest} onOpen={open} history={history} onSave={save} />
+          <Row title="Most played" items={popular} onOpen={open} history={history} onSave={save} />
+          <Row title="Audio messages" items={byKind('audio').slice(0, 14)} onOpen={open} history={history} onSave={save} />
           <Row title="Books" items={byKind('book')} onOpen={open} history={history} />
         </>
+      ) : tab === 'playlists' ? (
+        <section className="pl-section">
+          <div className="pl-section-head"><h2>Your playlists</h2></div>
+          <div className="pl-lists">
+            {playlists.map((pl) => {
+              const first = byId.get(pl.ids[0] ?? '');
+              return (
+                <div className="pl-list" key={pl.id}>
+                  <span className="pl-list-art">{first ? <img src={first.image} alt="" /> : <IconPlaylist size={28} />}</span>
+                  <div className="pl-list-body">
+                    <strong>{pl.name}</strong>
+                    <span className="pl-sub">{pl.ids.length} item{pl.ids.length === 1 ? '' : 's'}</span>
+                    <div className="pl-list-actions">
+                      <button type="button" className="pl-text-btn pl-text-btn--dark" disabled={!pl.ids.length} onClick={() => playList(pl.ids)}>Play all</button>
+                      <button type="button" className="pl-link-btn" onClick={() => deletePl(pl.id)}>{pl.id === 'later' ? 'Clear' : 'Delete'}</button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          {playlists.every((p) => !p.ids.length) && <p className="pl-note">Tap the + on any message to save it to Watch later or a playlist of your own.</p>}
+          {seriesLists.length > 0 && (
+            <>
+              <div className="pl-section-head" style={{ marginTop: 26 }}><h2>Series</h2></div>
+              <div className="pl-lists">
+                {seriesLists.map((sl) => (
+                  <div className="pl-list" key={sl.name}>
+                    <span className="pl-list-art"><img src={sl.items[0].image} alt="" /></span>
+                    <div className="pl-list-body">
+                      <strong>{sl.name}</strong>
+                      <span className="pl-sub">{sl.items.length} parts</span>
+                      <div className="pl-list-actions">
+                        <button type="button" className="pl-text-btn pl-text-btn--dark" onClick={() => playList(sl.items.map((x) => x.id))}>Play from part 1</button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+          {playlists.filter((pl) => pl.ids.length).map((pl) => (
+            <Row key={pl.id} title={pl.name} items={pl.ids.map((id) => byId.get(id)).filter((x): x is LibItem => Boolean(x))} onOpen={open} history={history} onSave={save} />
+          ))}
+        </section>
       ) : tab === 'history' ? (
         <section className="pl-section">
           <div className="pl-section-head">
@@ -522,29 +703,39 @@ export default function PudlibApp({ items, videosConnected, initialPlay }: { ite
             {recentlyPlayed.length > 0 && <button type="button" className="pl-link-btn" onClick={clearHistory}>Clear history</button>}
           </div>
           {recentlyPlayed.length ? (
-            <div className="pl-grid">{recentlyPlayed.map((it) => <Card key={it.id} it={it} onOpen={open} entry={history[it.id]} />)}</div>
+            <div className="pl-grid">{recentlyPlayed.map((it) => <Card key={it.id} it={it} onOpen={open} entry={history[it.id]} onSave={save} />)}</div>
           ) : (
             <p className="pl-note">Nothing played yet. Messages you watch or listen to appear here, with where you stopped.</p>
           )}
         </section>
       ) : (
         <section className="pl-section">
-          <div className="pl-grid">{byKind(tab).map((it) => <Card key={it.id} it={it} onOpen={open} entry={history[it.id]} />)}</div>
-          {byKind(tab).length === 0 && <p className="pl-note">Nothing here yet.</p>}
+          {tab !== 'book' && filters}
+          <div className="pl-grid">{(tab === 'book' ? byKind('book') : browse(tab)).map((it) => <Card key={it.id} it={it} onOpen={open} entry={history[it.id]} onSave={tab === 'book' ? undefined : save} />)}</div>
+          {(tab === 'book' ? byKind('book') : browse(tab)).length === 0 && <p className="pl-note">Nothing here{topic ? ` under ${topic}` : ''} yet.</p>}
         </section>
+      )}
+
+      {saving && (
+        <SaveSheet item={saving} playlists={playlists} onClose={() => setSaving(null)}
+          onToggle={(id) => togglePl(id, saving)} onCreate={(name) => createPl(name, saving)} />
       )}
 
       {video && (
         <VideoPlayer
           item={video} upNext={upNext} resumeAt={resumeAt(video)} mini={mini} setMini={setMini}
-          onClose={() => { setVideo(null); setMini(false); saveHistory(histRef.current); setHistory(histRef.current); }}
-          onPlay={open} onProgress={onProgress}
+          onClose={() => { setVideo(null); setMini(false); setQueue([]); saveHistory(histRef.current); setHistory(histRef.current); }}
+          onPlay={playFromPlayer} onProgress={onProgress}
         />
       )}
       {audio && (
         <AudioBar
-          item={audio} resumeAt={resumeAt(audio)} onClose={() => { setAudio(null); saveHistory(histRef.current); setHistory(histRef.current); }} onProgress={onProgress}
-          onEnded={() => { const next = byKind('audio').find((a) => a.id !== audio.id && (history[a.id]?.progress ?? 0) < 0.92); if (next) setAudio(next); }}
+          item={audio} resumeAt={resumeAt(audio)} onClose={() => { setAudio(null); setQueue([]); saveHistory(histRef.current); setHistory(histRef.current); }} onProgress={onProgress}
+          onEnded={() => {
+            const nextId = queue[0];
+            const next = (nextId && byId.get(nextId)) || similar(audio, items, model, coplay, 6).find((a) => (history[a.id]?.progress ?? 0) < 0.92);
+            if (next) { setQueue((qq) => qq.slice(1)); open(next); }
+          }}
         />
       )}
     </div>
