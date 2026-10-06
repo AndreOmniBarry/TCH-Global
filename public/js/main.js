@@ -40,6 +40,17 @@
     });
   })();
 
+  // Header account link: "Sign in", or the member's first name.
+  (function () {
+    var links = document.querySelectorAll('[data-account-link]');
+    if (!links.length) return;
+    fetch('/api/auth/me', { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (d) {
+      if (!d || !d.member) return;
+      var first = String(d.member.name || '').split(' ')[0] || 'Account';
+      Array.prototype.forEach.call(links, function (a) { a.textContent = first; a.classList.add('is-member'); });
+    }).catch(function () {});
+  })();
+
   var navToggle = document.getElementById('nav-toggle');
   var mainNav = document.getElementById('main-nav');
   if (navToggle && mainNav) {

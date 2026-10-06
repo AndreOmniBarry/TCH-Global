@@ -6,6 +6,7 @@ import { fallbackPosts, getFallbackPostBySlug } from '@/lib/fallback-posts';
 import { SiteHeader, SiteFooter } from '@/components/SiteChrome';
 import SectionTitleStage from '@/components/decor/SectionTitleStage';
 import TrackView from '@/components/TrackView';
+import BlogComments from '@/components/members/BlogComments';
 import { getViewCount } from '@/lib/analytics';
 
 type Props = { params: { slug: string } };
@@ -111,8 +112,7 @@ export default async function BlogPostPage({ params }: Props) {
         </div>
 
         <div className="comments-block">
-          <h3>Comments</h3>
-          <div className="comments-placeholder">Comments are coming soon &mdash; this will let readers respond, pray for one another, and share faith affirmations under each post.</div>
+          <BlogComments slug={post.slug} />
         </div>
 
         <Link href="/blog" className="back-link">&larr; Back to The Comforters Blog</Link>

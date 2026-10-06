@@ -57,6 +57,7 @@ const HOME_HTML_BEFORE_LIBRARY = `
           <li><a href="#contact">Contact Us</a></li>
           <li><a href="#join">Join Us</a></li>
           <li><a href="#give">Give</a></li>
+          <li><a href="/account" class="nav-account" data-account-link>Sign in</a></li>
         </ul>
       </nav>
     </div>

@@ -2,6 +2,7 @@ import { listSubmissions, formsConfigured, FormType, FormSubmission } from '@/li
 import { SiteHeader, SiteFooter } from '@/components/SiteChrome';
 import TestimonyAdmin from '@/components/testimonies/TestimonyAdmin';
 import { getTestimonies } from '@/lib/sanity';
+import { listMembers } from '@/lib/auth';
 
 export const metadata = { title: 'Submissions | TCH Global Admin' };
 export const dynamic = 'force-dynamic';
@@ -63,6 +64,7 @@ export default async function AdminSubmissionsPage() {
     listSubmissions('testimony', 200),
     getTestimonies(),
   ]);
+  const members = await listMembers();
 
   return (
     <>
@@ -73,6 +75,24 @@ export default async function AdminSubmissionsPage() {
             <span className="eyebrow">Admin</span>
             <h2 style={{ textTransform: 'none', fontSize: '1.8rem' }}>Submissions</h2>
             <p>Prayer requests, volunteer interest, membership, and giving-intent forms — newest first.</p>
+          </div>
+
+          <div style={{ marginBottom: 36 }}>
+            <h3 style={{ fontSize: '1rem', marginBottom: 12 }}>Registered members <span style={{ color: 'var(--text-faint)', fontWeight: 400 }}>({members.length}, {members.filter((m) => m.newsletter).length} subscribed)</span></h3>
+            {members.length === 0 ? (
+              <p style={{ fontSize: '.85rem', color: 'var(--text-faint)' }}>No members yet.</p>
+            ) : (
+              <div style={{ border: '1px solid var(--border-glass)', borderRadius: 'var(--radius-card)', overflow: 'auto' }}>
+                <table className="an-table">
+                  <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Emails</th><th>Joined</th></tr></thead>
+                  <tbody>
+                    {members.map((m) => (
+                      <tr key={m.id}><td>{m.name}</td><td>{m.email}</td><td>{m.phone || ''}</td><td>{m.newsletter ? 'Yes' : 'No'}</td><td>{new Date(m.createdAt).toLocaleDateString('en-US', { dateStyle: 'medium' })}</td></tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
 
           <TestimonyAdmin pending={pendingTestimonies ?? []} live={(liveTestimonies ?? []).map((t) => ({ _id: t._id, name: t.name, quote: t.quote, category: t.category, featured: t.featured, submittedAt: t.submittedAt }))} />
