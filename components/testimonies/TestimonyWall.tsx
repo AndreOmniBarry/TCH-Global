@@ -60,7 +60,7 @@ export default function TestimonyWall({ items }: { items: TestimonyItem[] }) {
         </figure>
       )}
 
-      <div className="tw-tabs seg" role="tablist" ref={tabsRef}>
+      <div className="tw-tabs seg seg--glass" role="tablist" ref={tabsRef}>
         <span className="seg-pill" aria-hidden="true" />
         {[['recent', 'Recent'], ...(miracles.length ? [['miracles', 'Miracles']] : []), ...categories.map((c) => [c, c])].map(([k, label]) => (
           <button key={k} type="button" role="tab" aria-selected={tab === k} className={tab === k ? 'on' : ''} onClick={() => { setTab(k); setShown(PAGE); }}>{label}</button>

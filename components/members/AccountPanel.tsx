@@ -110,7 +110,7 @@ export default function AccountPanel({ initialMode, next }: { initialMode: 'sign
         </ul>
       </div>
       <div className="account-card">
-        <div className={`account-switch seg${demo === 'tap' ? ' seg-bump' : ''}`} role="tablist" ref={switchRef}>
+        <div className={`account-switch seg seg--glass${demo === 'tap' ? ' seg-bump' : ''}`} role="tablist" ref={switchRef}>
           <span className="seg-pill" aria-hidden="true" />
           {demo && (
             <span className={`seg-cursor seg-cursor--${demo}`} aria-hidden="true">

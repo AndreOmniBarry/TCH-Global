@@ -78,7 +78,7 @@ export default function PublishPanel({ title, body }: { title: string; body: str
   return (
     <div className="publish-panel">
       <h3>Publish</h3>
-      <div className="publish-mode seg" role="radiogroup" aria-label="When to publish" ref={modeRef}>
+      <div className="publish-mode seg seg--glass" role="radiogroup" aria-label="When to publish" ref={modeRef}>
         <span className="seg-pill" aria-hidden="true" />
         <button type="button" role="radio" aria-checked={mode === 'now'} className={mode === 'now' ? 'on' : ''} onClick={() => setMode('now')}>Publish now</button>
         <button type="button" role="radio" aria-checked={mode === 'schedule'} className={mode === 'schedule' ? 'on' : ''} onClick={() => setMode('schedule')}>Schedule</button>

@@ -5,7 +5,7 @@ import imageUrlBuilder from '@sanity/image-url';
 // /sanity/README.md). Until they're set, sanityClient is null and every
 // page falls back to the seeded local posts in lib/fallback-posts.ts —
 // the site works out of the box, no Sanity account required to build.
-const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID;
+const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || 'kqruklk1';
 const dataset = process.env.NEXT_PUBLIC_SANITY_DATASET || 'production';
 
 export const sanityClient: SanityClient | null = projectId

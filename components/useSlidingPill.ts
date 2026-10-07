@@ -23,6 +23,7 @@ export function useSlidingPill<T extends HTMLElement>(activeKey: unknown) {
       pill.style.height = `${on.offsetHeight}px`;
       pill.style.transform = `translate(${on.offsetLeft}px, ${on.offsetTop}px)`;
       if (instant) { void pill.offsetWidth; pill.style.transition = ''; }
+      if (!instant) { pill.classList.remove('swoosh'); void pill.offsetWidth; pill.classList.add('swoosh'); }
       if (!instant) on.scrollIntoView?.({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
     };
     place(first.current);

@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic';
 
 function guard(req: NextRequest) {
   if (!writeClient) {
-    return NextResponse.json({ error: 'Event publishing is not connected yet (needs SANITY_API_WRITE_TOKEN and the Sanity project ID).' }, { status: 503 });
+    return NextResponse.json({ error: 'Publishing needs the Sanity write token: add SANITY_API_WRITE_TOKEN in Vercel (Production) and redeploy.' }, { status: 503 });
   }
   if (!passwordOk(req.headers.get('x-write-password'))) {
     return NextResponse.json({ error: 'Wrong publishing password.' }, { status: 401 });

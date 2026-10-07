@@ -481,6 +481,7 @@ export default function PudlibApp({ items, videosConnected, initialPlay }: { ite
   const histRef = useRef<History>({});
   const lastSave = useRef(0);
   const tabsRef = useSlidingPill<HTMLDivElement>(tab);
+  const chipsRef = useSlidingPill<HTMLDivElement>(`${tab}-${topic}`);
 
   useEffect(() => { histRef.current = loadHistory(); setHistory(histRef.current); setPlaylists(loadPlaylists()); }, []);
 
@@ -600,10 +601,11 @@ export default function PudlibApp({ items, videosConnected, initialPlay }: { ite
 
   const filters = (
     <div className="pl-filters">
-      <div className="pl-chips" role="group" aria-label="Topic">
-        <button type="button" className={!topic ? 'on' : ''} onClick={() => setTopic('')}>All topics</button>
+      <div className="pl-chips seg seg--glass" role="tablist" aria-label="Topic" ref={chipsRef}>
+        <span className="seg-pill" aria-hidden="true" />
+        <button type="button" role="tab" aria-selected={!topic} className={!topic ? 'on' : ''} onClick={() => setTopic('')}>All topics</button>
         {topicCounts.map((t) => (
-          <button type="button" key={t.name} className={topic === t.name ? 'on' : ''} onClick={() => setTopic(topic === t.name ? '' : t.name)}>{t.name} <span>{t.n}</span></button>
+          <button type="button" role="tab" aria-selected={topic === t.name} key={t.name} className={topic === t.name ? 'on' : ''} onClick={() => setTopic(topic === t.name ? '' : t.name)}>{t.name} <span>{t.n}</span></button>
         ))}
       </div>
       <label className="pl-sort">
@@ -623,7 +625,7 @@ export default function PudlibApp({ items, videosConnected, initialPlay }: { ite
         <div className="pl-search">
           <input type="search" placeholder="Search messages, series, topics, books" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Search the library" />
         </div>
-        <div className="pl-tabs seg" role="tablist" ref={tabsRef}>
+        <div className="pl-tabs seg seg--glass" role="tablist" ref={tabsRef}>
           <span className="seg-pill" aria-hidden="true" />
           {TABS.map((t) => (
             <button key={t.key} type="button" role="tab" aria-selected={tab === t.key} className={tab === t.key ? 'on' : ''} onClick={() => setTab(t.key)}>

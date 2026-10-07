@@ -4,7 +4,7 @@
 import { createClient, type SanityClient } from '@sanity/client';
 import { timingSafeEqual } from 'crypto';
 
-const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID;
+const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || 'kqruklk1';
 const dataset = process.env.NEXT_PUBLIC_SANITY_DATASET || 'production';
 const token = process.env.SANITY_API_WRITE_TOKEN;
 
