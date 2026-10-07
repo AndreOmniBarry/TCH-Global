@@ -1,4 +1,5 @@
 import Script from 'next/script';
+import { asset } from '@/lib/asset-version';
 import ComposeEditor from '@/components/ComposeEditor';
 import { SiteHeader, SiteFooter } from '@/components/SiteChrome';
 
@@ -10,7 +11,7 @@ export default function WritePage() {
       <SiteHeader />
       <ComposeEditor />
       <SiteFooter />
-      <Script src="/js/blog.js" strategy="afterInteractive" />
+      <Script src={asset("/js/blog.js")} strategy="afterInteractive" />
     </>
   );
 }

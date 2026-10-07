@@ -508,7 +508,12 @@ export default function CrystalLiquid() {
         const l = order[(k + offset) % order.length];
         if (!l.visible) continue;
         const rect = l.el.getBoundingClientRect();
-        if (!rect.width || !rect.height) continue;
+        // Layout size, not the on-screen (transformed) size: sections scale
+        // as they scroll in, and resizing the canvas every frame wiped it,
+        // which was the blinking.
+        const bw = l.el.offsetWidth;
+        const bh = l.el.offsetHeight;
+        if (!bw || !bh) continue;
 
         // Buttons already on the first screen can't be scrolled any higher,
         // so they fill completely instead of sitting half full.
@@ -558,8 +563,8 @@ export default function CrystalLiquid() {
           l.el.dataset.liquid = on ? 'on' : 'off';
         }
 
-        const w = Math.max(1, Math.round(rect.width * dpr));
-        const h = Math.max(1, Math.round(rect.height * dpr));
+        const w = Math.max(1, Math.round(bw * dpr));
+        const h = Math.max(1, Math.round(bh * dpr));
         if (w !== l.w || h !== l.h) {
           l.w = w;
           l.h = h;

@@ -4,8 +4,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { LibItem, LibKind } from '@/lib/library';
 import { buildModel, recommend, similar, TOPICS, type CoPlay } from '@/lib/recommend';
 import PudlibLogo from './PudlibLogo';
+import MotionPlay from '@/components/MotionPlay';
+import { useSlidingPill } from '@/components/useSlidingPill';
 import {
-  IconPlay, IconPause, IconBack, IconForward, IconVolume, IconMute, IconMinimize,
+  IconBack, IconForward, IconVolume, IconMute, IconMinimize,
   IconExpand, IconClose, IconNext, IconHistory, IconBook, IconAudio, IconVideo,
   IconPortrait, IconLandscape, IconExitFull, IconPlaylist, IconPlus, IconCheck,
 } from './icons';
@@ -219,10 +221,10 @@ function VideoPlayer({ item, upNext, resumeAt, mini, setMini, onClose, onPlay, o
       <div className="pl-yt" ref={hostRef} />
       <button type="button" className="pl-shield" aria-label={playing ? 'Pause' : 'Play'} onClick={mini ? () => setMini(false) : toggle} />
       {!ready && <div className="pl-loading" aria-hidden="true"><span /></div>}
-      {ready && !playing && !mini && <span className="pl-bigplay" aria-hidden="true"><IconPlay size={34} /></span>}
+      {ready && !mini && <span className={`pl-bigplay${playing ? ' is-hidden' : ''}`}><MotionPlay size={76} ring playing={playing} /></span>}
       {mini ? (
         <div className="pl-mini-controls">
-          <button type="button" className="pl-icon-btn" onClick={toggle} aria-label={playing ? 'Pause' : 'Play'}>{playing ? <IconPause /> : <IconPlay />}</button>
+          <button type="button" className="pl-main-btn" onClick={toggle} aria-label={playing ? 'Pause' : 'Play'}><MotionPlay size={34} playing={playing} /></button>
           <button type="button" className="pl-icon-btn" onClick={() => setMini(false)} aria-label="Expand player"><IconExpand /></button>
           <button type="button" className="pl-icon-btn" onClick={onClose} aria-label="Close player"><IconClose /></button>
           <div className="pl-mini-progress" style={{ width: `${dur ? (time / dur) * 100 : 0}%` }} />
@@ -235,7 +237,7 @@ function VideoPlayer({ item, upNext, resumeAt, mini, setMini, onClose, onPlay, o
           <div className="pl-controls">
             <SeekBar time={time} dur={dur} onSeek={seekTo} />
             <div className="pl-row">
-              <button type="button" className="pl-icon-btn pl-icon-btn--main" onClick={toggle} aria-label={playing ? 'Pause' : 'Play'}>{playing ? <IconPause /> : <IconPlay />}</button>
+              <button type="button" className="pl-main-btn" onClick={toggle} aria-label={playing ? 'Pause' : 'Play'}><MotionPlay size={44} playing={playing} /></button>
               <button type="button" className="pl-icon-btn" onClick={() => seekBy(-10)} aria-label="Back 10 seconds"><IconBack /></button>
               <button type="button" className="pl-icon-btn" onClick={() => seekBy(10)} aria-label="Forward 10 seconds"><IconForward /></button>
               {upNext[0] && <button type="button" className="pl-icon-btn" onClick={() => onPlay(upNext[0])} aria-label={`Next: ${upNext[0].title}`}><IconNext /></button>}
@@ -335,7 +337,7 @@ function AudioBar({ item, resumeAt, onClose, onProgress, onEnded }: { item: LibI
         <div className="pl-time">{fmtTime(time)} <span>/ {fmtTime(dur)}</span></div>
       </div>
       <button type="button" className="pl-icon-btn" onClick={() => { const a = ref.current; if (a) a.currentTime = Math.max(0, a.currentTime - 10); }} aria-label="Back 10 seconds"><IconBack /></button>
-      <button type="button" className="pl-icon-btn pl-icon-btn--main" onClick={() => { const a = ref.current; if (!a) return; a.paused ? a.play() : a.pause(); }} aria-label={playing ? 'Pause' : 'Play'}>{playing ? <IconPause /> : <IconPlay />}</button>
+      <button type="button" className="pl-main-btn" onClick={() => { const a = ref.current; if (!a) return; a.paused ? a.play() : a.pause(); }} aria-label={playing ? 'Pause' : 'Play'}><MotionPlay size={44} playing={playing} /></button>
       <button type="button" className="pl-icon-btn" onClick={() => { const a = ref.current; if (a) a.currentTime = Math.min(a.duration || 0, a.currentTime + 10); }} aria-label="Forward 10 seconds"><IconForward /></button>
       <button type="button" className="pl-text-btn pl-hide-sm" onClick={() => { const i = SPEEDS.indexOf(speed); const n = SPEEDS[(i + 1) % SPEEDS.length]; setSpeed(n); if (ref.current) ref.current.playbackRate = n; }} aria-label="Playback speed">{speed}&times;</button>
       <button type="button" className="pl-icon-btn" onClick={onClose} aria-label="Close audio player"><IconClose /></button>
@@ -404,7 +406,7 @@ function Card({ it, onOpen, entry, onSave }: { it: LibItem; onOpen: (it: LibItem
         <span className="pl-thumb">
           <img src={it.image} alt="" loading="lazy" />
           <KindBadge kind={it.kind} />
-          <b className="pl-play" aria-hidden="true"><IconPlay size={18} /></b>
+          <span className="pl-play"><MotionPlay size={40} /></span>
           {p > 0.02 && <span className="pl-progress"><span style={{ width: `${Math.min(100, p * 100)}%` }} /></span>}
         </span>
         <span className="pl-title">{it.title}</span>
@@ -478,6 +480,7 @@ export default function PudlibApp({ items, videosConnected, initialPlay }: { ite
   const [coplay, setCoplay] = useState<CoPlay>({});
   const histRef = useRef<History>({});
   const lastSave = useRef(0);
+  const tabsRef = useSlidingPill<HTMLDivElement>(tab);
 
   useEffect(() => { histRef.current = loadHistory(); setHistory(histRef.current); setPlaylists(loadPlaylists()); }, []);
 
@@ -620,7 +623,8 @@ export default function PudlibApp({ items, videosConnected, initialPlay }: { ite
         <div className="pl-search">
           <input type="search" placeholder="Search messages, series, topics, books" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Search the library" />
         </div>
-        <div className="pl-tabs" role="tablist">
+        <div className="pl-tabs seg" role="tablist" ref={tabsRef}>
+          <span className="seg-pill" aria-hidden="true" />
           {TABS.map((t) => (
             <button key={t.key} type="button" role="tab" aria-selected={tab === t.key} className={tab === t.key ? 'on' : ''} onClick={() => setTab(t.key)}>
               {t.key === 'history' && <IconHistory size={15} />}{t.key === 'playlists' && <IconPlaylist size={15} />}{t.label}

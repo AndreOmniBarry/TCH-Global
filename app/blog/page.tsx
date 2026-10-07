@@ -1,4 +1,5 @@
 import Script from 'next/script';
+import { asset } from '@/lib/asset-version';
 import Link from 'next/link';
 import { getAllPosts } from '@/lib/sanity';
 import { fallbackPosts } from '@/lib/fallback-posts';
@@ -114,7 +115,7 @@ export default async function BlogIndexPage() {
       </section>
 
       <SiteFooter />
-      <Script src="/js/blog.js" strategy="afterInteractive" />
+      <Script src={asset("/js/blog.js")} strategy="afterInteractive" />
     </>
   );
 }

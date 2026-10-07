@@ -1,4 +1,5 @@
 import Script from 'next/script';
+import { asset } from '@/lib/asset-version';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getPostBySlug, getAllPosts } from '@/lib/sanity';
@@ -119,7 +120,7 @@ export default async function BlogPostPage({ params }: Props) {
       </article>
 
       <SiteFooter />
-      <Script src="/js/blog.js" strategy="afterInteractive" />
+      <Script src={asset("/js/blog.js")} strategy="afterInteractive" />
     </>
   );
 }

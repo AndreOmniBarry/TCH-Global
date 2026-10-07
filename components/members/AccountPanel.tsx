@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useSlidingPill } from '@/components/useSlidingPill';
 import { useMember } from './useMember';
 
 const BENEFITS = [
@@ -15,6 +16,22 @@ export default function AccountPanel({ initialMode, next }: { initialMode: 'sign
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
   const [saved, setSaved] = useState('');
+  const switchRef = useSlidingPill<HTMLDivElement>(`${mode}-${member ? 1 : 0}-${loading ? 1 : 0}`);
+  const [demo, setDemo] = useState<'' | 'enter' | 'tap' | 'out'>('');
+
+  // First visit: a cursor glides in and taps the selected option, like an
+  // onboarding hint. Shown once per browser.
+  useEffect(() => {
+    if (loading || member || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    try { if (localStorage.getItem('tch_seg_demo') === '1') return; localStorage.setItem('tch_seg_demo', '1'); } catch {}
+    const t = [
+      window.setTimeout(() => setDemo('enter'), 500),
+      window.setTimeout(() => setDemo('tap'), 1500),
+      window.setTimeout(() => setDemo('out'), 2100),
+      window.setTimeout(() => setDemo(''), 2700),
+    ];
+    return () => t.forEach(window.clearTimeout);
+  }, [loading, member]);
 
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -93,7 +110,13 @@ export default function AccountPanel({ initialMode, next }: { initialMode: 'sign
         </ul>
       </div>
       <div className="account-card">
-        <div className="account-switch" role="tablist">
+        <div className={`account-switch seg${demo === 'tap' ? ' seg-bump' : ''}`} role="tablist" ref={switchRef}>
+          <span className="seg-pill" aria-hidden="true" />
+          {demo && (
+            <span className={`seg-cursor seg-cursor--${demo}`} aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="26" height="26"><path d="M5 3l14 8-6.2 1.6L10 19z" fill="#fff" stroke="#111" strokeWidth="1.4" strokeLinejoin="round" /></svg>
+            </span>
+          )}
           <button type="button" role="tab" aria-selected={mode === 'signup'} className={mode === 'signup' ? 'on' : ''} onClick={() => { setMode('signup'); setErr(''); }}>Create account</button>
           <button type="button" role="tab" aria-selected={mode === 'signin'} className={mode === 'signin' ? 'on' : ''} onClick={() => { setMode('signin'); setErr(''); }}>Sign in</button>
         </div>

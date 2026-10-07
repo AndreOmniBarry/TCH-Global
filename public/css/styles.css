@@ -1376,3 +1376,47 @@ a.photo-cycle { display: block; color: inherit; text-decoration: none; cursor: p
 .chip-opt span { padding: 7px 12px; font-size: .8rem; }
 .chip-opt span::before { content: none; }
 .chip-opt input:checked + span::before { content: none; }
+
+/* Motion play button: morphing play/pause glyph + pulse ring */
+.mplay { --mp-size: 44px; --mp-bg: #f5c542; --mp-fg: #1d1340; position: relative; display: inline-grid; place-items: center; width: var(--mp-size); height: var(--mp-size); border-radius: 50%; background: var(--mp-bg); color: var(--mp-fg); box-shadow: 0 8px 22px -8px rgb(0 0 0 / .55), inset 0 1px 0 rgb(255 255 255 / .45); transition: transform .35s cubic-bezier(.3, 1.5, .5, 1), box-shadow .3s ease; }
+.mplay-glyph { position: relative; width: 38%; height: 38%; display: flex; transform: translateX(6%); transition: transform .3s ease; }
+.mplay.is-playing .mplay-glyph { transform: none; }
+.mplay-a, .mplay-b { flex: 1; height: 100%; background: currentColor; transition: clip-path .32s cubic-bezier(.65, 0, .35, 1); }
+/* play: left half is the triangle's back, right half its tip */
+.mplay-a { clip-path: polygon(0 0, 100% 25%, 100% 75%, 0 100%); }
+.mplay-b { clip-path: polygon(0 25%, 100% 50%, 100% 50%, 0 75%); }
+/* pause: two bars */
+.mplay.is-playing .mplay-a { clip-path: polygon(0 0, 66% 0, 66% 100%, 0 100%); }
+.mplay.is-playing .mplay-b { clip-path: polygon(34% 0, 100% 0, 100% 100%, 34% 100%); }
+.mplay-ring { position: absolute; inset: -6px; border-radius: 50%; border: 2px solid var(--mp-bg); opacity: 0; pointer-events: none; }
+.mplay.has-ring .mplay-ring { animation: mplay-pulse 2.4s cubic-bezier(.2, .6, .3, 1) infinite; }
+@keyframes mplay-pulse { 0% { transform: scale(.85); opacity: .7; } 100% { transform: scale(1.45); opacity: 0; } }
+:is(a, button):hover > .mplay, :is(a, button):hover .pl-thumb .mplay, .mplay:hover { transform: scale(1.1); box-shadow: 0 12px 30px -8px rgb(245 197 66 / .6), inset 0 1px 0 rgb(255 255 255 / .5); }
+:is(a, button):active .mplay { transform: scale(.92); transition-duration: .1s; }
+@media (prefers-reduced-motion: reduce) { .mplay, .mplay-a, .mplay-b { transition: none; } .mplay-ring { display: none; } }
+.pl-play { width: auto; height: auto; background: none; box-shadow: none; padding: 0; right: 10px; bottom: 10px; }
+.pl-bigplay { width: auto; height: auto; margin: 0; background: none; box-shadow: none; transform: translate(-50%, -50%); transition: opacity .3s ease, transform .4s cubic-bezier(.3, 1.4, .5, 1); }
+.pl-bigplay.is-hidden { opacity: 0; transform: translate(-50%, -50%) scale(1.25); }
+.pl-main-btn { border: 0; background: none; padding: 0; margin-right: 4px; cursor: pointer; display: inline-grid; place-items: center; border-radius: 50%; }
+.pl-main-btn:focus-visible { outline: 2px solid #f5c542; outline-offset: 3px; }
+/* Cursor hint states (React-driven) */
+.seg-cursor { transform: translate(110%, 160%); opacity: 0; }
+.seg-cursor--enter, .seg-cursor--tap { opacity: 1; transform: translate(calc(var(--cx, 30%)), 40%); }
+.account-switch .seg-cursor--enter, .account-switch .seg-cursor--tap { transform: translate(28%, 45%); left: 0; }
+.seg-cursor--tap svg { transform: scale(.82); }
+.seg-cursor--out { opacity: 0; transform: translate(28%, 45%); }
+.account-switch .seg-cursor { width: 50%; }
+.account-switch .seg-cursor svg { margin-left: 62%; }
+
+/* Mobile menu: animated reveal, page locked behind it */
+body.nav-lock { position: fixed; left: 0; right: 0; width: 100%; overflow: hidden; }
+@media (max-width: 959px) {
+  .main-nav { display: block; visibility: hidden; opacity: 0; transform: translateY(-10px); max-height: calc(100dvh - 72px); overflow-y: auto; overscroll-behavior: contain; box-shadow: 0 24px 40px -20px rgb(0 0 0 / .35); transition: opacity .25s ease, transform .3s cubic-bezier(.2, .8, .2, 1), visibility 0s linear .3s; }
+  .main-nav.open { display: block; visibility: visible; opacity: 1; transform: none; transition: opacity .25s ease, transform .3s cubic-bezier(.2, .8, .2, 1), visibility 0s; }
+  .main-nav li { opacity: 0; transform: translateY(-6px); transition: opacity .25s ease, transform .3s ease; }
+  .main-nav.open li { opacity: 1; transform: none; }
+  .main-nav.open li:nth-child(n) { transition-delay: calc(var(--i, 0) * 25ms); }
+  body.nav-lock::after { content: ""; position: fixed; inset: 0; z-index: 40; pointer-events: none; background: rgb(5 4 10 / .35); animation: nav-dim .25s ease; }
+  @keyframes nav-dim { from { opacity: 0; } }
+}
+body.nav-lock .site-header { position: fixed; top: 0; left: 0; right: 0; }

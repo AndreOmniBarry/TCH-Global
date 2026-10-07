@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import { useSlidingPill } from '@/components/useSlidingPill';
 import { fmtDate, fmtTime, parseLagosLocal } from '@/lib/church-time';
 
 type Scheduled = { _id: string; title: string; slug: string; publishedAt: string };
@@ -22,6 +23,7 @@ export default function PublishPanel({ title, body }: { title: string; body: str
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<{ kind: 'ok' | 'error'; text: string; link?: string } | null>(null);
   const [queue, setQueue] = useState<Scheduled[] | null>(null);
+  const modeRef = useSlidingPill<HTMLDivElement>(mode);
 
   useEffect(() => {
     try { setPassword(sessionStorage.getItem(PW_KEY) || ''); } catch {}
@@ -76,7 +78,8 @@ export default function PublishPanel({ title, body }: { title: string; body: str
   return (
     <div className="publish-panel">
       <h3>Publish</h3>
-      <div className="publish-mode" role="radiogroup" aria-label="When to publish">
+      <div className="publish-mode seg" role="radiogroup" aria-label="When to publish" ref={modeRef}>
+        <span className="seg-pill" aria-hidden="true" />
         <button type="button" role="radio" aria-checked={mode === 'now'} className={mode === 'now' ? 'on' : ''} onClick={() => setMode('now')}>Publish now</button>
         <button type="button" role="radio" aria-checked={mode === 'schedule'} className={mode === 'schedule' ? 'on' : ''} onClick={() => setMode('schedule')}>Schedule</button>
       </div>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { useSlidingPill } from '@/components/useSlidingPill';
 
 export type TestimonyItem = { _id: string; name: string; quote: string; image: string | null; submittedAt: string | null; category?: string | null; featured?: boolean };
 
@@ -27,6 +28,7 @@ export default function TestimonyWall({ items }: { items: TestimonyItem[] }) {
   const [shown, setShown] = useState(PAGE);
   const [spot, setSpot] = useState(0);
   const [paused, setPaused] = useState(false);
+  const tabsRef = useSlidingPill<HTMLDivElement>(tab);
 
   useEffect(() => {
     if (miracles.length < 2 || paused) return;
@@ -58,7 +60,8 @@ export default function TestimonyWall({ items }: { items: TestimonyItem[] }) {
         </figure>
       )}
 
-      <div className="tw-tabs" role="tablist">
+      <div className="tw-tabs seg" role="tablist" ref={tabsRef}>
+        <span className="seg-pill" aria-hidden="true" />
         {[['recent', 'Recent'], ...(miracles.length ? [['miracles', 'Miracles']] : []), ...categories.map((c) => [c, c])].map(([k, label]) => (
           <button key={k} type="button" role="tab" aria-selected={tab === k} className={tab === k ? 'on' : ''} onClick={() => { setTab(k); setShown(PAGE); }}>{label}</button>
         ))}

@@ -1,3 +1,4 @@
+import MotionPlay from '@/components/MotionPlay';
 import { getLibrary, pickPreview } from '@/lib/library';
 import PudlibLogo from './PudlibLogo';
 
@@ -32,7 +33,7 @@ export default async function PudlibPreview() {
             <a key={it.id} className={`pl-card${it.kind === 'book' ? ' pl-card--book' : ''}`} href={it.kind === 'book' ? '/library' : `/library?play=${encodeURIComponent(it.id)}`}>
               <span className={it.kind === 'book' ? 'pl-cover' : 'pl-thumb'}>
                 <img src={it.image} alt="" loading="lazy" />
-                {it.kind !== 'book' && <><i>{it.kind === 'audio' ? 'Audio' : 'Video'}</i><b className="pl-play" aria-hidden="true">▶</b></>}
+                {it.kind !== 'book' && <><i>{it.kind === 'audio' ? 'Audio' : 'Video'}</i><span className="pl-play"><MotionPlay size={40} /></span></>}
               </span>
               <span className="pl-title">{it.title}</span>
               <span className="pl-sub">{it.kind === 'book' ? 'Book · order a copy' : it.series ?? (it.kind === 'audio' ? 'Audio message' : 'Message')}</span>
