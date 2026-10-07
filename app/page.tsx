@@ -9,7 +9,7 @@ import { fallbackPosts } from '@/lib/fallback-posts';
 
 const FACEBOOK_URL = process.env.NEXT_PUBLIC_FACEBOOK_URL || 'https://www.facebook.com/profile.php?id=61557996937416';
 // Spotify buttons stay hidden until the podcast exists.
-const YOUTUBE_URL = 'https://www.youtube.com/channel/UCN1NLcg1KaPz_yo3dqjQkEQ';
+const YOUTUBE_URL = 'https://www.youtube.com/@TheComfortersHouseGlobalMin';
 const INSTAGRAM_URL = process.env.NEXT_PUBLIC_INSTAGRAM_URL || 'https://www.instagram.com';
 const SPOTIFY_URL = process.env.NEXT_PUBLIC_SPOTIFY_SHOW_URL || '';
 

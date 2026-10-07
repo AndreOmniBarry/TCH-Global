@@ -19,8 +19,31 @@ export type YouTubeVideo = {
 };
 
 const API_KEY = process.env.YOUTUBE_API_KEY;
-// The church channel ID is public; the env var can override it.
-export const CHANNEL_ID = process.env.YOUTUBE_CHANNEL_ID || 'UCN1NLcg1KaPz_yo3dqjQkEQ';
+// The church channel. The handle is what people see; the UC... id is what
+// YouTube's feeds and embeds need, so it's looked up from the handle once
+// (and cached) unless YOUTUBE_CHANNEL_ID pins it.
+export const CHANNEL_HANDLE = '@TheComfortersHouseGlobalMin';
+export const CHANNEL_URL = `https://www.youtube.com/${CHANNEL_HANDLE}`;
+let resolvedId: string | null = process.env.YOUTUBE_CHANNEL_ID || null;
+
+export async function getChannelId(): Promise<string | null> {
+  if (resolvedId) return resolvedId;
+  try {
+    if (API_KEY) {
+      const r = await fetch(`https://www.googleapis.com/youtube/v3/channels?part=id&forHandle=${encodeURIComponent(CHANNEL_HANDLE)}&key=${API_KEY}`, { next: { revalidate: 86400 } });
+      const id = r.ok ? (await r.json()).items?.[0]?.id : null;
+      if (id) return (resolvedId = id);
+    }
+    const r = await fetch(CHANNEL_URL, { headers: { 'Accept-Language': 'en' }, next: { revalidate: 86400 } });
+    const html = await r.text();
+    const id = html.match(/"externalId":"(UC[\w-]{22})"/)?.[1] || html.match(/channel\/(UC[\w-]{22})/)?.[1] || null;
+    if (id) resolvedId = id;
+    return id;
+  } catch (err) {
+    console.error('YouTube channel lookup failed:', err);
+    return null;
+  }
+}
 
 // In-memory cache so a burst of concurrent page loads doesn't each fire
 // their own API call and burn through the daily quota. Next.js's own
@@ -41,6 +64,7 @@ function parseIsoDurationSeconds(duration?: string): number | undefined {
 // No-API-key fallback: every channel publishes its latest ~15 uploads as
 // a public RSS feed. Used when YOUTUBE_API_KEY is missing or rejected.
 async function getVideosFromFeed(limit: number): Promise<YouTubeVideo[] | null> {
+  const CHANNEL_ID = await getChannelId();
   if (!CHANNEL_ID) return null;
   try {
     const res = await fetch(`https://www.youtube.com/feeds/videos.xml?channel_id=${encodeURIComponent(CHANNEL_ID)}`, { next: { revalidate: 1800 } });
@@ -71,6 +95,7 @@ async function getVideosFromFeed(limit: number): Promise<YouTubeVideo[] | null> 
 }
 
 export async function getLatestVideos(limit = 6): Promise<YouTubeVideo[] | null> {
+  const CHANNEL_ID = await getChannelId();
   if (!CHANNEL_ID) return null;
   if (!API_KEY) return getVideosFromFeed(limit);
 

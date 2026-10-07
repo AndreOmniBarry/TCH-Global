@@ -479,6 +479,7 @@ export default function CrystalLiquid() {
     let raf = 0;
     let last = performance.now();
     let lastScroll = window.scrollY;
+    let splashEnd = 0;
     let scrollVel = 0;
     const t0 = last;
 
@@ -512,7 +513,17 @@ export default function CrystalLiquid() {
         // Buttons already on the first screen can't be scrolled any higher,
         // so they fill completely instead of sitting half full.
         const aboveFold = rect.top + sy < vh * 0.95;
-        const progress = aboveFold ? 1 : Math.min(Math.max((start - rect.top) / (start - end), 0), 1);
+        let progress = Math.min(Math.max((start - rect.top) / (start - end), 0), 1);
+        if (aboveFold) {
+          // First-screen buttons can't be scrolled higher: once the splash
+          // lifts they pour full over ~1.4s, staggered left to right.
+          if (document.documentElement.classList.contains('splash-lock')) { splashEnd = 0; progress = 0; }
+          else {
+            if (!splashEnd) splashEnd = now;
+            const delay = 250 + (rect.left / Math.max(1, window.innerWidth)) * 350 + (rect.top / vh) * 200;
+            progress = Math.max(progress, Math.min(1, Math.max(0, (now - splashEnd - delay) / 1400)));
+          }
+        }
         const target = -0.14 + progress * 1.34;
 
         // Level: slightly underdamped spring — lags the scroll, overshoots

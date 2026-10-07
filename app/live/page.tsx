@@ -1,6 +1,6 @@
 import { SiteHeader, SiteFooter } from '@/components/SiteChrome';
 import { isLiveNow } from '@/lib/analytics';
-import { CHANNEL_ID, getLatestVideos } from '@/lib/youtube';
+import { CHANNEL_URL, getChannelId, getLatestVideos } from '@/lib/youtube';
 
 export const metadata = {
   title: 'Watch Live | TCH Global',
@@ -18,7 +18,7 @@ const SCHEDULE = [
 ];
 
 export default async function LivePage() {
-  const channelId = CHANNEL_ID;
+  const channelId = (await getChannelId()) || '';
   const facebookUrl = process.env.NEXT_PUBLIC_FACEBOOK_URL || 'https://www.facebook.com/profile.php?id=61557996937416';
   const [live, videos] = await Promise.all([isLiveNow(), getLatestVideos(1).catch(() => null)]);
   const latest = videos?.[0] ?? null;
@@ -64,7 +64,7 @@ export default async function LivePage() {
           </div>
 
           <div className="stream-row live-actions">
-            <a className="btn btn-primary btn-youtube" href={channelId ? `https://www.youtube.com/channel/${channelId}/live` : 'https://www.youtube.com'} target="_blank" rel="noopener">Open on YouTube</a>
+            <a className="btn btn-primary btn-youtube" href={`${CHANNEL_URL}/live`} target="_blank" rel="noopener">Open on YouTube</a>
             <a className="btn btn-ghost btn-facebook" href={facebookUrl} target="_blank" rel="noopener">Also live on Facebook</a>
           </div>
 

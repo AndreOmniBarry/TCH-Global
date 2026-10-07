@@ -51,6 +51,66 @@
     }).catch(function () {});
   })();
 
+  // Segmented switches: a pill that glides to the selected option (works
+  // for React-rendered switches too, since it watches class changes).
+  (function () {
+    var SEL = '.account-switch, .publish-mode, .pl-tabs, .tw-tabs, .an-seg';
+    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    function place(group, instant) {
+      var on = group.querySelector('button.on, button[aria-selected="true"], button[aria-checked="true"]');
+      var pill = group.querySelector(':scope > .seg-pill');
+      if (!pill) { pill = document.createElement('span'); pill.className = 'seg-pill'; pill.setAttribute('aria-hidden', 'true'); group.prepend(pill); instant = true; }
+      if (!on) { pill.style.opacity = '0'; return; }
+      if (instant || reduce) pill.style.transition = 'none';
+      pill.style.opacity = '1';
+      pill.style.width = on.offsetWidth + 'px';
+      pill.style.height = on.offsetHeight + 'px';
+      pill.style.transform = 'translate(' + on.offsetLeft + 'px,' + on.offsetTop + 'px)';
+      if (instant || reduce) { void pill.offsetWidth; pill.style.transition = ''; }
+    }
+    function wire(group) {
+      if (group.dataset.seg) return;
+      group.dataset.seg = '1';
+      group.classList.add('seg');
+      place(group, true);
+      new MutationObserver(function () { place(group); }).observe(group, { subtree: true, attributes: true, attributeFilter: ['class', 'aria-selected', 'aria-checked'] });
+      group.addEventListener('scroll', function () { place(group, true); }, { passive: true });
+    }
+    function scan() { Array.prototype.forEach.call(document.querySelectorAll(SEL), wire); }
+    scan();
+    new MutationObserver(function () { scan(); }).observe(document.body, { childList: true, subtree: true });
+    window.addEventListener('resize', function () { Array.prototype.forEach.call(document.querySelectorAll('.seg'), function (g) { place(g, true); }); });
+
+    // First visit to the sign-up switch: a cursor glides over and taps
+    // "Create account", like an onboarding hint.
+    if (reduce) return;
+    var seen = false;
+    try { seen = localStorage.getItem('tch_seg_demo') === '1'; } catch (e) {}
+    if (seen) return;
+    var tries = 0;
+    var t = setInterval(function () {
+      var g = document.querySelector('.account-switch');
+      if (!g && ++tries < 20) return;
+      clearInterval(t);
+      if (!g) return;
+      var target = g.querySelector('button.on') || g.querySelector('button');
+      var cur = document.createElement('span');
+      cur.className = 'seg-cursor';
+      cur.innerHTML = '<svg viewBox="0 0 24 24" width="26" height="26"><path d="M5 3l14 8-6.2 1.6L10 19z" fill="#fff" stroke="#111" stroke-width="1.4" stroke-linejoin="round"/></svg>';
+      g.appendChild(cur);
+      var x = target.offsetLeft + target.offsetWidth * 0.62, y = target.offsetTop + target.offsetHeight * 0.55;
+      cur.style.transform = 'translate(' + (g.offsetWidth + 20) + 'px,' + (g.offsetHeight + 30) + 'px)';
+      requestAnimationFrame(function () {
+        cur.classList.add('go');
+        cur.style.transform = 'translate(' + x + 'px,' + y + 'px)';
+        setTimeout(function () { cur.classList.add('tap'); g.classList.add('seg-bump'); }, 900);
+        setTimeout(function () { cur.classList.add('out'); g.classList.remove('seg-bump'); }, 1500);
+        setTimeout(function () { cur.remove(); }, 2100);
+      });
+      try { localStorage.setItem('tch_seg_demo', '1'); } catch (e) {}
+    }, 150);
+  })();
+
   var navToggle = document.getElementById('nav-toggle');
   var mainNav = document.getElementById('main-nav');
   if (navToggle && mainNav) {
@@ -266,7 +326,7 @@
       var btnEnd = vh * 0.5;
       btnEls.forEach(function (el) {
         var rect = el.getBoundingClientRect();
-        var raw = rect.top + scrollY < vh * 0.95 ? 1 : (btnStart - rect.top) / (btnStart - btnEnd);
+        var raw = rect.top + scrollY < vh * 0.95 ? Math.max((btnStart - rect.top) / (btnStart - btnEnd), document.documentElement.classList.contains('splash-lock') ? 0 : 1) : (btnStart - rect.top) / (btnStart - btnEnd);
         var progress = Math.min(Math.max(raw, 0), 1);
         el.style.setProperty('--fill', (progress * 100).toFixed(1) + '%');
       });
