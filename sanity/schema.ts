@@ -135,4 +135,23 @@ export const book = {
   ],
 };
 
-export const schemaTypes = [post, author, announcement, event, testimony, audioMessage, book];
+export const spotlight = {
+  name: 'spotlight',
+  title: 'Hero Spotlight',
+  type: 'document',
+  fields: [
+    { name: 'title', title: 'Title', type: 'string', validation: (R: any) => R.required() },
+    { name: 'kind', title: 'Type', type: 'string', options: { list: ['Event', 'Announcement', 'Programme', 'Banner'] }, initialValue: 'Event' },
+    { name: 'subtitle', title: 'Short line', type: 'string' },
+    { name: 'image', title: 'Image / flyer', type: 'image', options: { hotspot: true } },
+    { name: 'eventDate', title: 'Date (optional)', type: 'datetime' },
+    { name: 'showFrom', title: 'Show from', type: 'datetime' },
+    { name: 'showUntil', title: 'Show until', type: 'datetime' },
+    { name: 'link', title: 'Button link', type: 'string' },
+    { name: 'linkLabel', title: 'Button text', type: 'string' },
+    { name: 'order', title: 'Order', type: 'number' },
+    { name: 'hidden', title: 'Hidden', type: 'boolean', initialValue: false },
+  ],
+};
+
+export const schemaTypes = [post, author, announcement, event, testimony, audioMessage, book, spotlight];

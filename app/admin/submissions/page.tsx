@@ -1,5 +1,6 @@
 import { listSubmissions, formsConfigured, FormType, FormSubmission } from '@/lib/forms';
 import { SiteHeader, SiteFooter } from '@/components/SiteChrome';
+import AdminNav from '@/components/AdminNav';
 import TestimonyAdmin from '@/components/testimonies/TestimonyAdmin';
 import { getTestimonies } from '@/lib/sanity';
 import { listMembers } from '@/lib/auth';
@@ -71,6 +72,7 @@ export default async function AdminSubmissionsPage() {
       <SiteHeader />
       <section className="section">
         <div className="container" style={{ maxWidth: 720 }}>
+          <AdminNav current="/admin/submissions" />
           <div className="section-header">
             <span className="eyebrow">Admin</span>
             <h2 style={{ textTransform: 'none', fontSize: '1.8rem' }}>Submissions</h2>

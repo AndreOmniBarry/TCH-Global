@@ -177,3 +177,38 @@ export async function getTestimonies(): Promise<Testimony[] | null> {
     return null;
   }
 }
+
+export type Spotlight = {
+  _id: string;
+  title: string;
+  kind: string | null;
+  subtitle: string | null;
+  image: string | null;
+  lqip: string | null;
+  eventDate: string | null;
+  showFrom: string | null;
+  showUntil: string | null;
+  link: string | null;
+  linkLabel: string | null;
+  order: number | null;
+  hidden: boolean;
+};
+
+const SPOTLIGHT_FIELDS = `_id, title, kind, subtitle, "image": image.asset->url, "lqip": image.asset->metadata.lqip, eventDate, showFrom, showUntil, link, linkLabel, order, "hidden": coalesce(hidden, false)`;
+
+/** Hero spotlight items that are live right now, in display order. */
+export async function getSpotlights(): Promise<Spotlight[]> {
+  if (!sanityClient) return [];
+  try {
+    return await sanityClient.fetch(
+      `*[_type == "spotlight" && !coalesce(hidden, false) && (!defined(showFrom) || showFrom <= now()) && (!defined(showUntil) || showUntil > now())] | order(coalesce(order, 999) asc, _createdAt desc) [0...8] { ${SPOTLIGHT_FIELDS} }`,
+      {},
+      { next: { revalidate: 60, tags: ['spotlight'] } } as never
+    );
+  } catch (err) {
+    console.error('Sanity fetch failed, no spotlights shown:', err);
+    return [];
+  }
+}
+
+export const SPOTLIGHT_QUERY_ALL = `*[_type == "spotlight"] | order(coalesce(order, 999) asc, _createdAt desc) { ${SPOTLIGHT_FIELDS} }`;

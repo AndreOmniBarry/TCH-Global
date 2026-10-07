@@ -13,6 +13,7 @@ import {
   analyticsConfigured,
 } from '@/lib/analytics';
 import { SiteHeader, SiteFooter } from '@/components/SiteChrome';
+import AdminNav from '@/components/AdminNav';
 import { AreaCompare, BarList, Donut, Funnel, KpiCard, WeekdayBars } from '@/components/analytics/Charts';
 import { getLibrary } from '@/lib/library';
 
@@ -122,6 +123,7 @@ export default async function AdminAnalyticsPage() {
       <SiteHeader />
       <section className="section">
         <div className="container an-dash">
+          <AdminNav current="/admin/analytics" />
           <div className="section-header">
             <span className="eyebrow">Admin</span>
             <h2 style={{ textTransform: 'none', fontSize: '1.8rem' }}>Analytics</h2>

@@ -4,7 +4,8 @@ import EventsSection from '@/components/EventsSection';
 import TestimoniesSection from '@/components/TestimoniesSection';
 import SectionTitleStage from '@/components/decor/SectionTitleStage';
 import HeroExtras from '@/components/decor/HeroExtras';
-import { getAllPosts, getUpcomingEvents, getTestimonies } from '@/lib/sanity';
+import { getAllPosts, getUpcomingEvents, getTestimonies, getSpotlights } from '@/lib/sanity';
+import HeroSpotlight from '@/components/decor/HeroSpotlight';
 import { fallbackPosts } from '@/lib/fallback-posts';
 
 const FACEBOOK_URL = process.env.NEXT_PUBLIC_FACEBOOK_URL || 'https://www.facebook.com/profile.php?id=61557996937416';
@@ -82,6 +83,7 @@ const HOME_HTML_BEFORE_LIBRARY = `
       <a href="${FACEBOOK_URL}" class="btn btn-ghost btn-sm btn-facebook" target="_blank" rel="noopener">${ICON_FACEBOOK} Facebook</a>
       <a href="${INSTAGRAM_URL}" class="btn btn-ghost btn-sm btn-instagram" target="_blank" rel="noopener">${ICON_INSTAGRAM} Instagram</a>
     </div>
+    <div id="hero-spotlight-mount" class="hero-spotlight-mount"></div>
   </div>
   <div class="hero-marquee" aria-hidden="true">
     <div class="hero-marquee-track">
@@ -428,7 +430,7 @@ function blogHtml(list: { slug: string; title: string; excerpt?: string | null; 
 }
 
 export default async function HomePage() {
-  const [posts, events, testimonies] = await Promise.all([getAllPosts(), getUpcomingEvents(), getTestimonies()]);
+  const [posts, events, testimonies, spotlights] = await Promise.all([getAllPosts(), getUpcomingEvents(), getTestimonies(), getSpotlights()]);
   const sorted = [...(posts ?? fallbackPosts)].sort(
     (a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
   );
@@ -443,6 +445,7 @@ export default async function HomePage() {
       <SectionTitleStage />
       <div dangerouslySetInnerHTML={{ __html: HOME_HTML_BEFORE_LIBRARY }} />
       <HeroExtras {...heroData} />
+      <HeroSpotlight items={spotlights} />
       <PudlibPreview />
       <AnnouncementsSection />
       <div dangerouslySetInnerHTML={{ __html: HOME_HTML_AFTER_LIBRARY }} />
