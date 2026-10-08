@@ -113,6 +113,7 @@ export const audioMessage = {
     { name: 'title', title: 'Title', type: 'string', validation: (R: any) => R.required() },
     { name: 'audioFile', title: 'Audio file (MP3)', type: 'file', options: { accept: 'audio/*' }, description: 'Upload the MP3 here — or paste a link below instead.' },
     { name: 'audioUrl', title: 'Audio link (optional)', type: 'url', description: 'A direct MP3 link (e.g. from Spotify for Podcasters / Anchor RSS) if not uploading.' },
+    { name: 'youtubeLink', title: 'YouTube link of the same message (optional)', type: 'url', description: 'Paste the YouTube link of this sermon. PUDLIB! then lets viewers keep listening with the phone locked, picking up at the same second.' },
     { name: 'series', title: 'Series (optional)', type: 'string', description: 'Messages in the same series are recommended together.' },
     { name: 'cover', title: 'Cover art (optional)', type: 'image' },
     { name: 'description', title: 'Description', type: 'text', rows: 3 },

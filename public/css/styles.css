@@ -1926,3 +1926,6 @@ body:has(.pl-toast) .qdock { opacity: 0; pointer-events: none; }
 .pl-ambient { transition: background-image .6s ease, opacity .6s ease; }
 @media (prefers-reduced-motion: reduce) { .pl-modal, .pl-mini, .pl-toast, .pl-hud { animation: none; transition: none; } .pl-thumb, .pl-queue-thumb { animation: none; } }
 .pl-queue-li .pl-queue-item { padding-right: 40px; }
+.pl-action--listen { border-color: rgb(34 211 238 / .45); background: rgb(34 211 238 / .12); }
+.pl-action--listen:hover { background: rgb(34 211 238 / .22); }
+.pl-watch { display: inline-flex; align-items: center; gap: 6px; }

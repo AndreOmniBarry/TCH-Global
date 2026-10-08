@@ -16,6 +16,7 @@ export type LibItem = {
   series: string | null;
   description: string | null;
   youtubeId?: string;
+  audioTwin?: string;
   audioSrc?: string;
   price?: string | null;
   orderHref?: string;
@@ -64,16 +65,21 @@ export async function getLibrary(): Promise<{ items: LibItem[]; videosConnected:
     sanityClient
       ? sanityClient
           .fetch(`{
-            "audio": *[_type == "audioMessage"] | order(publishedAt desc) { _id, title, series, description, publishedAt, "src": coalesce(audioFile.asset->url, audioUrl), "image": cover.asset->url },
+            "audio": *[_type == "audioMessage"] | order(publishedAt desc) { _id, title, series, description, publishedAt, youtubeLink, "src": coalesce(audioFile.asset->url, audioUrl), "image": cover.asset->url },
             "books": *[_type == "book"] | order(publishedAt desc) { _id, title, description, price, orderLink, featured, publishedAt, "image": cover.asset->url }
           }`)
           .catch(() => null)
       : Promise.resolve(null),
   ]);
 
+  // Audio versions linked to a YouTube video ("audio twins") let PUDLIB!
+  // keep a sermon playing as audio when the phone locks.
+  const ytId = (u?: string | null) => (u ? u.match(/(?:v=|youtu\.be\/|\/live\/|\/shorts\/|\/embed\/)([\w-]{11})/)?.[1] ?? null : null);
+  const twins = new Map<string, string>();
+  for (const a of sanityData?.audio ?? []) { const id = ytId(a.youtubeLink); if (id && a.src) twins.set(id, a.src); }
   const base: Omit<LibItem, 'views' | 'score'>[] = [];
   for (const v of videos ?? []) {
-    base.push({ id: `yt-${v.id}`, kind: 'video', title: v.title, image: v.thumbnail, date: v.publishedAt, series: seriesFromTitle(v.title), description: null, youtubeId: v.id });
+    base.push({ id: `yt-${v.id}`, kind: 'video', title: v.title, image: v.thumbnail, date: v.publishedAt, series: seriesFromTitle(v.title), description: null, youtubeId: v.id, audioTwin: twins.get(v.id) });
   }
   for (const a of sanityData?.audio ?? []) {
     if (!a.src) continue;
