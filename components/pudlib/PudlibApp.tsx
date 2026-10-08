@@ -103,10 +103,27 @@ function loadYT() {
   return ytReady;
 }
 
-function VideoPlayer({ item, upNext, resumeAt, mini, setMini, onClose, onPlay, onProgress }: {
+function VideoPlayer({ item, upNext, resumeAt, mini, setMini, onClose, onPlay, onProgress, playingFrom, saved, onSave }: {
   item: LibItem; upNext: LibItem[]; resumeAt: number; mini: boolean; setMini: (v: boolean) => void;
   onClose: () => void; onPlay: (it: LibItem) => void; onProgress: (id: string, p: number, t: number) => void;
+  playingFrom?: string | null; saved: boolean; onSave: (it: LibItem) => void;
 }) {
+  const [autoplay, setAutoplay] = useState(true);
+  const autoplayRef = useRef(true);
+  const [shared, setShared] = useState(false);
+  useEffect(() => { try { const v = localStorage.getItem('pudlib_autoplay'); if (v === '0') { setAutoplay(false); autoplayRef.current = false; } } catch {} }, []);
+  function toggleAutoplay() {
+    const v = !autoplayRef.current;
+    autoplayRef.current = v; setAutoplay(v);
+    try { localStorage.setItem('pudlib_autoplay', v ? '1' : '0'); } catch {}
+  }
+  async function share() {
+    const url = `${location.origin}/library?play=${encodeURIComponent(item.id)}`;
+    try {
+      if (navigator.share) await navigator.share({ title: item.title, url });
+      else { await navigator.clipboard.writeText(url); setShared(true); setTimeout(() => setShared(false), 1800); }
+    } catch {}
+  }
   const hostRef = useRef<HTMLDivElement>(null);
   const frameRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<any>(null);
@@ -150,7 +167,7 @@ function VideoPlayer({ item, upNext, resumeAt, mini, setMini, onClose, onPlay, o
             if (e.data === S.ENDED) {
               const d = playerRef.current?.getDuration?.() || 0;
               onProgress(item.id, 1, d);
-              if (upNext[0]) onPlay(upNext[0]);
+              if (upNext[0] && autoplayRef.current) onPlay(upNext[0]);
             }
           },
         },
@@ -241,7 +258,7 @@ function VideoPlayer({ item, upNext, resumeAt, mini, setMini, onClose, onPlay, o
               <button type="button" className="pl-icon-btn" onClick={() => seekBy(-10)} aria-label="Back 10 seconds"><IconBack /></button>
               <button type="button" className="pl-icon-btn" onClick={() => seekBy(10)} aria-label="Forward 10 seconds"><IconForward /></button>
               {upNext[0] && <button type="button" className="pl-icon-btn" onClick={() => onPlay(upNext[0])} aria-label={`Next: ${upNext[0].title}`}><IconNext /></button>}
-              <div className="pl-volume">
+              <div className="pl-volume pl-hide-sm">
                 <button type="button" className="pl-icon-btn" onClick={toggleMute} aria-label={muted ? 'Unmute' : 'Mute'}>{muted || volume === 0 ? <IconMute /> : <IconVolume />}</button>
                 <input type="range" min={0} max={100} value={muted ? 0 : volume} onChange={(e) => changeVolume(Number(e.target.value))} aria-label="Volume" style={{ ['--pct' as string]: `${muted ? 0 : volume}%` }} />
               </div>
@@ -257,7 +274,7 @@ function VideoPlayer({ item, upNext, resumeAt, mini, setMini, onClose, onPlay, o
                   </div>
                 )}
               </div>
-              <button type="button" className="pl-icon-btn" onClick={() => setMini(true)} aria-label="Minimise player"><IconMinimize /></button>
+              <button type="button" className="pl-icon-btn pl-hide-sm" onClick={() => setMini(true)} aria-label="Minimise player"><IconMinimize /></button>
               {fs ? (
                 <button type="button" className="pl-icon-btn" onClick={exitFs} aria-label="Exit fullscreen"><IconExitFull /></button>
               ) : (
@@ -275,36 +292,60 @@ function VideoPlayer({ item, upNext, resumeAt, mini, setMini, onClose, onPlay, o
 
   if (mini) return <div className="pl-mini" role="region" aria-label={`Now playing: ${item.title}`}>{frame}</div>;
 
+  const dateLabel = item.date ? new Date(item.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
   return (
     <div className="pl-modal" role="dialog" aria-modal="true" aria-label={item.title}>
+      <div className="pl-ambient" aria-hidden="true" style={{ backgroundImage: `url(${item.image})` }} />
       <div className="pl-modal-top">
-        <PudlibLogo size={26} />
+        <PudlibLogo size={24} />
+        <span className="pl-now">Now playing</span>
         <div className="pl-modal-actions">
-          <button type="button" className="pl-icon-btn" onClick={() => setMini(true)} aria-label="Minimise player"><IconMinimize /></button>
-          <button type="button" className="pl-icon-btn" onClick={onClose} aria-label="Close player"><IconClose /></button>
+          <button type="button" className="pl-round" onClick={() => setMini(true)} aria-label="Minimise player"><IconMinimize size={20} /></button>
+          <button type="button" className="pl-round" onClick={onClose} aria-label="Close player"><IconClose size={20} /></button>
         </div>
       </div>
       <div className="pl-theatre">
         <div className="pl-theatre-main">
           {frame}
           <div className="pl-meta">
+            {item.series && <span className="pl-meta-series">{item.series}</span>}
             <h2>{item.title}</h2>
-            <div className="pl-meta-row">
-              {item.series && <span className="pl-chip">Series &middot; {item.series}</span>}
-              {item.date && <span className="pl-chip">{new Date(item.date).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}</span>}
-              {item.views > 0 && <span className="pl-chip">{item.views.toLocaleString()} plays</span>}
+            <p className="pl-meta-line">{['Pastor Uzor Echiejile', dateLabel, item.views > 0 ? `${item.views.toLocaleString()} plays` : ''].filter(Boolean).join('  ·  ')}</p>
+            <div className="pl-actions">
+              <button type="button" className={`pl-action${saved ? ' on' : ''}`} onClick={() => onSave(item)}>{saved ? <IconCheck size={18} /> : <IconPlus size={18} />}{saved ? 'Saved' : 'Save'}</button>
+              <button type="button" className="pl-action" onClick={share}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 3v12M7 8l5-5 5 5" /><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6" /></svg>{shared ? 'Link copied' : 'Share'}</button>
+              <button type="button" className="pl-action" onClick={() => setMini(true)}><IconMinimize size={18} />Mini player</button>
             </div>
+            {item.description && <p className="pl-desc">{item.description}</p>}
           </div>
         </div>
         {upNext.length > 0 && (
           <aside className="pl-queue" aria-label="Up next">
-            <h3>Up next</h3>
-            {upNext.slice(0, 10).map((n, i) => (
-              <button type="button" key={n.id} className="pl-queue-item" onClick={() => onPlay(n)}>
-                <span className="pl-queue-thumb"><img src={n.image} alt="" loading="lazy" />{i === 0 && <em>Next</em>}</span>
-                <span className="pl-queue-text"><span className="pl-title">{n.title}</span>{n.series && <span className="pl-sub">{n.series}</span>}</span>
-              </button>
-            ))}
+            {playingFrom && <div className="pl-from"><IconPlaylist size={16} /><span>Playing from <strong>{playingFrom}</strong></span></div>}
+            <div className="pl-queue-head">
+              <h3>Up next</h3>
+              <label className="pl-switch">
+                <span>Autoplay</span>
+                <input type="checkbox" checked={autoplay} onChange={toggleAutoplay} />
+                <i aria-hidden="true" />
+              </label>
+            </div>
+            <ol className="pl-queue-list">
+              <li className="pl-queue-item is-current" aria-current="true">
+                <span className="pl-queue-idx"><span className="pl-eq" aria-hidden="true"><i /><i /><i /></span></span>
+                <span className="pl-queue-thumb"><img src={item.image} alt="" /></span>
+                <span className="pl-queue-text"><span className="pl-title">{item.title}</span><span className="pl-sub">Playing now</span></span>
+              </li>
+              {upNext.slice(0, 12).map((n, i) => (
+                <li key={n.id}>
+                  <button type="button" className="pl-queue-item" onClick={() => onPlay(n)}>
+                    <span className="pl-queue-idx">{i + 1}</span>
+                    <span className="pl-queue-thumb"><img src={n.image} alt="" loading="lazy" />{i === 0 && autoplay && <em>Next</em>}<span className="pl-queue-hover"><MotionPlay size={30} /></span></span>
+                    <span className="pl-queue-text"><span className="pl-title">{n.title}</span>{n.series && <span className="pl-sub">{n.series}</span>}</span>
+                  </button>
+                </li>
+              ))}
+            </ol>
           </aside>
         )}
       </div>
@@ -420,11 +461,27 @@ function Card({ it, onOpen, entry, onSave }: { it: LibItem; onOpen: (it: LibItem
 }
 
 function Row({ title, items, onOpen, history, action, onSave }: { title: string; items: LibItem[]; onOpen: (it: LibItem) => void; history: History; action?: React.ReactNode; onSave?: SaveFn }) {
+  const railRef = useRef<HTMLDivElement>(null);
+  const [edge, setEdge] = useState({ start: true, end: false });
+  const onScroll = () => {
+    const r = railRef.current;
+    if (!r) return;
+    setEdge({ start: r.scrollLeft < 8, end: r.scrollLeft + r.clientWidth > r.scrollWidth - 8 });
+  };
+  useEffect(onScroll, [items.length]);
+  const page = (d: number) => railRef.current?.scrollBy({ left: d * railRef.current.clientWidth * 0.85, behavior: 'smooth' });
   if (!items.length) return null;
   return (
     <section className="pl-section">
-      <div className="pl-section-head"><h2>{title}</h2>{action}</div>
-      <div className="pl-rail">
+      <div className="pl-section-head">
+        <h2>{title}</h2>
+        <div className="pl-section-tools">
+          {action}
+          <button type="button" className="pl-arrow" onClick={() => page(-1)} disabled={edge.start} aria-label={`Scroll ${title} left`}><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 6l-6 6 6 6" /></svg></button>
+          <button type="button" className="pl-arrow" onClick={() => page(1)} disabled={edge.end} aria-label={`Scroll ${title} right`}><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 6l6 6-6 6" /></svg></button>
+        </div>
+      </div>
+      <div className="pl-rail" ref={railRef} onScroll={onScroll}>
         {items.map((it) => <Card key={it.id} it={it} onOpen={onOpen} entry={history[it.id]} onSave={onSave} />)}
       </div>
     </section>
@@ -455,6 +512,81 @@ function SaveSheet({ item, playlists, onToggle, onCreate, onClose }: { item: Lib
   );
 }
 
+function Featured({ it, entry, onOpen, onSave, saved }: { it: LibItem; entry?: HistoryEntry; onOpen: (it: LibItem) => void; onSave: SaveFn; saved: boolean }) {
+  const p = entry?.progress ?? 0;
+  const resume = p > 0.02 && p < 0.92;
+  return (
+    <section className="pl-featured">
+      <div className="pl-featured-bg" style={{ backgroundImage: `url(${it.image})` }} aria-hidden="true" />
+      <div className="pl-featured-art"><img src={it.image} alt="" /></div>
+      <div className="pl-featured-body">
+        <span className="pl-featured-tag">{resume ? 'Continue watching' : 'Featured for you'}</span>
+        {it.series && <span className="pl-featured-series">{it.series}</span>}
+        <h2>{it.title}</h2>
+        {it.description && <p>{it.description.length > 160 ? `${it.description.slice(0, 157)}…` : it.description}</p>}
+        {resume && <div className="pl-featured-progress"><span style={{ width: `${p * 100}%` }} /></div>}
+        <div className="pl-featured-actions">
+          <button type="button" className="pl-play-cta" onClick={() => onOpen(it)}><MotionPlay size={34} />{resume ? 'Resume' : 'Play'}</button>
+          <button type="button" className={`pl-action pl-action--glass${saved ? ' on' : ''}`} onClick={() => onSave(it)}>{saved ? <IconCheck size={18} /> : <IconPlus size={18} />}{saved ? 'Saved' : 'Save'}</button>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Cover({ items }: { items: LibItem[] }) {
+  const pics = items.slice(0, 4);
+  if (!pics.length) return <span className="pl-cover-mosaic is-empty"><IconPlaylist size={30} /></span>;
+  if (pics.length < 4) return <span className="pl-cover-mosaic is-one"><img src={pics[0].image} alt="" /></span>;
+  return <span className="pl-cover-mosaic">{pics.map((x) => <img key={x.id} src={x.image} alt="" />)}</span>;
+}
+
+type OpenList = { key: string; name: string; items: LibItem[]; userId?: string };
+
+function PlaylistDetail({ list, history, onBack, onPlayAll, onPlayAt, onRemove }: { list: OpenList; history: History; onBack: () => void; onPlayAll: (shuffle: boolean) => void; onPlayAt: (i: number) => void; onRemove?: (id: string) => void }) {
+  const watched = list.items.filter((x) => (history[x.id]?.progress ?? 0) > 0.92).length;
+  return (
+    <section className="pl-detail">
+      <button type="button" className="pl-back" onClick={onBack}><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 6l-6 6 6 6" /></svg>Playlists</button>
+      <header className="pl-detail-head">
+        <div className="pl-detail-bg" style={list.items[0] ? { backgroundImage: `url(${list.items[0].image})` } : undefined} aria-hidden="true" />
+        <Cover items={list.items} />
+        <div className="pl-detail-info">
+          <span className="pl-featured-tag">{list.userId ? 'Your playlist' : 'Series'}</span>
+          <h2>{list.name}</h2>
+          <p>{list.items.length} message{list.items.length === 1 ? '' : 's'}{watched ? ` · ${watched} watched` : ''}</p>
+          <div className="pl-featured-actions">
+            <button type="button" className="pl-play-cta" disabled={!list.items.length} onClick={() => onPlayAll(false)}><MotionPlay size={34} />Play all</button>
+            <button type="button" className="pl-action pl-action--glass" disabled={list.items.length < 2} onClick={() => onPlayAll(true)}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M16 3h5v5M4 20 21 3M21 16v5h-5M15 15l6 6M4 4l5 5" /></svg>Shuffle
+            </button>
+          </div>
+        </div>
+      </header>
+      {list.items.length === 0 ? (
+        <p className="pl-note">This playlist is empty. Tap the + on any message to add it here.</p>
+      ) : (
+        <ol className="pl-tracks">
+          {list.items.map((x, i) => {
+            const h = history[x.id];
+            const p = h?.progress ?? 0;
+            return (
+              <li key={x.id} className="pl-track">
+                <button type="button" className="pl-track-main" onClick={() => onPlayAt(i)}>
+                  <span className="pl-track-idx"><span className="n">{i + 1}</span><span className="pl-track-play"><MotionPlay size={26} /></span></span>
+                  <span className="pl-track-thumb"><img src={x.image} alt="" loading="lazy" />{p > 0.02 && <span className="pl-progress"><span style={{ width: `${Math.min(100, p * 100)}%` }} /></span>}</span>
+                  <span className="pl-track-text"><span className="pl-title">{x.title}</span><span className="pl-sub">{[x.kind === 'audio' ? 'Audio' : 'Video', x.date && new Date(x.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }), p > 0.92 ? 'Watched' : p > 0.02 ? `${Math.round(p * 100)}% watched` : ''].filter(Boolean).join(' · ')}</span></span>
+                </button>
+                {onRemove && <button type="button" className="pl-track-remove" onClick={() => onRemove(x.id)} aria-label={`Remove ${x.title}`}><IconClose size={16} /></button>}
+              </li>
+            );
+          })}
+        </ol>
+      )}
+    </section>
+  );
+}
+
 function sortItems(list: LibItem[], sort: Sort, best: LibItem[]) {
   const by = [...list];
   if (sort === 'new') return by.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
@@ -478,6 +610,8 @@ export default function PudlibApp({ items, videosConnected, initialPlay }: { ite
   const [saving, setSaving] = useState<LibItem | null>(null);
   const [queue, setQueue] = useState<string[]>([]);
   const [coplay, setCoplay] = useState<CoPlay>({});
+  const [playingFrom, setPlayingFrom] = useState<string | null>(null);
+  const [openList, setOpenList] = useState<string | null>(null);
   const histRef = useRef<History>({});
   const lastSave = useRef(0);
   const tabsRef = useSlidingPill<HTMLDivElement>(tab);
@@ -517,10 +651,13 @@ export default function PudlibApp({ items, videosConnected, initialPlay }: { ite
     }
   }, []);
 
-  const playList = useCallback((ids: string[]) => {
-    const list = ids.map((id) => byId.get(id)).filter((x): x is LibItem => Boolean(x && x.kind !== 'book'));
+  const playList = useCallback((ids: string[], from?: string, start = 0, shuffle = false) => {
+    let list = ids.map((id) => byId.get(id)).filter((x): x is LibItem => Boolean(x && x.kind !== 'book'));
     if (!list.length) return;
+    if (shuffle) list = list.map((x) => [Math.random(), x] as const).sort((a, b) => a[0] - b[0]).map((x) => x[1]);
+    else list = [...list.slice(start), ...list.slice(0, start)];
     setQueue(list.slice(1).map((x) => x.id));
+    setPlayingFrom(from ?? null);
     open(list[0]);
   }, [byId, open]);
 
@@ -583,6 +720,18 @@ export default function PudlibApp({ items, videosConnected, initialPlay }: { ite
     setHistory({});
   }
 
+  const savedIds = useMemo(() => new Set(playlists.flatMap((p) => p.ids)), [playlists]);
+  const openListData: OpenList | null = useMemo(() => {
+    if (!openList) return null;
+    if (openList.startsWith('u:')) {
+      const pl = playlists.find((p) => p.id === openList.slice(2));
+      return pl ? { key: openList, name: pl.name, userId: pl.id, items: pl.ids.map((id) => byId.get(id)).filter((x): x is LibItem => Boolean(x)) } : null;
+    }
+    const sl = seriesLists.find((x) => x.name === openList.slice(2));
+    return sl ? { key: openList, name: sl.name, items: sl.items } : null;
+  }, [openList, playlists, seriesLists, byId]);
+  const featured = continueItems[0] ?? forYou[0] ?? null;
+
   const query = q.trim().toLowerCase();
   const results = query
     ? sortItems(items.filter((i) => (tab === 'all' || tab === 'history' || tab === 'playlists' || i.kind === tab) && `${i.title} ${i.series ?? ''} ${i.description ?? ''} ${(model.topics.get(i.id) ?? []).join(' ')}`.toLowerCase().includes(query)), sort, forYou)
@@ -628,7 +777,7 @@ export default function PudlibApp({ items, videosConnected, initialPlay }: { ite
         <div className="pl-tabs seg seg--glass" role="tablist" ref={tabsRef}>
           <span className="seg-pill" aria-hidden="true" />
           {TABS.map((t) => (
-            <button key={t.key} type="button" role="tab" aria-selected={tab === t.key} className={tab === t.key ? 'on' : ''} onClick={() => setTab(t.key)}>
+            <button key={t.key} type="button" role="tab" aria-selected={tab === t.key} className={tab === t.key ? 'on' : ''} onClick={() => { setTab(t.key); setOpenList(null); }}>
               {t.key === 'history' && <IconHistory size={15} />}{t.key === 'playlists' && <IconPlaylist size={15} />}{t.label}
             </button>
           ))}
@@ -644,6 +793,7 @@ export default function PudlibApp({ items, videosConnected, initialPlay }: { ite
         </section>
       ) : tab === 'all' ? (
         <>
+          {featured && <Featured it={featured} entry={history[featured.id]} onOpen={open} onSave={save} saved={savedIds.has(featured.id)} />}
           <Row title="Continue" items={continueItems} onOpen={open} history={history} onSave={save} />
           <Row title={recentlyPlayed.length ? 'Recommended for you' : 'Start here'} items={forYou.slice(0, 14)} onOpen={open} history={history} onSave={save} />
           <Row title="Recently played" items={recentlyPlayed.slice(0, 14)} onOpen={open} history={history} onSave={save}
@@ -658,50 +808,53 @@ export default function PudlibApp({ items, videosConnected, initialPlay }: { ite
           <Row title="Books" items={byKind('book')} onOpen={open} history={history} />
         </>
       ) : tab === 'playlists' ? (
-        <section className="pl-section">
-          <div className="pl-section-head"><h2>Your playlists</h2></div>
-          <div className="pl-lists">
-            {playlists.map((pl) => {
-              const first = byId.get(pl.ids[0] ?? '');
-              return (
-                <div className="pl-list" key={pl.id}>
-                  <span className="pl-list-art">{first ? <img src={first.image} alt="" /> : <IconPlaylist size={28} />}</span>
-                  <div className="pl-list-body">
-                    <strong>{pl.name}</strong>
-                    <span className="pl-sub">{pl.ids.length} item{pl.ids.length === 1 ? '' : 's'}</span>
-                    <div className="pl-list-actions">
-                      <button type="button" className="pl-text-btn pl-text-btn--dark" disabled={!pl.ids.length} onClick={() => playList(pl.ids)}>Play all</button>
-                      <button type="button" className="pl-link-btn" onClick={() => deletePl(pl.id)}>{pl.id === 'later' ? 'Clear' : 'Delete'}</button>
-                    </div>
+        openListData ? (
+          <PlaylistDetail
+            list={openListData} history={history} onBack={() => setOpenList(null)}
+            onPlayAll={(shuffle) => playList(openListData.items.map((x) => x.id), openListData.name, 0, shuffle)}
+            onPlayAt={(i) => playList(openListData.items.map((x) => x.id), openListData.name, i)}
+            onRemove={openListData.userId ? (id) => togglePl(openListData.userId!, byId.get(id)!) : undefined}
+          />
+        ) : (
+          <section className="pl-section">
+            <div className="pl-section-head"><h2>Your playlists</h2>
+              <button type="button" className="pl-link-btn" onClick={() => { const name = prompt('Name your playlist'); if (name?.trim()) updatePlaylists([...playlists, { id: `pl-${Date.now().toString(36)}`, name: name.trim().slice(0, 40), ids: [] }]); }}>+ New playlist</button>
+            </div>
+            <div className="pl-pl-grid">
+              {playlists.map((pl) => {
+                const its = pl.ids.map((id) => byId.get(id)).filter((x): x is LibItem => Boolean(x));
+                return (
+                  <div className="pl-pl-card" key={pl.id}>
+                    <button type="button" className="pl-pl-open" onClick={() => setOpenList(`u:${pl.id}`)}>
+                      <Cover items={its} />
+                      <strong>{pl.name}</strong>
+                      <span className="pl-sub">{its.length} message{its.length === 1 ? '' : 's'}</span>
+                    </button>
+                    {its.length > 0 && <button type="button" className="pl-pl-play" onClick={() => playList(pl.ids, pl.name)} aria-label={`Play ${pl.name}`}><MotionPlay size={44} /></button>}
+                    {pl.id !== 'later' && <button type="button" className="pl-pl-del" onClick={() => confirm(`Delete "${pl.name}"?`) && deletePl(pl.id)} aria-label={`Delete ${pl.name}`}><IconClose size={14} /></button>}
                   </div>
+                );
+              })}
+            </div>
+            {seriesLists.length > 0 && (
+              <>
+                <div className="pl-section-head" style={{ marginTop: 34 }}><h2>Series</h2></div>
+                <div className="pl-pl-grid">
+                  {seriesLists.map((sl) => (
+                    <div className="pl-pl-card" key={sl.name}>
+                      <button type="button" className="pl-pl-open" onClick={() => setOpenList(`s:${sl.name}`)}>
+                        <Cover items={sl.items} />
+                        <strong>{sl.name}</strong>
+                        <span className="pl-sub">{sl.items.length} parts</span>
+                      </button>
+                      <button type="button" className="pl-pl-play" onClick={() => playList(sl.items.map((x) => x.id), sl.name)} aria-label={`Play ${sl.name}`}><MotionPlay size={44} /></button>
+                    </div>
+                  ))}
                 </div>
-              );
-            })}
-          </div>
-          {playlists.every((p) => !p.ids.length) && <p className="pl-note">Tap the + on any message to save it to Watch later or a playlist of your own.</p>}
-          {seriesLists.length > 0 && (
-            <>
-              <div className="pl-section-head" style={{ marginTop: 26 }}><h2>Series</h2></div>
-              <div className="pl-lists">
-                {seriesLists.map((sl) => (
-                  <div className="pl-list" key={sl.name}>
-                    <span className="pl-list-art"><img src={sl.items[0].image} alt="" /></span>
-                    <div className="pl-list-body">
-                      <strong>{sl.name}</strong>
-                      <span className="pl-sub">{sl.items.length} parts</span>
-                      <div className="pl-list-actions">
-                        <button type="button" className="pl-text-btn pl-text-btn--dark" onClick={() => playList(sl.items.map((x) => x.id))}>Play from part 1</button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </>
-          )}
-          {playlists.filter((pl) => pl.ids.length).map((pl) => (
-            <Row key={pl.id} title={pl.name} items={pl.ids.map((id) => byId.get(id)).filter((x): x is LibItem => Boolean(x))} onOpen={open} history={history} onSave={save} />
-          ))}
-        </section>
+              </>
+            )}
+          </section>
+        )
       ) : tab === 'history' ? (
         <section className="pl-section">
           <div className="pl-section-head">
@@ -730,8 +883,9 @@ export default function PudlibApp({ items, videosConnected, initialPlay }: { ite
       {video && (
         <VideoPlayer
           item={video} upNext={upNext} resumeAt={resumeAt(video)} mini={mini} setMini={setMini}
-          onClose={() => { setVideo(null); setMini(false); setQueue([]); saveHistory(histRef.current); setHistory(histRef.current); }}
+          onClose={() => { setVideo(null); setMini(false); setQueue([]); setPlayingFrom(null); saveHistory(histRef.current); setHistory(histRef.current); }}
           onPlay={playFromPlayer} onProgress={onProgress}
+          playingFrom={queue.length ? playingFrom : null} saved={savedIds.has(video.id)} onSave={save}
         />
       )}
       {audio && (
