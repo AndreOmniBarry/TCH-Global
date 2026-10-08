@@ -10,6 +10,7 @@ const LABELS: Record<FormType, string> = {
   testimony: 'Testimony',
   newsletter: 'Newsletter sign-up',
   salvation: 'Prayed the prayer of salvation',
+  teens: 'TCH Teens (question or squad sign-up)',
 };
 
 const CONFIRMATIONS: Partial<Record<FormType, { subject: string; body: string }>> = {
@@ -46,6 +47,7 @@ const REQUIRED_FIELDS: Record<FormType, string[]> = {
   testimony: ['name', 'quote'],
   newsletter: ['email'],
   salvation: ['name'],
+  teens: ['kind'],
 };
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;

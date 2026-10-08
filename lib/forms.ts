@@ -9,7 +9,7 @@ import { kv } from '@vercel/kv';
 
 const KV_CONFIGURED = Boolean(process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN);
 
-export type FormType = 'volunteer' | 'prayer' | 'join' | 'give' | 'testimony' | 'newsletter' | 'salvation';
+export type FormType = 'volunteer' | 'prayer' | 'join' | 'give' | 'testimony' | 'newsletter' | 'salvation' | 'teens';
 
 export type FormSubmission = {
   fields: Record<string, string>;

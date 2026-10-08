@@ -18,6 +18,7 @@ export default function PublishPanel({ title, body }: { title: string; body: str
   const [mode, setMode] = useState<'now' | 'schedule'>('now');
   const [when, setWhen] = useState('');
   const [category, setCategory] = useState('Faith');
+  const [audience, setAudience] = useState<'main' | 'teens'>('main');
   const [excerpt, setExcerpt] = useState('');
   const [cover, setCover] = useState('');
   const [busy, setBusy] = useState(false);
@@ -53,7 +54,7 @@ export default function PublishPanel({ title, body }: { title: string; body: str
       const res = await fetch('/api/publish', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-write-password': password },
-        body: JSON.stringify({ title, body, excerpt, category, coverImageUrl: cover, publishAt }),
+        body: JSON.stringify({ title, body, excerpt, category, coverImageUrl: cover, publishAt, audience }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) return setStatus({ kind: 'error', text: data.error || 'Publishing failed.' });
@@ -61,7 +62,7 @@ export default function PublishPanel({ title, body }: { title: string; body: str
       setStatus(
         data.scheduled
           ? { kind: 'ok', text: `Scheduled for ${fmt(data.publishedAt)}. It will appear on the blog automatically.` }
-          : { kind: 'ok', text: 'Published. It can take up to a minute to appear on the blog.', link: `/blog/${data.slug}` }
+          : { kind: 'ok', text: 'Published. It can take up to a minute to appear on the blog.', link: data.path || `/blog/${data.slug}` }
       );
       loadQueue(password);
     } finally {
@@ -89,6 +90,11 @@ export default function PublishPanel({ title, body }: { title: string; body: str
           <input id="publish-when" type="datetime-local" value={when} onChange={(e) => setWhen(e.target.value)} />
         </>
       )}
+      <label htmlFor="publish-audience">Publish to</label>
+      <select id="publish-audience" value={audience} onChange={(e) => setAudience(e.target.value as 'main' | 'teens')}>
+        <option value="main">Main blog (The Comforters Blog)</option>
+        <option value="teens">Teens blog (TCH Teens)</option>
+      </select>
       <div className="publish-grid">
         <div>
           <label htmlFor="publish-category">Category</label>

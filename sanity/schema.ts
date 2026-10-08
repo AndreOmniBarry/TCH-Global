@@ -16,6 +16,7 @@ export const post = {
       type: 'string',
       options: { list: ['Faith', 'Hope', 'Grace', 'Community', 'Family', 'Prayer', 'Testimony'] },
     },
+    { name: 'audience', title: 'Blog', type: 'string', options: { list: [{ title: 'Main blog', value: 'main' }, { title: 'Teens blog', value: 'teens' }] }, initialValue: 'main' },
     { name: 'coverImage', title: 'Cover Image', type: 'image', options: { hotspot: true } },
     { name: 'author', title: 'Author', type: 'reference', to: [{ type: 'author' }] },
     { name: 'publishedAt', title: 'Published At', type: 'datetime', description: 'Set a future date/time to schedule the post — it appears on the site automatically at that moment.' },

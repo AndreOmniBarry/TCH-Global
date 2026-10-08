@@ -58,6 +58,7 @@ const HOME_HTML_BEFORE_LIBRARY = `
           <li><a href="#volunteer">Volunteer</a></li>
           <li><a href="#contact">Contact Us</a></li>
           <li><a href="#join">Join Us</a></li>
+          <li><a href="/teens">Teens</a></li>
           <li><a href="#give">Give</a></li>
           <li><a href="/account" class="nav-account" data-account-link>Sign in</a></li>
         </ul>
@@ -215,6 +216,20 @@ const HOME_HTML_EVENTS_TO_MEDIA = `
       ${SPOTIFY_URL ? `<a href="${SPOTIFY_URL}" target="_blank" rel="noopener" class="btn btn-ghost btn-spotify">${ICON_SPOTIFY} Spotify</a>` : ''}
     </div>
     ${SPOTIFY_URL ? '<p style="font-size:.72rem;color:var(--text-faint);margin-top:12px;font-family:var(--font-mono);">Messages are also available as a podcast on Spotify.</p>' : ''}
+  </div>
+</section>
+
+<section class="section" id="teens-teaser">
+  <div class="container">
+    <a href="/teens" class="tn-teaser pop">
+      <span class="tn-teaser-orbs" aria-hidden="true"><i></i><i></i></span>
+      <span class="tn-teaser-body">
+        <span class="tn-kicker">Ages 11&ndash;19</span>
+        <strong>TCH <em>Teens</em></strong>
+        <span>Hangouts, squads, real talk and a blog made for you.</span>
+      </span>
+      <span class="tn-teaser-go">Enter TCH Teens &rarr;</span>
+    </a>
   </div>
 </section>
 

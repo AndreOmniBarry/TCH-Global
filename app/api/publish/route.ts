@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
   const denied = guard(req);
   if (denied) return denied;
   try {
-    const { title, body, excerpt, category, coverImageUrl, publishAt } = await req.json();
+    const { title, body, excerpt, category, coverImageUrl, publishAt, audience } = await req.json();
     if (typeof title !== 'string' || !title.trim() || typeof body !== 'string' || !body.trim()) {
       return NextResponse.json({ error: 'A title and a body are required.' }, { status: 400 });
     }
@@ -61,9 +61,10 @@ export async function POST(req: NextRequest) {
       readTime: `${Math.max(1, Math.round(words / 220))} min read`,
       bodyHtml: markdownToHtml(body),
       coverImageUrl: typeof coverImageUrl === 'string' && /^https?:\/\//.test(coverImageUrl) ? coverImageUrl : undefined,
-      authorName: 'Pastor Uzor Echiejile',
+      authorName: audience === 'teens' ? 'TCH Teens' : 'Pastor Uzor Echiejile',
+      audience: audience === 'teens' ? 'teens' : 'main',
     });
-    return NextResponse.json({ ok: true, id: doc._id, slug, publishedAt: when.toISOString(), scheduled: when.getTime() > Date.now() + 5000 });
+    return NextResponse.json({ ok: true, id: doc._id, slug, path: audience === 'teens' ? `/teens/blog/${slug}` : `/blog/${slug}`, publishedAt: when.toISOString(), scheduled: when.getTime() > Date.now() + 5000 });
   } catch (err) {
     console.error('publish failed', err);
     return NextResponse.json({ error: 'Could not publish right now. Please try again.' }, { status: 500 });

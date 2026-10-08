@@ -26,6 +26,7 @@ export function SiteHeader() {
               <li><a href="/#volunteer">Volunteer</a></li>
               <li><a href="/#contact">Contact Us</a></li>
               <li><a href="/#join">Join Us</a></li>
+              <li><a href="/teens">Teens</a></li>
               <li><a href="/#give">Give</a></li>
               <li><a href="/account" className="nav-account" data-account-link>Sign in</a></li>
             </ul>

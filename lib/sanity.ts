@@ -36,7 +36,7 @@ export type Post = {
   body: any; // Portable Text array when sourced from Sanity, or HTML string for fallback posts
 };
 
-const POSTS_QUERY = `*[_type == "post" && publishedAt <= now()] | order(publishedAt desc) {
+const POSTS_QUERY = `*[_type == "post" && publishedAt <= now() && coalesce(audience, "main") != "teens"] | order(publishedAt desc) {
   _id,
   title,
   "slug": slug.current,
@@ -212,3 +212,28 @@ export async function getSpotlights(): Promise<Spotlight[]> {
 }
 
 export const SPOTLIGHT_QUERY_ALL = `*[_type == "spotlight"] | order(coalesce(order, 999) asc, _createdAt desc) { ${SPOTLIGHT_FIELDS} }`;
+
+const TEEN_FIELDS = `_id, title, "slug": slug.current, excerpt, category, publishedAt, readTime,
+  "coverImage": coalesce(coverImage.asset->url, coverImageUrl, "/images/gallery-4.webp"),
+  "authorName": coalesce(author->name, authorName, "TCH Teens"), "authorImage": author->image.asset->url,
+  "body": coalesce(bodyHtml, pt::text(body))`;
+
+/** Posts written for the Teens blog (kept out of the main blog). */
+export async function getTeenPosts(): Promise<Post[]> {
+  if (!sanityClient) return [];
+  try {
+    return await sanityClient.fetch(`*[_type == "post" && audience == "teens" && publishedAt <= now()] | order(publishedAt desc) { ${TEEN_FIELDS} }`);
+  } catch (err) {
+    console.error('Sanity fetch failed, no teen posts:', err);
+    return [];
+  }
+}
+
+export async function getTeenPostBySlug(slug: string): Promise<Post | null> {
+  if (!sanityClient) return null;
+  try {
+    return await sanityClient.fetch(`*[_type == "post" && audience == "teens" && slug.current == $slug && publishedAt <= now()][0] { ${TEEN_FIELDS} }`, { slug });
+  } catch {
+    return null;
+  }
+}
