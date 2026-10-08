@@ -9,6 +9,7 @@ export const metadata = { title: 'Submissions | TCH Global Admin' };
 export const dynamic = 'force-dynamic';
 
 const SECTIONS: { type: FormType; title: string; fieldOrder: string[] }[] = [
+  { type: 'salvation', title: 'Prayed the Prayer of Salvation (follow up!)', fieldOrder: ['name', 'phone', 'email', 'city', 'note'] },
   { type: 'prayer', title: 'Prayer Requests', fieldOrder: ['message'] },
   { type: 'volunteer', title: 'Volunteer Interest', fieldOrder: ['name', 'email', 'team'] },
   { type: 'join', title: 'Membership (Join Us)', fieldOrder: ['name', 'email'] },

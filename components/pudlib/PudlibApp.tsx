@@ -6,6 +6,7 @@ import { buildModel, recommend, similar, TOPICS, type CoPlay } from '@/lib/recom
 import PudlibLogo from './PudlibLogo';
 import MotionPlay from '@/components/MotionPlay';
 import { useSlidingPill } from '@/components/useSlidingPill';
+import { useMember } from '@/components/members/useMember';
 import {
   IconBack, IconForward, IconVolume, IconMute, IconMinimize,
   IconExpand, IconClose, IconNext, IconHistory, IconBook, IconAudio, IconVideo,
@@ -615,6 +616,39 @@ export default function PudlibApp({ items, videosConnected, initialPlay }: { ite
   const histRef = useRef<History>({});
   const lastSave = useRef(0);
   const tabsRef = useSlidingPill<HTMLDivElement>(tab);
+  const { member } = useMember();
+  const synced = useRef(false);
+
+  // Members: merge this device's library with their account, then keep
+  // the account copy updated, so playlists and progress follow them.
+  useEffect(() => {
+    if (!member || synced.current) return;
+    synced.current = true;
+    fetch('/api/me/library', { cache: 'no-store' }).then((r) => r.json()).then((d) => {
+      const remote = d.data as { playlists?: Playlist[]; history?: History } | null;
+      if (remote) {
+        const h: History = { ...(remote.history ?? {}) };
+        Object.entries(histRef.current).forEach(([id, e]) => { if (!h[id] || h[id].at < e.at) h[id] = e; });
+        const local = loadPlaylists();
+        const merged = [...(remote.playlists ?? [])];
+        local.forEach((pl) => {
+          const m = merged.find((x) => x.id === pl.id);
+          if (m) m.ids = Array.from(new Set([...m.ids, ...pl.ids]));
+          else merged.push(pl);
+        });
+        if (!merged.some((x) => x.id === 'later')) merged.unshift({ id: 'later', name: 'Watch later', ids: [] });
+        histRef.current = h; saveHistory(h); setHistory(h);
+        savePlaylists(merged); setPlaylists(merged);
+      }
+    }).catch(() => {});
+  }, [member]);
+  useEffect(() => {
+    if (!member || !synced.current) return;
+    const t = window.setTimeout(() => {
+      fetch('/api/me/library', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ playlists, history: histRef.current }) }).catch(() => {});
+    }, 2500);
+    return () => window.clearTimeout(t);
+  }, [member, playlists, history]);
   const chipsRef = useSlidingPill<HTMLDivElement>(`${tab}-${topic}`);
 
   useEffect(() => { histRef.current = loadHistory(); setHistory(histRef.current); setPlaylists(loadPlaylists()); }, []);
@@ -741,7 +775,10 @@ export default function PudlibApp({ items, videosConnected, initialPlay }: { ite
     const h = history[it.id];
     return h && h.progress > 0.02 && h.progress < 0.92 ? h.t ?? 0 : 0;
   };
-  const save: SaveFn = (it) => setSaving(it);
+  const save: SaveFn = (it) => {
+    if (!member) { window.dispatchEvent(new CustomEvent('tch:join', { detail: { reason: 'playlist' } })); return; }
+    setSaving(it);
+  };
 
   const browse = (kind: LibKind) => {
     const list = byKind(kind).filter((i) => !topic || (model.topics.get(i.id) ?? []).includes(topic));
@@ -817,8 +854,14 @@ export default function PudlibApp({ items, videosConnected, initialPlay }: { ite
           />
         ) : (
           <section className="pl-section">
+            {!member && (
+              <div className="pl-gate">
+                <div><strong>Your playlists live in your account</strong><span>Save messages, build playlists and resume on any device. It&rsquo;s free.</span></div>
+                <a className="btn btn-primary btn-sm" href="/account?mode=signup&next=%2Flibrary">Create free account</a>
+              </div>
+            )}
             <div className="pl-section-head"><h2>Your playlists</h2>
-              <button type="button" className="pl-link-btn" onClick={() => { const name = prompt('Name your playlist'); if (name?.trim()) updatePlaylists([...playlists, { id: `pl-${Date.now().toString(36)}`, name: name.trim().slice(0, 40), ids: [] }]); }}>+ New playlist</button>
+              <button type="button" className="pl-link-btn" onClick={() => { if (!member) { window.dispatchEvent(new CustomEvent('tch:join', { detail: { reason: 'playlist' } })); return; } const name = prompt('Name your playlist'); if (name?.trim()) updatePlaylists([...playlists, { id: `pl-${Date.now().toString(36)}`, name: name.trim().slice(0, 40), ids: [] }]); }}>+ New playlist</button>
             </div>
             <div className="pl-pl-grid">
               {playlists.map((pl) => {

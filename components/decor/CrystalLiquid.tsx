@@ -525,8 +525,14 @@ export default function CrystalLiquid() {
           if (document.documentElement.classList.contains('splash-lock')) { splashEnd = 0; progress = 0; }
           else {
             if (!splashEnd) splashEnd = now;
-            const delay = 250 + (rect.left / Math.max(1, window.innerWidth)) * 350 + (rect.top / vh) * 200;
-            progress = Math.max(progress, Math.min(1, Math.max(0, (now - splashEnd - delay) / 1400)));
+            const delay = 250 + (rect.left / Math.max(1, window.innerWidth)) * 350 + (rect.top + sy) / vh * 200;
+            const pour = Math.min(1, Math.max(0, (now - splashEnd - delay) / 1400));
+            // Hero buttons stop at ~70% so the waterline, waves and slosh stay
+            // visible (a full button reads as a flat block), then drain as the
+            // hero scrolls away and refill on the way back.
+            const home = rect.top + sy;
+            const drain = Math.min(1, Math.max(0, (rect.top - vh * 0.08) / Math.max(1, home - vh * 0.08)));
+            progress = pour * (0.12 + 0.5 * drain);
           }
         }
         const target = -0.14 + progress * 1.34;

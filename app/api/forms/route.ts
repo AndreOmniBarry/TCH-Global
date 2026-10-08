@@ -9,12 +9,14 @@ const LABELS: Record<FormType, string> = {
   give: 'Giving intent',
   testimony: 'Testimony',
   newsletter: 'Newsletter sign-up',
+  salvation: 'Prayed the prayer of salvation',
 };
 
 const CONFIRMATIONS: Partial<Record<FormType, { subject: string; body: string }>> = {
   newsletter: { subject: 'Welcome to TCH Global', body: 'Thank you for subscribing. Every Sunday&rsquo;s reflection will arrive here the moment it is published.' },
   volunteer: { subject: 'Thank you for offering to serve', body: 'We received your interest in serving at TCH Global. A team lead will reach out to you soon.' },
   join: { subject: 'Welcome home', body: 'Thank you for taking the next step. Someone from our membership team will follow up with you about next steps.' },
+  salvation: { subject: 'Welcome to the family of God', body: 'What a joyful decision. Heaven is rejoicing over you, and so are we. Pastor Uzor and our team will reach out to pray with you and help you take your next steps. Until then, read the Gospel of John and talk to God every day. He hears you.' },
   give: { subject: 'We received your giving intent', body: 'Thank you for your generosity. Our finance team will reach out with secure giving instructions. No payment has been processed.' },
 };
 
@@ -43,6 +45,7 @@ const REQUIRED_FIELDS: Record<FormType, string[]> = {
   give: ['name', 'email'],
   testimony: ['name', 'quote'],
   newsletter: ['email'],
+  salvation: ['name'],
 };
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -80,6 +83,9 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    if (type === 'salvation' && !cleanFields.phone && !cleanFields.email) {
+      return NextResponse.json({ error: 'Leave a phone number or email so we can reach you.' }, { status: 400 });
+    }
     if (cleanFields.email && !EMAIL_RE.test(cleanFields.email)) {
       return NextResponse.json({ error: 'That email address doesn’t look right — please check it.' }, { status: 400 });
     }

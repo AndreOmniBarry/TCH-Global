@@ -6,6 +6,7 @@ import SectionTitleStage from '@/components/decor/SectionTitleStage';
 import HeroExtras from '@/components/decor/HeroExtras';
 import { getAllPosts, getUpcomingEvents, getTestimonies, getSpotlights } from '@/lib/sanity';
 import HeroSpotlight from '@/components/decor/HeroSpotlight';
+import SalvationSection from '@/components/SalvationSection';
 import { fallbackPosts } from '@/lib/fallback-posts';
 
 const FACEBOOK_URL = process.env.NEXT_PUBLIC_FACEBOOK_URL || 'https://www.facebook.com/profile.php?id=61557996937416';
@@ -392,6 +393,7 @@ const HOME_HTML_EVENTS_TO_MEDIA = `
 `;
 
 export const revalidate = 60;
+const CONTACT_MARK = '<section class="section pop-stage shape-host band-dark" id="contact"';
 
 const esc = (v: string) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
 const shortDate = (iso: string) => new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'Africa/Lagos' });
@@ -452,7 +454,9 @@ export default async function HomePage() {
       <TestimoniesSection />
       <div dangerouslySetInnerHTML={{ __html: HOME_HTML_TESTIMONIES_TO_EVENTS.replace('__BLOG_POSTS__', blogHtml(sorted)) }} />
       <EventsSection />
-      <div dangerouslySetInnerHTML={{ __html: HOME_HTML_EVENTS_TO_MEDIA }} />
+      <div dangerouslySetInnerHTML={{ __html: HOME_HTML_EVENTS_TO_MEDIA.slice(0, HOME_HTML_EVENTS_TO_MEDIA.indexOf(CONTACT_MARK)) }} />
+      <SalvationSection />
+      <div dangerouslySetInnerHTML={{ __html: HOME_HTML_EVENTS_TO_MEDIA.slice(HOME_HTML_EVENTS_TO_MEDIA.indexOf(CONTACT_MARK)) }} />
     </>
   );
 }

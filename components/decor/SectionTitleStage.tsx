@@ -65,6 +65,8 @@ export default function SectionTitleStage() {
     let raf = 0;
     let last = performance.now();
 
+    let vel = 0;
+    let clock = 0;
     function render(y: number) {
       const vh = window.innerHeight;
       const probe = vh * 0.62;
@@ -93,6 +95,9 @@ export default function SectionTitleStage() {
         }
         if (!vis) continue;
 
+        // The word leans into fast scrolling and springs back upright.
+        const lean = Math.max(-9, Math.min(9, -vel * 0.06));
+        words[i].style.transform = `skewX(${lean.toFixed(2)}deg)`;
         const ls = letters[i];
         const n = ls.length;
         const stagger = Math.min(0.07, 0.45 / n);
@@ -112,8 +117,11 @@ export default function SectionTitleStage() {
             // with a small spring overshoot (pop-up book).
             const t = clamp01((rise - stagger * j) / span);
             const e = easeOutBack(t);
-            ty = (1 - e) * 108;
-            rx = (1 - e) * -86;
+            // Once risen, letters float: a slow bob and sway, each on its
+            // own phase, like buoys on water.
+            const settle = reduce ? 0 : t * t;
+            ty = (1 - e) * 108 + settle * Math.sin(clock * 1.7 + j * 0.75) * 2.6;
+            rx = (1 - e) * -86 + settle * Math.sin(clock * 1.3 + j * 0.9) * 5;
             op = Math.min(1, t * 2.5);
           }
           const pose = `translate3d(0,${ty.toFixed(2)}%,0) rotateX(${rx.toFixed(2)}deg)|${op.toFixed(3)}`;
@@ -137,10 +145,15 @@ export default function SectionTitleStage() {
       const dt = Math.min((now - last) / 1000, 0.05);
       last = now;
       const target = window.scrollY;
+      const prev = smooth;
       smooth = reduce ? target : smooth + (target - smooth) * (1 - Math.exp(-dt * 9));
       if (Math.abs(target - smooth) < 0.3) smooth = target;
+      vel += ((dt > 0 ? (smooth - prev) / dt / 60 : 0) - vel) * 0.25;
+      clock += dt;
       render(smooth);
-      raf = smooth !== target ? requestAnimationFrame(frame) : 0;
+      // Keep animating while a word is on screen (for the float) or moving.
+      const anyVisible = lastVis.some(Boolean) && lastStageShift !== 'translate3d(0,105.00%,0)';
+      raf = smooth !== target || Math.abs(vel) > 0.05 || (anyVisible && !reduce && !document.hidden) ? requestAnimationFrame(frame) : 0;
     }
     function kick() {
       if (!raf) {

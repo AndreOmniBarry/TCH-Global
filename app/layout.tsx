@@ -8,6 +8,8 @@ import '@fontsource/plus-jakarta-sans/latin-600.css';
 import '@fontsource/jetbrains-mono/latin-600.css';
 import Script from 'next/script';
 import CrystalLiquid from '@/components/decor/CrystalLiquid';
+import QuickDock from '@/components/QuickDock';
+import JoinNudge from '@/components/members/JoinNudge';
 import BroadcastFrames from '@/components/decor/BroadcastFrames';
 
 export const metadata: Metadata = {
@@ -76,6 +78,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <div dangerouslySetInnerHTML={{ __html: SPLASH_HTML }} suppressHydrationWarning />
         <script dangerouslySetInnerHTML={{ __html: SPLASH_SCRIPT }} />
         <CrystalLiquid />
+        <QuickDock />
+        <JoinNudge />
         <BroadcastFrames />
         {children}
         <Script src={asset("/js/main.js")} strategy="afterInteractive" />
