@@ -1884,3 +1884,45 @@ body:has(.jn-wrap) .qdock { opacity: 0; pointer-events: none; }
 .tn-teaser .tn-kicker { color: #c6ff3d; }
 .tn-teaser-go { justify-self: start; padding: 12px 18px; border-radius: 14px; background: #c6ff3d; color: #0a0714; font: 800 .88rem var(--font-display); }
 @media (prefers-reduced-motion: reduce) { .tn-orbs i, .tn-marquee div { animation: none; } }
+
+/* ===== PUDLIB! polish ===== */
+/* Player enter / exit */
+.pl-modal { transition: opacity .3s ease, transform .4s cubic-bezier(.2, .9, .25, 1), border-radius .3s ease; transform-origin: 50% 100%; }
+.pl-modal--in { opacity: 0; transform: translateY(40px) scale(.97); }
+.pl-modal--out { opacity: 0; transform: translateY(30px) scale(.97); transition-duration: .25s; }
+.pl-grabber { display: none; }
+@media (hover: none) { .pl-grabber { display: block; width: 40px; height: 5px; margin: 0 auto 8px; border-radius: 3px; background: rgb(255 255 255 / .28); } }
+.pl-mini { transition: transform .35s cubic-bezier(.2, .9, .25, 1), opacity .3s ease; animation: pl-mini-in .45s cubic-bezier(.2, .9, .25, 1); touch-action: pan-y; }
+@keyframes pl-mini-in { from { transform: translateY(30px) scale(.9); opacity: 0; } }
+
+/* HUD + double-tap ripple */
+.pl-hud { position: absolute; left: 50%; top: 50%; z-index: 4; transform: translate(-50%, -50%); padding: 10px 16px; border-radius: 999px; background: rgb(0 0 0 / .55); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); color: #fff; font: 700 .9rem var(--font-body); pointer-events: none; animation: pl-hud .7s ease forwards; }
+.pl-hud--l, .pl-hud--r { top: 0; bottom: 0; width: 38%; transform: none; display: grid; place-items: center; border-radius: 0; background: radial-gradient(closest-side, rgb(255 255 255 / .22), transparent); backdrop-filter: none; -webkit-backdrop-filter: none; }
+.pl-hud--l { left: 0; border-radius: 0 50% 50% 0 / 0 50% 50% 0; }
+.pl-hud--r { left: auto; right: 0; border-radius: 50% 0 0 50% / 50% 0 0 50%; }
+@keyframes pl-hud { 0% { opacity: 0; } 15% { opacity: 1; } 70% { opacity: 1; } 100% { opacity: 0; } }
+.pl-shield { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+
+/* Queue remove */
+.pl-queue-li { position: relative; }
+.pl-queue-x { position: absolute; right: 6px; top: 50%; z-index: 2; translate: 0 -50%; width: 28px; height: 28px; border-radius: 50%; border: 0; background: rgb(0 0 0 / .5); color: #fff; display: grid; place-items: center; cursor: pointer; opacity: 0; transition: opacity .2s ease; }
+.pl-queue-li:hover .pl-queue-x, .pl-queue-x:focus-visible { opacity: 1; }
+@media (hover: none) { .pl-queue-x { opacity: .7; } }
+
+/* Toast */
+.pl-toast { position: fixed; left: 50%; bottom: max(20px, env(safe-area-inset-bottom)); z-index: 10200; translate: -50% 0; display: flex; align-items: center; gap: 18px; padding: 12px 14px 12px 18px; border-radius: 16px; background: #15102a; color: #fff; box-shadow: 0 20px 40px -16px rgb(0 0 0 / .5), inset 0 1px 0 rgb(255 255 255 / .1); font: 600 .88rem var(--font-body); animation: pl-toast .45s cubic-bezier(.2, .9, .25, 1); }
+.pl-toast span { display: inline-flex; align-items: center; gap: 8px; }
+.pl-toast span svg { color: #22c55e; }
+.pl-toast button { border: 0; background: none; color: #f5c542; font: 700 .86rem var(--font-body); cursor: pointer; padding: 4px 6px; }
+@keyframes pl-toast { from { opacity: 0; translate: -50% 20px; } }
+body:has(.pl-toast) .qdock { opacity: 0; pointer-events: none; }
+
+/* Image fade-in with shimmer while loading */
+.pl-thumb, .pl-queue-thumb, .pl-track-thumb, .pl-cover-mosaic, .pl-featured-art { background: linear-gradient(100deg, #1a1430 30%, #2a2148 50%, #1a1430 70%) 0 0 / 200% 100%; animation: pl-shimmer 1.4s linear infinite; }
+.pl-thumb:has(img.ld), .pl-queue-thumb:has(img.ld), .pl-track-thumb:has(img.ld), .pl-cover-mosaic:has(img.ld), .pl-featured-art:has(img.ld) { animation: none; }
+@keyframes pl-shimmer { to { background-position: -200% 0; } }
+.pl-app img, .pl-modal img { opacity: 0; transition: opacity .45s ease, transform .8s cubic-bezier(.2, .8, .2, 1); }
+.pl-app img.ld, .pl-modal img.ld { opacity: 1; }
+.pl-ambient { transition: background-image .6s ease, opacity .6s ease; }
+@media (prefers-reduced-motion: reduce) { .pl-modal, .pl-mini, .pl-toast, .pl-hud { animation: none; transition: none; } .pl-thumb, .pl-queue-thumb { animation: none; } }
+.pl-queue-li .pl-queue-item { padding-right: 40px; }

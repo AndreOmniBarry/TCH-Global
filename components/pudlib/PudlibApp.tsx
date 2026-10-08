@@ -104,11 +104,23 @@ function loadYT() {
   return ytReady;
 }
 
-function VideoPlayer({ item, upNext, resumeAt, mini, setMini, onClose, onPlay, onProgress, playingFrom, saved, onSave }: {
+function VideoPlayer({ item, upNext, resumeAt, mini, setMini, onClose, onPlay, onProgress, playingFrom, saved, onSave, onRemoveNext }: {
   item: LibItem; upNext: LibItem[]; resumeAt: number; mini: boolean; setMini: (v: boolean) => void;
   onClose: () => void; onPlay: (it: LibItem) => void; onProgress: (id: string, p: number, t: number) => void;
-  playingFrom?: string | null; saved: boolean; onSave: (it: LibItem) => void;
+  playingFrom?: string | null; saved: boolean; onSave: (it: LibItem) => void; onRemoveNext?: (id: string) => void;
 }) {
+  // Heads-up display: brief centre feedback for taps and keys.
+  const [hud, setHud] = useState<{ k: number; text: string; side?: 'l' | 'r' } | null>(null);
+  const flash = (text: string, side?: 'l' | 'r') => setHud({ k: Date.now(), text, side });
+  useEffect(() => { if (!hud) return; const t = window.setTimeout(() => setHud(null), 700); return () => window.clearTimeout(t); }, [hud]);
+  // Enter / exit motion.
+  const [phase, setPhase] = useState<'in' | 'shown' | 'out'>('in');
+  useEffect(() => { const t = requestAnimationFrame(() => setPhase('shown')); return () => cancelAnimationFrame(t); }, []);
+  const closeAnimated = () => { setPhase('out'); window.setTimeout(onClose, 260); };
+  // Swipe down (phones) to drop into the mini player.
+  const drag = useRef<{ y: number; x: number; dy: number; active: boolean } | null>(null);
+  const [dragY, setDragY] = useState(0);
+  const [dragX, setDragX] = useState(0);
   const [autoplay, setAutoplay] = useState(true);
   const autoplayRef = useRef(true);
   const [shared, setShared] = useState(false);
@@ -195,10 +207,13 @@ function VideoPlayer({ item, upNext, resumeAt, mini, setMini, onClose, onPlay, o
       const tag = (e.target as HTMLElement).tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA') return;
       if (e.key === 'Escape') { if (fs) exitFs(); else setMini(true); }
-      if (e.key === ' ' || e.key === 'k') { e.preventDefault(); toggle(); }
-      if (e.key === 'ArrowRight') seekBy(10);
-      if (e.key === 'ArrowLeft') seekBy(-10);
-      if (e.key === 'm') toggleMute();
+      if (e.key === ' ' || e.key === 'k') { e.preventDefault(); toggle(); flash(playing ? 'Paused' : 'Playing'); }
+      if (e.key === 'ArrowRight') { seekBy(10); flash('+10s', 'r'); }
+      if (e.key === 'ArrowLeft') { seekBy(-10); flash('−10s', 'l'); }
+      if (e.key === 'ArrowUp') { e.preventDefault(); const v = Math.min(100, volume + 10); changeVolume(v); flash(`Volume ${v}%`); }
+      if (e.key === 'ArrowDown') { e.preventDefault(); const v = Math.max(0, volume - 10); changeVolume(v); flash(`Volume ${v}%`); }
+      if (e.key === 'm') { toggleMute(); flash(muted ? 'Sound on' : 'Muted'); }
+      if (e.key === 'n' && upNext[0]) onPlay(upNext[0]);
       if (e.key === 'f') (fs ? exitFs() : enterFs('landscape'));
     }
     window.addEventListener('keydown', onKey);
@@ -211,7 +226,45 @@ function VideoPlayer({ item, upNext, resumeAt, mini, setMini, onClose, onPlay, o
   function seekBy(s: number) { const p = playerRef.current; if (!p?.getCurrentTime) return; seekTo(Math.max(0, (p.getCurrentTime() || 0) + s)); }
   function toggleMute() { const p = playerRef.current; if (!p?.isMuted) return; if (p.isMuted()) { p.unMute(); setMuted(false); } else { p.mute(); setMuted(true); } }
   function changeVolume(v: number) { const p = playerRef.current; if (!p?.setVolume) return; p.setVolume(v); setVolume(v); if (v > 0 && p.isMuted()) { p.unMute(); setMuted(false); } }
-  function changeSpeed(s: number) { playerRef.current?.setPlaybackRate?.(s); setSpeed(s); setSpeedOpen(false); }
+  function changeSpeed(s: number) { playerRef.current?.setPlaybackRate?.(s); setSpeed(s); setSpeedOpen(false); flash(s === 1 ? 'Normal speed' : `${s}× speed`); }
+
+  // Lock-screen / Control Centre controls and artwork.
+  useEffect(() => {
+    const ms = (navigator as any).mediaSession;
+    if (!ms || typeof (window as any).MediaMetadata === 'undefined') return;
+    ms.metadata = new (window as any).MediaMetadata({ title: item.title, artist: 'Pastor Uzor Echiejile', album: item.series || 'PUDLIB!', artwork: [{ src: item.image, sizes: '480x360', type: 'image/jpeg' }] });
+    const set = (a: string, h: (() => void) | null) => { try { ms.setActionHandler(a, h); } catch {} };
+    set('play', () => playerRef.current?.playVideo?.());
+    set('pause', () => playerRef.current?.pauseVideo?.());
+    set('seekbackward', () => seekBy(-10));
+    set('seekforward', () => seekBy(10));
+    set('nexttrack', upNext[0] ? () => onPlay(upNext[0]) : null);
+    return () => { ['play', 'pause', 'seekbackward', 'seekforward', 'nexttrack'].forEach((a) => set(a, null)); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [item.id, upNext[0]?.id]);
+  useEffect(() => { const ms = (navigator as any).mediaSession; if (ms) ms.playbackState = playing ? 'playing' : 'paused'; }, [playing]);
+
+  // Taps on the picture: mouse click toggles; touch single-tap toggles,
+  // double-tap on the left/right third skips 10s (YouTube style).
+  const lastTap = useRef<{ t: number; x: number } | null>(null);
+  const tapTimer = useRef(0);
+  function onShieldPointer(e: React.PointerEvent<HTMLButtonElement>) {
+    if (mini) { setMini(false); return; }
+    if (e.pointerType === 'mouse') { toggle(); return; }
+    const r = e.currentTarget.getBoundingClientRect();
+    const x = (e.clientX - r.left) / r.width;
+    const now = Date.now();
+    if (lastTap.current && now - lastTap.current.t < 300) {
+      window.clearTimeout(tapTimer.current);
+      lastTap.current = null;
+      if (x < 0.38) { seekBy(-10); flash('−10s', 'l'); }
+      else if (x > 0.62) { seekBy(10); flash('+10s', 'r'); }
+      else { toggle(); }
+      return;
+    }
+    lastTap.current = { t: now, x };
+    tapTimer.current = window.setTimeout(() => { lastTap.current = null; toggle(); }, 280);
+  }
   // Two fullscreen modes. Where the browser allows real fullscreen we use
   // it and lock the orientation; on iPhone (no element fullscreen) the
   // frame covers the screen itself, and landscape rotates the picture.
@@ -237,7 +290,8 @@ function VideoPlayer({ item, upNext, resumeAt, mini, setMini, onClose, onPlay, o
   const frame = (
     <div className={`pl-frame${idle && playing && !mini ? ' idle' : ''}${fs ? ` fs fs-${fs}` : ''}`} ref={frameRef} onPointerMove={wake} onPointerDown={wake}>
       <div className="pl-yt" ref={hostRef} />
-      <button type="button" className="pl-shield" aria-label={playing ? 'Pause' : 'Play'} onClick={mini ? () => setMini(false) : toggle} />
+      <button type="button" className="pl-shield" aria-label={playing ? 'Pause' : 'Play'} onPointerUp={onShieldPointer} onDoubleClick={(e) => { if (!mini) { e.preventDefault(); fs ? exitFs() : enterFs('landscape'); } }} />
+      {hud && <span key={hud.k} className={`pl-hud${hud.side ? ` pl-hud--${hud.side}` : ''}`} aria-live="polite">{hud.text}</span>}
       {!ready && <div className="pl-loading" aria-hidden="true"><span /></div>}
       {ready && !mini && <span className={`pl-bigplay${playing ? ' is-hidden' : ''}`}><MotionPlay size={76} ring playing={playing} /></span>}
       {mini ? (
@@ -291,18 +345,41 @@ function VideoPlayer({ item, upNext, resumeAt, mini, setMini, onClose, onPlay, o
     </div>
   );
 
-  if (mini) return <div className="pl-mini" role="region" aria-label={`Now playing: ${item.title}`}>{frame}</div>;
+  if (mini) {
+    return (
+      <div
+        className="pl-mini" role="region" aria-label={`Now playing: ${item.title}`}
+        style={dragX ? { transform: `translateX(${dragX}px)`, opacity: Math.max(0.2, 1 - Math.abs(dragX) / 260), transition: 'none' } : undefined}
+        onPointerDown={(e) => { if (e.pointerType !== 'mouse') drag.current = { x: e.clientX, y: e.clientY, dy: 0, active: true }; }}
+        onPointerMove={(e) => { const d = drag.current; if (d?.active) setDragX(e.clientX - d.x); }}
+        onPointerUp={() => { if (Math.abs(dragX) > 120) onClose(); setDragX(0); drag.current = null; }}
+        onPointerCancel={() => { setDragX(0); drag.current = null; }}
+      >{frame}</div>
+    );
+  }
 
   const dateLabel = item.date ? new Date(item.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
   return (
-    <div className="pl-modal" role="dialog" aria-modal="true" aria-label={item.title}>
+    <div
+      className={`pl-modal pl-modal--${phase}`} role="dialog" aria-modal="true" aria-label={item.title}
+      style={dragY ? { transform: `translateY(${dragY}px) scale(${1 - Math.min(dragY, 400) / 2400})`, borderRadius: Math.min(28, dragY / 6), transition: 'none' } : undefined}
+      onPointerDown={(e) => {
+        const t = e.target as HTMLElement;
+        if (e.pointerType === 'mouse' || (e.currentTarget as HTMLElement).scrollTop > 0 || t.closest('.pl-controls, .pl-queue, button, input, a')) return;
+        drag.current = { x: e.clientX, y: e.clientY, dy: 0, active: true };
+      }}
+      onPointerMove={(e) => { const d = drag.current; if (d?.active) { const dy = e.clientY - d.y; if (dy > 0) setDragY(dy); } }}
+      onPointerUp={() => { if (dragY > 130) setMini(true); setDragY(0); drag.current = null; }}
+      onPointerCancel={() => { setDragY(0); drag.current = null; }}
+    >
+      <span className="pl-grabber" aria-hidden="true" />
       <div className="pl-ambient" aria-hidden="true" style={{ backgroundImage: `url(${item.image})` }} />
       <div className="pl-modal-top">
         <PudlibLogo size={24} />
         <span className="pl-now">Now playing</span>
         <div className="pl-modal-actions">
           <button type="button" className="pl-round" onClick={() => setMini(true)} aria-label="Minimise player"><IconMinimize size={20} /></button>
-          <button type="button" className="pl-round" onClick={onClose} aria-label="Close player"><IconClose size={20} /></button>
+          <button type="button" className="pl-round" onClick={closeAnimated} aria-label="Close player"><IconClose size={20} /></button>
         </div>
       </div>
       <div className="pl-theatre">
@@ -338,7 +415,8 @@ function VideoPlayer({ item, upNext, resumeAt, mini, setMini, onClose, onPlay, o
                 <span className="pl-queue-text"><span className="pl-title">{item.title}</span><span className="pl-sub">Playing now</span></span>
               </li>
               {upNext.slice(0, 12).map((n, i) => (
-                <li key={n.id}>
+                <li key={n.id} className="pl-queue-li">
+                  {onRemoveNext && <button type="button" className="pl-queue-x" onClick={() => onRemoveNext(n.id)} aria-label={`Remove ${n.title} from up next`}><IconClose size={14} /></button>}
                   <button type="button" className="pl-queue-item" onClick={() => onPlay(n)}>
                     <span className="pl-queue-idx">{i + 1}</span>
                     <span className="pl-queue-thumb"><img src={n.image} alt="" loading="lazy" />{i === 0 && autoplay && <em>Next</em>}<span className="pl-queue-hover"><MotionPlay size={30} /></span></span>
@@ -363,6 +441,22 @@ function AudioBar({ item, resumeAt, onClose, onProgress, onEnded }: { item: LibI
   const [dur, setDur] = useState(0);
   const [speed, setSpeed] = useState(1);
   useEffect(() => { track(item.id); ref.current?.play().catch(() => {}); }, [item.id]);
+  // Lock-screen controls for listening with the phone locked.
+  useEffect(() => {
+    const ms = (navigator as any).mediaSession;
+    if (!ms || typeof (window as any).MediaMetadata === 'undefined') return;
+    ms.metadata = new (window as any).MediaMetadata({ title: item.title, artist: 'Pastor Uzor Echiejile', album: item.series || 'PUDLIB!', artwork: [{ src: item.image, sizes: '512x512' }] });
+    const a = () => ref.current;
+    const set = (k: string, h: ((d?: any) => void) | null) => { try { ms.setActionHandler(k, h); } catch {} };
+    set('play', () => a()?.play());
+    set('pause', () => a()?.pause());
+    set('seekbackward', () => { const el = a(); if (el) el.currentTime = Math.max(0, el.currentTime - 10); });
+    set('seekforward', () => { const el = a(); if (el) el.currentTime = el.currentTime + 10; });
+    set('seekto', (d: any) => { const el = a(); if (el && typeof d?.seekTime === 'number') el.currentTime = d.seekTime; });
+    set('nexttrack', () => onEnded());
+    return () => ['play', 'pause', 'seekbackward', 'seekforward', 'seekto', 'nexttrack'].forEach((k) => set(k, null));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [item.id]);
   return (
     <div className="pl-audiobar" role="region" aria-label="Audio player">
       <audio
@@ -613,6 +707,9 @@ export default function PudlibApp({ items, videosConnected, initialPlay }: { ite
   const [coplay, setCoplay] = useState<CoPlay>({});
   const [playingFrom, setPlayingFrom] = useState<string | null>(null);
   const [openList, setOpenList] = useState<string | null>(null);
+  const [skipped, setSkipped] = useState<Set<string>>(new Set());
+  const [toast, setToast] = useState<{ k: number; text: string; it?: LibItem } | null>(null);
+  useEffect(() => { if (!toast) return; const t = window.setTimeout(() => setToast(null), 3600); return () => window.clearTimeout(t); }, [toast]);
   const histRef = useRef<History>({});
   const lastSave = useRef(0);
   const tabsRef = useSlidingPill<HTMLDivElement>(tab);
@@ -652,6 +749,18 @@ export default function PudlibApp({ items, videosConnected, initialPlay }: { ite
   const chipsRef = useSlidingPill<HTMLDivElement>(`${tab}-${topic}`);
 
   useEffect(() => { histRef.current = loadHistory(); setHistory(histRef.current); setPlaylists(loadPlaylists()); }, []);
+
+  // Fade images in once decoded (no pop-in): mark loaded images.
+  useEffect(() => {
+    const mark = (img: HTMLImageElement) => img.classList.add('ld');
+    const onLoad = (e: Event) => { const t = e.target as HTMLElement; if (t.tagName === 'IMG') mark(t as HTMLImageElement); };
+    document.addEventListener('load', onLoad, true);
+    const sweep = () => document.querySelectorAll<HTMLImageElement>('.pl-app img:not(.ld), .pl-modal img:not(.ld)').forEach((i) => { if (i.complete && i.naturalWidth) mark(i); });
+    sweep();
+    const mo = new MutationObserver(sweep);
+    mo.observe(document.body, { childList: true, subtree: true });
+    return () => { document.removeEventListener('load', onLoad, true); mo.disconnect(); };
+  }, []);
 
   const model = useMemo(() => buildModel(items), [items]);
   const byId = useMemo(() => new Map(items.map((i) => [i.id, i])), [items]);
@@ -727,9 +836,9 @@ export default function PudlibApp({ items, videosConnected, initialPlay }: { ite
   const upNext = useMemo(() => {
     if (!video) return [];
     const queued = queue.map((id) => byId.get(id)).filter((x): x is LibItem => Boolean(x && x.id !== video.id));
-    const sim = similar(video, items, model, coplay, 12).filter((x) => !queued.includes(x) && (history[x.id]?.progress ?? 0) < 0.92);
-    return [...queued, ...sim].slice(0, 12);
-  }, [video, queue, byId, items, model, coplay, history]);
+    const sim = similar(video, items, model, coplay, 16).filter((x) => !queued.includes(x) && (history[x.id]?.progress ?? 0) < 0.92);
+    return [...queued, ...sim].filter((x) => !skipped.has(x.id)).slice(0, 12);
+  }, [video, queue, byId, items, model, coplay, history, skipped]);
 
   function playFromPlayer(it: LibItem) {
     setQueue((qq) => qq.filter((id) => id !== it.id));
@@ -775,9 +884,17 @@ export default function PudlibApp({ items, videosConnected, initialPlay }: { ite
     const h = history[it.id];
     return h && h.progress > 0.02 && h.progress < 0.92 ? h.t ?? 0 : 0;
   };
+  // Spotify-style: first tap saves straight to Watch later with an undo-ish
+  // "Change" link; if it's already saved, open the playlist sheet.
   const save: SaveFn = (it) => {
     if (!member) { window.dispatchEvent(new CustomEvent('tch:join', { detail: { reason: 'playlist' } })); return; }
-    setSaving(it);
+    if (playlists.some((p) => p.ids.includes(it.id))) { setSaving(it); return; }
+    const next = playlists.some((p) => p.id === 'later')
+      ? playlists.map((p) => (p.id === 'later' ? { ...p, ids: [it.id, ...p.ids] } : p))
+      : [{ id: 'later', name: 'Watch later', ids: [it.id] }, ...playlists];
+    updatePlaylists(next);
+    setToast({ k: Date.now(), text: 'Saved to Watch later', it });
+    try { navigator.vibrate?.(12); } catch {}
   };
 
   const browse = (kind: LibKind) => {
@@ -918,6 +1035,12 @@ export default function PudlibApp({ items, videosConnected, initialPlay }: { ite
         </section>
       )}
 
+      {toast && (
+        <div className="pl-toast" key={toast.k} role="status">
+          <span><IconCheck size={16} /> {toast.text}</span>
+          {toast.it && <button type="button" onClick={() => { setSaving(toast.it!); setToast(null); }}>Change</button>}
+        </div>
+      )}
       {saving && (
         <SaveSheet item={saving} playlists={playlists} onClose={() => setSaving(null)}
           onToggle={(id) => togglePl(id, saving)} onCreate={(name) => createPl(name, saving)} />
@@ -929,6 +1052,7 @@ export default function PudlibApp({ items, videosConnected, initialPlay }: { ite
           onClose={() => { setVideo(null); setMini(false); setQueue([]); setPlayingFrom(null); saveHistory(histRef.current); setHistory(histRef.current); }}
           onPlay={playFromPlayer} onProgress={onProgress}
           playingFrom={queue.length ? playingFrom : null} saved={savedIds.has(video.id)} onSave={save}
+          onRemoveNext={(id) => { setQueue((q) => q.filter((x) => x !== id)); setSkipped((s) => new Set(s).add(id)); }}
         />
       )}
       {audio && (
