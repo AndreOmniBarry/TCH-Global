@@ -76,6 +76,14 @@ export async function getLibrary(): Promise<{ items: LibItem[]; videosConnected:
   // keep a sermon playing as audio when the phone locks.
   const ytId = (u?: string | null) => (u ? u.match(/(?:v=|youtu\.be\/|\/live\/|\/shorts\/|\/embed\/)([\w-]{11})/)?.[1] ?? null : null);
   const twins = new Map<string, string>();
+  // Google Drive "share" links open a viewer page, not the audio itself;
+  // rewrite them to Drive's direct-file address so the player can stream.
+  const direct = (u?: string | null) => {
+    if (!u) return u ?? null;
+    const id = u.match(/drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?(?:export=\w+&)?id=)([\w-]{20,})/)?.[1];
+    return id ? `https://drive.google.com/uc?export=download&id=${id}` : u;
+  };
+  for (const a of sanityData?.audio ?? []) a.src = direct(a.src);
   for (const a of sanityData?.audio ?? []) { const id = ytId(a.youtubeLink); if (id && a.src) twins.set(id, a.src); }
   const base: Omit<LibItem, 'views' | 'score'>[] = [];
   for (const v of videos ?? []) {
