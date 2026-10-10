@@ -1929,3 +1929,53 @@ body:has(.pl-toast) .qdock { opacity: 0; pointer-events: none; }
 .pl-action--listen { border-color: rgb(34 211 238 / .45); background: rgb(34 211 238 / .12); }
 .pl-action--listen:hover { background: rgb(34 211 238 / .22); }
 .pl-watch { display: inline-flex; align-items: center; gap: 6px; }
+
+/* Quick dock: strong crimson */
+.qdock { background: linear-gradient(160deg, #e11d48, #b3122f 55%, #8f0e26); border-color: rgb(255 255 255 / .22); box-shadow: 0 18px 40px -16px rgb(143 14 38 / .7), inset 0 1px 0 rgb(255 255 255 / .35), inset 0 -1px 0 rgb(0 0 0 / .15); }
+.qdock a { color: rgb(255 255 255 / .86); }
+.qdock a:hover { color: #fff; background: rgb(255 255 255 / .14); }
+.qdock a.on { color: #b3122f; background: #fff; box-shadow: 0 6px 16px -6px rgb(0 0 0 / .4); }
+.qdock a svg { filter: drop-shadow(0 1px 1px rgb(0 0 0 / .18)); }
+
+/* ===== Navigation v2 ===== */
+.nav-more { display: none; }
+.nav-give { color: #fff !important; }
+@media (max-width: 959px) {
+  .main-nav .nav-give { display: inline-flex !important; padding: 10px 18px !important; margin-top: 6px; border-radius: 12px; background: linear-gradient(135deg, #e11d48, #b3122f); }
+}
+@media (min-width: 960px) {
+  .site-header .container { max-width: 1360px; padding-block: 14px; }
+  .main-nav ul { display: flex; align-items: center; gap: 4px; flex-wrap: nowrap; }
+  .main-nav .nav-s { display: none; }
+  .main-nav .nav-more { display: block; position: relative; }
+  .main-nav a, .nav-more summary { display: inline-flex; align-items: center; gap: 4px; padding: 9px 13px; border-radius: 999px; font: 600 .86rem var(--font-body); color: var(--text-body); text-decoration: none; transition: background .2s ease, color .2s ease; }
+  .main-nav a:hover, .nav-more summary:hover, .nav-more details[open] summary { background: color-mix(in srgb, var(--text-high) 7%, transparent); color: var(--text-high); }
+  .nav-more summary { list-style: none; cursor: pointer; user-select: none; }
+  .nav-more summary::-webkit-details-marker { display: none; }
+  .nav-more summary svg { transition: transform .25s ease; }
+  .nav-more details[open] summary svg { transform: rotate(180deg); }
+  .nav-more-menu { position: absolute; right: 0; top: calc(100% + 10px); display: grid; min-width: 230px; padding: 8px; border-radius: 18px; background: color-mix(in srgb, var(--bg-root) 88%, transparent); backdrop-filter: blur(24px) saturate(1.5); -webkit-backdrop-filter: blur(24px) saturate(1.5); border: 1px solid var(--border-glass); box-shadow: 0 24px 50px -20px rgb(10 5 30 / .45); animation: nav-pop .22s cubic-bezier(.2, .9, .25, 1); transform-origin: top right; }
+  .nav-more-menu a { justify-content: flex-start; border-radius: 12px !important; padding: 10px 14px !important; }
+  @keyframes nav-pop { from { opacity: 0; transform: translateY(-6px) scale(.97); } }
+  .main-nav .nav-cta { margin-left: 6px; }
+  .main-nav .nav-give { padding: 10px 20px !important; background: linear-gradient(135deg, #e11d48, #b3122f); box-shadow: 0 8px 18px -8px rgb(179 18 47 / .7), inset 0 1px 0 rgb(255 255 255 / .3); }
+  .main-nav .nav-give:hover { filter: brightness(1.08); background: linear-gradient(135deg, #e11d48, #b3122f) !important; }
+  .main-nav .nav-account { border: 1px solid var(--border-glass-strong, var(--border-glass)); margin-left: 4px; }
+  .brand { font-size: 1.15rem; }
+  .brand img { width: 40px; height: 40px; border-radius: 10px; }
+}
+
+/* Laptop & desktop scale: everything set in rem grows with the screen,
+   so the site stops looking like a phone layout on a big display. */
+@media (min-width: 1200px) { html { font-size: 17px; } .container { max-width: 1180px; } .section > .container { max-width: 1240px; } }
+@media (min-width: 1440px) { html { font-size: 18px; } .container { max-width: 1280px; } .section > .container { max-width: 1340px; } }
+@media (min-width: 1800px) { html { font-size: 19.5px; } .container { max-width: 1440px; } .section > .container { max-width: 1500px; } }
+@media (min-width: 1200px) {
+  .eyebrow { font-size: .72rem; }
+  .section { padding-block: 84px; }
+  .section-header h2 { font-size: clamp(2.2rem, 3.2vw, 3.2rem); }
+  .section-header p { font-size: 1.05rem; }
+}
+html.theme-switching *, html.theme-switching *::before, html.theme-switching *::after { transition: none !important; }
+::view-transition-old(root), ::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
+@media (min-width: 960px) { .nav-more-menu { background: color-mix(in srgb, var(--bg-root) 97%, transparent); } }

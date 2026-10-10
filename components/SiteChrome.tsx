@@ -1,3 +1,5 @@
+import { navHtml } from '@/lib/nav';
+
 export function SiteHeader() {
   return (
     <header className="site-header" id="top">
@@ -13,24 +15,7 @@ export function SiteHeader() {
               <line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" />
             </svg>
           </button>
-          <nav className="main-nav" id="main-nav">
-            <ul>
-              <li><a href="/">Home</a></li>
-              <li><a href="/#about-church">About Church</a></li>
-              <li><a href="/#pastor-section">Meet the Pastor</a></li>
-              <li><a href="/#testimonies">Testimonies</a></li>
-              <li><a href="/library">PUDLIB!</a></li>
-              <li><a href="/blog">Blog</a></li>
-              <li><a href="/#service">Service &amp; Events</a></li>
-              <li><a href="/#media">Media &amp; Streaming</a></li>
-              <li><a href="/#volunteer">Volunteer</a></li>
-              <li><a href="/#contact">Contact Us</a></li>
-              <li><a href="/#join">Join Us</a></li>
-              <li><a href="/teens">Teens</a></li>
-              <li><a href="/#give">Give</a></li>
-              <li><a href="/account" className="nav-account" data-account-link>Sign in</a></li>
-            </ul>
-          </nav>
+          <nav className="main-nav" id="main-nav" dangerouslySetInnerHTML={{ __html: navHtml(false) }} />
         </div>
       </div>
     </header>

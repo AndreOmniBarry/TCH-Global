@@ -5,6 +5,7 @@ import TestimoniesSection from '@/components/TestimoniesSection';
 import SectionTitleStage from '@/components/decor/SectionTitleStage';
 import HeroExtras from '@/components/decor/HeroExtras';
 import { getAllPosts, getUpcomingEvents, getTestimonies, getSpotlights } from '@/lib/sanity';
+import { navHtml } from '@/lib/nav';
 import HeroSpotlight from '@/components/decor/HeroSpotlight';
 import SalvationSection from '@/components/SalvationSection';
 import { fallbackPosts } from '@/lib/fallback-posts';
@@ -45,24 +46,7 @@ const HOME_HTML_BEFORE_LIBRARY = `
     <div class="header-actions">
       <button class="theme-toggle" id="theme-toggle" aria-label="Switch light or dark theme" title="Switch theme"><svg class="sun-and-moon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><mask id="moon-mask"><rect x="0" y="0" width="100%" height="100%" fill="white"/><circle class="moon" cx="24" cy="10" r="6" fill="black"/></mask><circle class="sun" cx="12" cy="12" r="6" mask="url(#moon-mask)" fill="currentColor"/><g class="sun-beams" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></g></svg></button>
       <button class="nav-toggle" aria-label="Menu" id="nav-toggle"><svg class="icon-menu" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
-      <nav class="main-nav" id="main-nav">
-        <ul>
-          <li><a href="#top">Home</a></li>
-          <li><a href="#about-church">About Church</a></li>
-          <li><a href="#pastor-section">Meet the Pastor</a></li>
-          <li><a href="#testimonies">Testimonies</a></li>
-          <li><a href="/library">PUDLIB!</a></li>
-          <li><a href="/blog">Blog</a></li>
-          <li><a href="#service">Service &amp; Events</a></li>
-          <li><a href="#media">Media &amp; Streaming</a></li>
-          <li><a href="#volunteer">Volunteer</a></li>
-          <li><a href="#contact">Contact Us</a></li>
-          <li><a href="#join">Join Us</a></li>
-          <li><a href="/teens">Teens</a></li>
-          <li><a href="#give">Give</a></li>
-          <li><a href="/account" class="nav-account" data-account-link>Sign in</a></li>
-        </ul>
-      </nav>
+      <nav class="main-nav" id="main-nav">${navHtml(true)}</nav>
     </div>
   </div>
 </header>

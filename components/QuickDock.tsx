@@ -3,12 +3,15 @@
 import { useEffect, useState } from 'react';
 
 const I = {
-  blog: <path d="M5 4h10l4 4v12H5zM15 4v4h4M8 12h8M8 16h6" />,
+  // Open book with a bookmark ribbon
+  blog: <><path d="M12 6.5C10.2 5.2 7.6 4.5 4 4.5v13c3.6 0 6.2.7 8 2 1.8-1.3 4.4-2 8-2v-13c-3.6 0-6.2.7-8 2z" /><path d="M12 6.5v13" /><path d="M16 4.8v5l1.5-1 1.5 1V4.6" fill="currentColor" stroke="none" /></>,
   lib: <><rect x="3" y="5" width="18" height="14" rx="3" /><path d="M10 9.5v5l4.5-2.5z" fill="currentColor" stroke="none" /></>,
   live: <><circle cx="12" cy="12" r="2.4" fill="currentColor" stroke="none" /><path d="M7.8 7.8a6 6 0 0 0 0 8.4M16.2 7.8a6 6 0 0 1 0 8.4M5 5a10 10 0 0 0 0 14M19 5a10 10 0 0 1 0 14" /></>,
-  events: <><rect x="3.5" y="5" width="17" height="15.5" rx="2.5" /><path d="M3.5 10h17M8 3v4M16 3v4" /></>,
-  pray: <path d="M12 21c-3-2-6-5-6-9V6l3-3 3 4 3-4 3 3v6c0 4-3 7-6 9z" />,
-  give: <path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z" />,
+  events: <><rect x="3.5" y="5" width="17" height="15.5" rx="2.5" /><path d="M3.5 10h17M8 3v4M16 3v4" /><circle cx="12" cy="15" r="1.6" fill="currentColor" stroke="none" /></>,
+  // Praying hands
+  pray: <><path d="M12 3c-1.4 1.6-2.6 4.3-2.6 7.6v3.9l-3 3a1.7 1.7 0 0 0 .1 2.5l.4.3H12z" fill="currentColor" fillOpacity=".18" /><path d="M12 3c1.4 1.6 2.6 4.3 2.6 7.6v3.9l3 3a1.7 1.7 0 0 1-.1 2.5l-.4.3H12z" fill="currentColor" fillOpacity=".18" /><path d="M12 3v17.3" /></>,
+  // Gift box with ribbon
+  give: <><rect x="3.5" y="9" width="17" height="11.5" rx="2" /><path d="M2.8 9h18.4v3.4H2.8zM12 9v11.5" /><path d="M12 9c-1.5-3.6-6-4.4-6-1.6C6 9 9.5 9 12 9zM12 9c1.5-3.6 6-4.4 6-1.6C18 9 14.5 9 12 9z" /></>,
 };
 
 const LINKS: { href: string; label: string; icon: keyof typeof I; match: (p: string, h: string) => boolean }[] = [

@@ -21,7 +21,11 @@
     toggle.addEventListener('click', function () {
       var next = currentIsDark() ? 'light' : 'dark';
       function apply() {
+        // Kill every colour transition for this one switch: hundreds of
+        // elements animating background/colour at once was the lag.
+        root.classList.add('theme-switching');
         root.setAttribute('data-theme', next);
+        setTimeout(function () { root.classList.remove('theme-switching'); }, 60);
         toggle.dataset.active = next;
         try { localStorage.setItem('tch-theme', next); } catch (e) {}
       }
@@ -34,7 +38,7 @@
       document.startViewTransition(apply).ready.then(function () {
         document.documentElement.animate(
           { clipPath: ['circle(0px at ' + x + 'px ' + y + 'px)', 'circle(' + end + 'px at ' + x + 'px ' + y + 'px)'] },
-          { duration: 650, easing: 'cubic-bezier(.7,0,.25,1)', pseudoElement: '::view-transition-new(root)' }
+          { duration: 520, easing: 'cubic-bezier(.65,0,.35,1)', pseudoElement: '::view-transition-new(root)' }
         );
       });
     });
@@ -50,6 +54,14 @@
       Array.prototype.forEach.call(links, function (a) { a.textContent = first; a.classList.add('is-member'); });
     }).catch(function () {});
   })();
+
+  // Desktop "More" menu: close on outside click, Escape, or choosing a link.
+  document.addEventListener('click', function (e) {
+    Array.prototype.forEach.call(document.querySelectorAll('.nav-more details[open]'), function (d) {
+      if (!d.contains(e.target) || (e.target.closest && e.target.closest('.nav-more-menu a'))) d.removeAttribute('open');
+    });
+  });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') Array.prototype.forEach.call(document.querySelectorAll('.nav-more details[open]'), function (d) { d.removeAttribute('open'); }); });
 
   var navToggle = document.getElementById('nav-toggle');
   var mainNav = document.getElementById('main-nav');

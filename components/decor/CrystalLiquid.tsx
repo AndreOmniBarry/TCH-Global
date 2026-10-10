@@ -241,6 +241,7 @@ type Liquid = {
   hover: boolean;
   drop: number[];
   nextDrop: number;
+  nextAt?: number;
 };
 
 function parseHex(value: string, fallback: number[]): number[] {
@@ -496,7 +497,8 @@ export default function CrystalLiquid() {
       const vh = window.innerHeight;
       const start = vh * 0.86;
       const end = vh * 0.5;
-      const dpr = Math.min(window.devicePixelRatio || 1, coarse ? 1 : 1.5);
+      const dpr = Math.min(window.devicePixelRatio || 1, 1);
+      if (document.hidden) return;
       let drawnThisFrame = 0;
       frameNo += 1;
       const drawThisFrame = !coarse || frameNo % 2 === 0;
@@ -589,6 +591,11 @@ export default function CrystalLiquid() {
         }
 
         if (!drawThisFrame) continue;
+        // Frame budget: moving liquid ~30fps, settled liquid ~11fps. Idle
+        // buttons redrawing at 60fps was what made laptops feel laggy.
+        const busy = l.hover || l.ripple > 0.03 || Math.abs(l.vel) > 0.02 || Math.abs(l.tiltVel) > 0.02 || l.wave > 0.08;
+        if (now < (l.nextAt ?? 0)) continue;
+        l.nextAt = now + (busy ? 32 : 90);
         // Phones: at most 4 liquid buttons rendered per frame, rotating
         // which ones go first so every button keeps animating.
         if (coarse && drawnThisFrame >= 4) continue;
