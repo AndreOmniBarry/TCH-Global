@@ -31,6 +31,7 @@ export default async function TeensPage() {
             <div className="tn-hero-actions">
               <a href="#squads" className="tn-btn">Find your squad</a>
               <a href="#ask" className="tn-btn tn-btn--ghost">Ask anything</a>
+              <a href="/kids" className="tn-btn tn-btn--ghost">Daily story &amp; games</a>
             </div>
           </div>
           <div className="tn-marquee" aria-hidden="true">
