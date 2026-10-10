@@ -221,6 +221,8 @@ export default function KidsDaily({ story, season, dayNo, dateLabel }: Props) {
           <div><h4>Let&rsquo;s pray</h4><p>{story.prayer}</p></div>
           <div><h4>Today&rsquo;s challenge</h4><p>{story.challenge}</p></div>
         </div>
+        {story.deep && <div className="kd-deep"><h4>Going deeper <span>for older kids &amp; teens</span></h4><p>{story.deep}</p></div>}
+        {story.confess && <div className="kd-confess"><h4>Say it out loud</h4><p>&ldquo;{story.confess}&rdquo;</p></div>}
       </section>
 
       <section className="kd-games">

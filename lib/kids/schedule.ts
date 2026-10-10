@@ -1,4 +1,15 @@
-import { GENERAL, NATIVITY, PASSION, type Story } from './stories';
+import { GENERAL as BASE, NATIVITY as N0, PASSION as P0, type Story } from './stories';
+import { DEPTH } from './depth';
+import { MORE1 } from './more1';
+import { MORE2 } from './more2';
+import { MORE3 } from './more3';
+import { MORE4 } from './more4';
+
+const deepen = (s: Story): Story => ({ ...s, ...DEPTH[s.id] });
+// Everyday stories, in the order they are told. New stories go at the end.
+export const GENERAL: Story[] = [...BASE, ...MORE1, ...MORE2, ...MORE3, ...MORE4].map(deepen);
+export const NATIVITY = N0.map(deepen);
+export const PASSION = P0.map(deepen);
 
 // Day 0 of the daily stories.
 const EPOCH = Date.UTC(2026, 9, 10);

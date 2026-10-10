@@ -13,6 +13,8 @@ export type Story = {
   thought: string;
   prayer: string;
   challenge: string;
+  deep?: string;
+  confess?: string;
   quiz: { q: string; options: string[]; a: number }[];
   words: { w: string; clue: string }[];
 };
@@ -267,7 +269,7 @@ export const NATIVITY: Story[] = [
     pages: ['The wise men came into the house and saw young Jesus with His mother Mary. They bowed down and worshipped Him.', 'They opened their treasures and gave Him gifts: gold for a King, frankincense for God, and myrrh, which pointed to the day He would give His life.', 'God warned them in a dream not to go back to wicked King Herod, so they went home another way. Jesus is the greatest gift of all!'],
     verse: { text: 'Thanks be unto God for his unspeakable gift.', ref: '2 Corinthians 9:15' }, thought: 'The best gift you can give Jesus is your heart.', prayer: 'Jesus, I give You my heart. You are my King. Amen.', challenge: 'Make a card or small gift for someone this Christmas.',
     quiz: [{ q: 'What three gifts did they bring?', options: ['Gold, frankincense, myrrh', 'Bread, fish, wine', 'Silver, iron, wood'], a: 0 }, { q: 'What did the wise men do when they saw Jesus?', options: ['Worshipped Him', 'Left quickly', 'Laughed'], a: 0 }, { q: 'Why did they go home another way?', options: ['God warned them', 'They got lost', 'It was shorter'], a: 0 }],
-    words: [{ w: 'GOLD', clue: 'A gift for a King' }, { w: 'MYRRH', clue: 'A precious spice' }, { w: 'FRANKINCENSE', clue: 'Sweet-smelling gift' }, { w: 'WORSHIP', clue: 'What they did' }, { w: 'HEROD', clue: 'The wicked king' }] },
+    words: [{ w: 'GOLD', clue: 'A gift for a King' }, { w: 'MYRRH', clue: 'A precious spice' }, { w: 'INCENSE', clue: 'Sweet-smelling gift' }, { w: 'WORSHIP', clue: 'What they did' }, { w: 'HEROD', clue: 'The wicked king' }] },
 ];
 
 // Easter series: Palm Sunday → Easter Monday, in order.
