@@ -1,4 +1,4 @@
-const LINKS = [['/admin/spotlight', 'Hero spotlight'], ['/admin/submissions', 'Submissions & members'], ['/admin/analytics', 'Analytics'], ['/write', 'Write & events']];
+const LINKS = [['/admin/status', 'System status'], ['/admin/spotlight', 'Hero spotlight'], ['/admin/submissions', 'Submissions & members'], ['/admin/analytics', 'Analytics'], ['/write', 'Write & events']];
 export default function AdminNav({ current }: { current: string }) {
   return (
     <nav className="admin-nav" aria-label="Admin">
