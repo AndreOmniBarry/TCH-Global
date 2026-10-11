@@ -483,13 +483,24 @@ function VideoPlayer({ item, upNext, resumeAt, mini, setMini, onClose, onPlay, o
 
 /* ---------------- Audio mini player ---------------- */
 
-function AudioBar({ item, resumeAt, onClose, onProgress, onEnded, onWatch }: { item: LibItem; resumeAt: number; onClose: () => void; onProgress: (id: string, p: number, t: number) => void; onEnded: () => void; onWatch?: (t: number) => void }) {
+const SLEEP = [{ m: 15, l: '15 min' }, { m: 30, l: '30 min' }, { m: 60, l: '1 hour' }, { m: -1, l: 'End of message' }];
+
+function AudioBar({ item, resumeAt, onClose, onProgress, onEnded, onWatch, upNext, onPlay, saved, onSave }: {
+  item: LibItem; resumeAt: number; onClose: () => void; onProgress: (id: string, p: number, t: number) => void; onEnded: () => void; onWatch?: (t: number) => void;
+  upNext: LibItem[]; onPlay: (it: LibItem) => void; saved: boolean; onSave: (it: LibItem) => void;
+}) {
   const [playing, setPlaying] = useState(false);
   const [time, setTime] = useState(0);
   const [dur, setDur] = useState(0);
   const [speed, setSpeed] = useState(1);
-  const cb = useRef({ onProgress, onEnded });
-  cb.current = { onProgress, onEnded };
+  const [open, setOpen] = useState(true);
+  const [dragY, setDragY] = useState(0);
+  const [sleepAt, setSleepAt] = useState<number | null>(null); // ms timestamp, or -1 = end of message
+  const [sleepOpen, setSleepOpen] = useState(false);
+  const [shared, setShared] = useState(false);
+  const drag = useRef<{ y: number } | null>(null);
+  const cb = useRef({ onProgress, onEnded, sleepAt });
+  cb.current = { onProgress, onEnded, sleepAt };
 
   useEffect(() => {
     track(item.id);
@@ -502,16 +513,31 @@ function AudioBar({ item, resumeAt, onClose, onProgress, onEnded, onWatch }: { i
     a.muted = false;
     a.playbackRate = speed;
     if (a.paused) a.play().catch(() => {});
-    const onPlay = () => setPlaying(true);
+    const onPlayEv = () => setPlaying(true);
     const onPause = () => setPlaying(false);
-    const onTime = () => { setTime(a.currentTime); if (a.duration) { setDur(a.duration); cb.current.onProgress(item.id, a.currentTime / a.duration, a.currentTime); } };
-    const onEnd = () => { cb.current.onProgress(item.id, 1, a.duration || 0); cb.current.onEnded(); };
+    const onTime = () => {
+      setTime(a.currentTime);
+      if (a.duration) { setDur(a.duration); cb.current.onProgress(item.id, a.currentTime / a.duration, a.currentTime); }
+      const z = cb.current.sleepAt;
+      if (z && z > 0 && Date.now() >= z) { a.pause(); setSleepAt(null); }
+    };
+    const onEnd = () => {
+      cb.current.onProgress(item.id, 1, a.duration || 0);
+      if (cb.current.sleepAt === -1) { setSleepAt(null); return; }
+      cb.current.onEnded();
+    };
     setPlaying(!a.paused);
-    a.addEventListener('play', onPlay); a.addEventListener('pause', onPause); a.addEventListener('timeupdate', onTime); a.addEventListener('ended', onEnd);
-    return () => { a.removeEventListener('play', onPlay); a.removeEventListener('pause', onPause); a.removeEventListener('timeupdate', onTime); a.removeEventListener('ended', onEnd); };
+    a.addEventListener('play', onPlayEv); a.addEventListener('pause', onPause); a.addEventListener('timeupdate', onTime); a.addEventListener('ended', onEnd);
+    return () => { a.removeEventListener('play', onPlayEv); a.removeEventListener('pause', onPause); a.removeEventListener('timeupdate', onTime); a.removeEventListener('ended', onEnd); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [item.id, item.audioSrc]);
   useEffect(() => () => { sharedEl?.pause(); }, []);
+  useEffect(() => {
+    if (!open) return;
+    const k = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); };
+    document.addEventListener('keydown', k);
+    return () => document.removeEventListener('keydown', k);
+  }, [open]);
 
   // Lock-screen controls for listening with the phone locked.
   useEffect(() => {
@@ -531,21 +557,103 @@ function AudioBar({ item, resumeAt, onClose, onProgress, onEnded, onWatch }: { i
   useEffect(() => { const ms = (navigator as any).mediaSession; if (ms) ms.playbackState = playing ? 'playing' : 'paused'; }, [playing]);
 
   const a = () => sharedAudio();
+  const toggle = () => { const el = a(); if (el.paused) el.play(); else el.pause(); };
+  const skip = (d: number) => { const el = a(); el.currentTime = Math.min(el.duration || 0, Math.max(0, el.currentTime + d)); };
+  const cycleSpeed = () => { const i = SPEEDS.indexOf(speed); const n = SPEEDS[(i + 1) % SPEEDS.length]; setSpeed(n); a().playbackRate = n; };
+  async function share() {
+    const url = `${location.origin}/library?play=${encodeURIComponent(item.id)}`;
+    try {
+      if (navigator.share) await navigator.share({ title: item.title, url });
+      else { await navigator.clipboard.writeText(url); setShared(true); setTimeout(() => setShared(false), 1800); }
+    } catch {}
+  }
+  const sleepLabel = sleepAt === -1 ? 'End of message' : sleepAt ? `${Math.max(1, Math.ceil((sleepAt - Date.now()) / 60000))} min` : 'Sleep timer';
+  const dateLabel = item.date ? new Date(item.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+
   return (
-    <div className="pl-audiobar" role="region" aria-label="Audio player">
-      <img src={item.image} alt="" className="pl-audiobar-art" />
-      <div className="pl-audiobar-main">
-        <div className="pl-audiobar-title">{item.title}</div>
-        <SeekBar time={time} dur={dur} onSeek={(s) => { a().currentTime = s; }} />
-        <div className="pl-time">{fmtTime(time)} <span>/ {fmtTime(dur)}</span></div>
-      </div>
-      <button type="button" className="pl-icon-btn" onClick={() => { a().currentTime = Math.max(0, a().currentTime - 10); }} aria-label="Back 10 seconds"><IconBack /></button>
-      <button type="button" className="pl-main-btn" onClick={() => { const el = a(); if (el.paused) el.play(); else el.pause(); }} aria-label={playing ? 'Pause' : 'Play'}><MotionPlay size={44} playing={playing} /></button>
-      <button type="button" className="pl-icon-btn" onClick={() => { a().currentTime = Math.min(a().duration || 0, a().currentTime + 10); }} aria-label="Forward 10 seconds"><IconForward /></button>
-      <button type="button" className="pl-text-btn pl-hide-sm" onClick={() => { const i = SPEEDS.indexOf(speed); const n = SPEEDS[(i + 1) % SPEEDS.length]; setSpeed(n); a().playbackRate = n; }} aria-label="Playback speed">{speed}&times;</button>
-      {onWatch && item.youtubeId && <button type="button" className="pl-text-btn pl-watch" onClick={() => { const t = a().currentTime; a().pause(); onWatch(t); }} aria-label="Watch the video from here"><IconVideo size={16} /> Watch</button>}
-      <button type="button" className="pl-icon-btn" onClick={() => { a().pause(); onClose(); }} aria-label="Close audio player"><IconClose /></button>
-    </div>
+    <>
+      {!open && (
+        <div className="pl-audiobar" role="region" aria-label="Audio player">
+          <button type="button" className="pl-audiobar-open" onClick={() => setOpen(true)} aria-label="Open player">
+            <img src={item.image} alt="" className="pl-audiobar-art" />
+            <span className="pl-audiobar-title">{item.title}<small>{playing ? 'Playing' : 'Paused'} · {fmtTime(time)} / {fmtTime(dur)}</small></span>
+          </button>
+          <button type="button" className="pl-icon-btn pl-hide-sm" onClick={() => skip(-10)} aria-label="Back 10 seconds"><IconBack /></button>
+          <button type="button" className="pl-main-btn" onClick={toggle} aria-label={playing ? 'Pause' : 'Play'}><MotionPlay size={40} playing={playing} /></button>
+          <button type="button" className="pl-icon-btn pl-hide-sm" onClick={() => skip(10)} aria-label="Forward 10 seconds"><IconForward /></button>
+          <button type="button" className="pl-icon-btn" onClick={() => { a().pause(); onClose(); }} aria-label="Close audio player"><IconClose /></button>
+          <div className="pl-mini-progress" style={{ width: `${dur ? (time / dur) * 100 : 0}%` }} />
+        </div>
+      )}
+      {open && (
+        <div
+          className="pl-amodal" role="dialog" aria-modal="true" aria-label={`Now playing: ${item.title}`}
+          style={dragY ? { transform: `translateY(${dragY}px)`, transition: 'none' } : undefined}
+          onPointerDown={(e) => { const t = e.target as HTMLElement; if (e.pointerType === 'mouse' || t.closest('button, input, a, .pl-seekbar, .pl-aqueue')) return; drag.current = { y: e.clientY }; }}
+          onPointerMove={(e) => { if (drag.current) { const dy = e.clientY - drag.current.y; if (dy > 0) setDragY(dy); } }}
+          onPointerUp={() => { if (dragY > 120) setOpen(false); setDragY(0); drag.current = null; }}
+          onPointerCancel={() => { setDragY(0); drag.current = null; }}
+        >
+          <div className="pl-ambient" aria-hidden="true" style={{ backgroundImage: `url(${item.image})` }} />
+          <span className="pl-grabber" aria-hidden="true" />
+          <div className="pl-modal-top">
+            <button type="button" className="pl-round" onClick={() => setOpen(false)} aria-label="Minimise player"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg></button>
+            <span className="pl-now">Now playing{item.series ? ` · ${item.series}` : ''}</span>
+            <button type="button" className="pl-round" onClick={() => { a().pause(); onClose(); }} aria-label="Close player"><IconClose size={20} /></button>
+          </div>
+          <div className="pl-astage">
+            <div className={`pl-aart${playing ? ' is-playing' : ''}`} style={{ backgroundImage: `url(${item.image})` }}><img src={item.image} alt="" /></div>
+            <div className="pl-ameta">
+              <h2>{item.title}</h2>
+              <p>{['Pastor Uzor Echiejile', dateLabel].filter(Boolean).join('  ·  ')}</p>
+            </div>
+            <div className="pl-aseek">
+              <SeekBar time={time} dur={dur} onSeek={(t) => { a().currentTime = t; }} />
+              <div className="pl-atimes"><span>{fmtTime(time)}</span><span>-{fmtTime(Math.max(0, dur - time))}</span></div>
+            </div>
+            <div className="pl-acontrols">
+              <button type="button" className="pl-text-btn" onClick={cycleSpeed} aria-label="Playback speed">{speed}&times;</button>
+              <button type="button" className="pl-icon-btn pl-big" onClick={() => skip(-10)} aria-label="Back 10 seconds"><IconBack size={30} /></button>
+              <button type="button" className="pl-main-btn pl-aplay" onClick={toggle} aria-label={playing ? 'Pause' : 'Play'}><MotionPlay size={64} playing={playing} /></button>
+              <button type="button" className="pl-icon-btn pl-big" onClick={() => skip(10)} aria-label="Forward 10 seconds"><IconForward size={30} /></button>
+              <button type="button" className="pl-icon-btn" onClick={() => upNext[0] && onPlay(upNext[0])} disabled={!upNext[0]} aria-label={upNext[0] ? `Next: ${upNext[0].title}` : 'Nothing up next'}><IconNext /></button>
+            </div>
+            <div className="pl-actions pl-aactions">
+              <button type="button" className={`pl-action${saved ? ' on' : ''}`} onClick={() => onSave(item)}>{saved ? <IconCheck size={18} /> : <IconPlus size={18} />}{saved ? 'Saved' : 'Save'}</button>
+              <button type="button" className="pl-action" onClick={share}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 3v12M7 8l5-5 5 5" /><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6" /></svg>{shared ? 'Link copied' : 'Share'}</button>
+              <div className="pl-speed">
+                <button type="button" className={`pl-action${sleepAt ? ' on' : ''}`} onClick={() => setSleepOpen((o) => !o)} aria-haspopup="menu" aria-expanded={sleepOpen}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z" /></svg>{sleepLabel}
+                </button>
+                {sleepOpen && (
+                  <div className="pl-speed-menu" role="menu">
+                    {SLEEP.map((o) => <button key={o.m} type="button" role="menuitem" onClick={() => { setSleepAt(o.m === -1 ? -1 : Date.now() + o.m * 60000); setSleepOpen(false); }}>{o.l}</button>)}
+                    {sleepAt && <button type="button" role="menuitem" onClick={() => { setSleepAt(null); setSleepOpen(false); }}>Turn off</button>}
+                  </div>
+                )}
+              </div>
+              {onWatch && item.youtubeId && <button type="button" className="pl-action" onClick={() => { const t = a().currentTime; a().pause(); onWatch(t); }}><IconVideo size={18} />Watch video</button>}
+            </div>
+            {item.description && <p className="pl-desc">{item.description}</p>}
+            {upNext.length > 0 && (
+              <section className="pl-aqueue" aria-label="Up next">
+                <h3>Up next</h3>
+                <ol>
+                  {upNext.slice(0, 8).map((x) => (
+                    <li key={x.id}>
+                      <button type="button" className="pl-aq-item" onClick={() => onPlay(x)}>
+                        <img src={x.image} alt="" />
+                        <span className="pl-track-text"><span className="pl-title">{x.title}</span><span className="pl-sub">{x.kind === 'audio' ? 'Audio' : 'Video'}{x.series ? ` · ${x.series}` : ''}</span></span>
+                      </button>
+                    </li>
+                  ))}
+                </ol>
+              </section>
+            )}
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
@@ -902,11 +1010,15 @@ export default function PudlibApp({ items, videosConnected, initialPlay }: { ite
   }, [items]);
 
   const upNext = useMemo(() => {
-    if (!video) return [];
-    const queued = queue.map((id) => byId.get(id)).filter((x): x is LibItem => Boolean(x && x.id !== video.id));
-    const sim = similar(video, items, model, coplay, 16).filter((x) => !queued.includes(x) && (history[x.id]?.progress ?? 0) < 0.92);
+    const cur = video ?? audio;
+    if (!cur) return [];
+    const queued = queue.map((id) => byId.get(id)).filter((x): x is LibItem => Boolean(x && x.id !== cur.id));
+    // Audio listeners get audio first, then videos of the same message.
+    const pool = video ? items : [...items.filter((x) => x.kind === 'audio'), ...items.filter((x) => x.kind !== 'audio')];
+    const sim = (video ? similar(cur, pool, model, coplay, 16) : pool.filter((x) => x.id !== cur.id && (x.kind === 'audio' || x.youtubeId)).sort((p, q) => (p.series && p.series === cur.series ? -1 : 0) - (q.series && q.series === cur.series ? -1 : 0)).slice(0, 16))
+      .filter((x) => !queued.includes(x) && (history[x.id]?.progress ?? 0) < 0.92);
     return [...queued, ...sim].filter((x) => !skipped.has(x.id)).slice(0, 12);
-  }, [video, queue, byId, items, model, coplay, history, skipped]);
+  }, [video, audio, queue, byId, items, model, coplay, history, skipped]);
 
   function playFromPlayer(it: LibItem) {
     setQueue((qq) => qq.filter((id) => id !== it.id));
@@ -1132,7 +1244,7 @@ export default function PudlibApp({ items, videosConnected, initialPlay }: { ite
       )}
       {audio && (
         <AudioBar
-          item={audio} resumeAt={resumeAt(audio)}
+          item={audio} resumeAt={resumeAt(audio)} upNext={upNext} onPlay={playFromPlayer} saved={savedIds.has(audio.id)} onSave={save}
           onWatch={audio.youtubeId ? (t) => {
             const v = byId.get(audio.id);
             if (!v) return;

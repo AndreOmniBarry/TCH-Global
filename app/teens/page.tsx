@@ -1,6 +1,9 @@
 import { SiteHeader, SiteFooter } from '@/components/SiteChrome';
 import { getTeenPosts, getUpcomingEvents } from '@/lib/sanity';
 import { AskAnything, SquadPicker } from '@/components/teens/TeensForms';
+import TeensDaily from '@/components/teens/TeensDaily';
+import { lagosDay, teenDaily } from '@/lib/kids/schedule';
+import { getCmsStories } from '@/lib/kids/cms';
 
 export const metadata = {
   title: 'TCH Teens | The Comforters House Global',
@@ -12,7 +15,10 @@ const fmt = (iso: string) => new Date(iso).toLocaleDateString('en-GB', { weekday
 const time = (iso: string) => new Date(iso).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'Africa/Lagos' });
 
 export default async function TeensPage() {
-  const [posts, events] = await Promise.all([getTeenPosts(), getUpcomingEvents()]);
+  const [posts, events, cms] = await Promise.all([getTeenPosts(), getUpcomingEvents(), getCmsStories()]);
+  const day = lagosDay();
+  const daily = teenDaily(day, cms);
+  const dateLabel = new Date(day).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' });
   const teenEvents = (events ?? []).filter((e) => /teen|youth|young/i.test(`${e.title} ${e.description ?? ''}`)).slice(0, 3);
   const [lead, ...rest] = posts;
   return (
@@ -31,12 +37,17 @@ export default async function TeensPage() {
             <div className="tn-hero-actions">
               <a href="#squads" className="tn-btn">Find your squad</a>
               <a href="#ask" className="tn-btn tn-btn--ghost">Ask anything</a>
-              <a href="/kids" className="tn-btn tn-btn--ghost">Daily story &amp; games</a>
+              <a href="#daily" className="tn-btn tn-btn--ghost">Daily drop</a>
             </div>
           </div>
           <div className="tn-marquee" aria-hidden="true">
             <div>{Array(2).fill('Worship · Real talk · Hangouts · Squads · The Word · Friends for life · ').join('')}</div>
           </div>
+        </section>
+
+        <section className="container tn-section" id="daily">
+          <TeensDaily story={daily.story} season={daily.season} dayNo={daily.dayNo} dateLabel={dateLabel} trivia={daily.trivia} />
+          <p className="td-kids">Younger brother or sister? <a href="/kids">TCH Kids</a> has a picture story and games every day.</p>
         </section>
 
         <section className="container tn-section">

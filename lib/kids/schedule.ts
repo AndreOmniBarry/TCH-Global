@@ -63,3 +63,21 @@ export function rng(seed: number) {
   let s = seed >>> 0 || 1;
   return () => { s ^= s << 13; s ^= s >>> 17; s ^= s << 5; return ((s >>> 0) % 100000) / 100000; };
 }
+
+/** Teens get a different everyday story from the kids on the same day
+ * (half a library apart), the same seasonal series, plus ten rapid-fire
+ * questions drawn from the whole library. */
+export function teenDaily(day = lagosDay(), extra: (Story & { date?: string | null })[] = []) {
+  const kids = storyFor(day, extra);
+  const pool = [...GENERAL, ...extra.filter((x) => !x.date)];
+  let story = kids.story;
+  if (!kids.season && !extra.some((x) => x.date === new Date(day).toISOString().slice(0, 10))) {
+    const i = pool.findIndex((x) => x.id === kids.story.id);
+    story = pool[(i + Math.floor(pool.length / 2)) % pool.length];
+  }
+  const r = rng(kids.dayNo * 7919 + 17);
+  const all = [...GENERAL, ...NATIVITY, ...PASSION].flatMap((s) => s.quiz.map((q) => ({ ...q, from: s.title })));
+  const picked = new Set<number>();
+  while (picked.size < 10 && picked.size < all.length) picked.add(Math.floor(r() * all.length));
+  return { ...kids, story, trivia: Array.from(picked).map((i) => all[i]) };
+}
