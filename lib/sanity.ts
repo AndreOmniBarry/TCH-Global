@@ -24,6 +24,16 @@ export const sanityClient: SanityClient | null = projectId
     })
   : null;
 
+// Every server read is tagged 'sanity' and kept at most 60s, so the
+// webhook can drop them all at once (revalidateTag) and, even without it,
+// a Studio change shows within a minute. Without this Next could keep
+// serving a cached Sanity response long after a page itself refreshed.
+if (sanityClient && typeof window === 'undefined') {
+  const raw = sanityClient.fetch.bind(sanityClient) as (...a: any[]) => Promise<any>;
+  (sanityClient as any).fetch = (query: string, params?: any, options?: any) =>
+    raw(query, params ?? {}, { ...options, next: { revalidate: 60, tags: ['sanity'], ...options?.next } });
+}
+
 export function urlFor(source: any) {
   if (!sanityClient) return null;
   return imageUrlBuilder(sanityClient).image(source);

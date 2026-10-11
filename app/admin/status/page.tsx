@@ -75,6 +75,10 @@ export default async function StatusPage() {
             <span className="eyebrow">Admin</span>
             <h2 style={{ textTransform: 'none', fontSize: '1.8rem' }}>System status</h2>
             <p>{good} of {checks.length} connected. Checked live just now.</p>
+            <form method="post" action="/admin/api/refresh" style={{ marginTop: 14 }}>
+              <button type="submit" className="btn btn-primary">Refresh site content now</button>
+              <span style={{ marginLeft: 12, fontSize: '.85rem', opacity: .7 }}>Use this if a Studio change hasn&rsquo;t appeared yet.</span>
+            </form>
           </div>
           <div className="st-list">
             {checks.map((c) => (

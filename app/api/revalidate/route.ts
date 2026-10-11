@@ -1,4 +1,4 @@
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { timingSafeEqual } from 'crypto';
 import { kv } from '@vercel/kv';
 
@@ -29,6 +29,7 @@ export async function POST(req: Request) {
   const body = await req.json().catch(() => ({})) as { _type?: string; slug?: string; audience?: string };
   const paths = new Set(PATHS[body._type ?? ''] ?? ['/', '/blog', '/library', '/live', '/kids', '/teens']);
   if (body._type === 'post' && body.slug) paths.add(body.audience === 'teens' ? `/teens/blog/${body.slug}` : `/blog/${body.slug}`);
+  revalidateTag('sanity');
   paths.forEach((p) => revalidatePath(p));
   // Remembered so /admin/status can show the webhook really arrives.
   await kv.set('webhook:last', { at: Date.now(), type: body._type ?? 'unknown' }).catch(() => {});
