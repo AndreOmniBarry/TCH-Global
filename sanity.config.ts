@@ -2,6 +2,7 @@ import { defineConfig } from 'sanity';
 import { structureTool } from 'sanity/structure';
 import { visionTool } from '@sanity/vision';
 import { schemaTypes } from './sanity/schema';
+import { BulkAudio } from './sanity/BulkAudio';
 
 // Powers the embedded Studio at /studio. Only reachable, and only
 // functional, once NEXT_PUBLIC_SANITY_PROJECT_ID is set — see
@@ -16,4 +17,5 @@ export default defineConfig({
   dataset,
   schema: { types: schemaTypes },
   plugins: [structureTool(), visionTool()],
+  tools: (prev) => [...prev, { name: 'bulk-audio', title: 'Bulk audio upload', component: BulkAudio }],
 });
