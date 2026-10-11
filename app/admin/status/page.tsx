@@ -44,7 +44,13 @@ async function run(): Promise<Check[]> {
       out.push({ name: 'Sanity write token', ok: false, detail: /permission|403|insufficient/i.test(m) ? `${m}. The token is read-only: create a new one with the Editor role.` : `Token rejected: ${m}. Create a fresh Editor token and replace it in Vercel.`, unlocks: '/write publishing, events, spotlight, testimonies' });
     }
   }
-  out.push({ name: 'Sanity auto-refresh (webhook)', ok: process.env.SANITY_REVALIDATE_SECRET ? true : null, detail: process.env.SANITY_REVALIDATE_SECRET ? 'Secret set. Make sure the webhook in sanity.io/manage → API → Webhooks points to /api/revalidate?secret=…' : 'SANITY_REVALIDATE_SECRET not set. Without it, Studio changes appear within 10 minutes instead of seconds.', unlocks: 'Studio publishes appear on the site instantly' });
+  const hook = kvOn ? await kv.get<{ at: number; type: string }>('webhook:last').catch(() => null) : null;
+  const ago = hook ? Math.round((Date.now() - hook.at) / 60000) : 0;
+  out.push({ name: 'Sanity auto-refresh (webhook)', ok: !process.env.SANITY_REVALIDATE_SECRET ? null : hook ? true : false,
+    detail: !process.env.SANITY_REVALIDATE_SECRET ? 'SANITY_REVALIDATE_SECRET not set. Studio changes appear within a few minutes instead of seconds.'
+      : hook ? `Last refresh received ${ago < 1 ? 'just now' : ago < 120 ? `${ago} min ago` : `${Math.round(ago / 60)} h ago`} (${hook.type})`
+      : 'Secret is set, but no refresh has arrived from Sanity yet. In sanity.io/manage → API → Webhooks, open the webhook → Attempts: 401 means the secret in the URL differs from Vercel; 404 means a wrong URL. Pages still refresh on their own within a minute.',
+    unlocks: 'Studio publishes appear on the site instantly' });
   out.push({ name: 'Admin / publishing password', ok: Boolean(process.env.WRITE_PASSWORD), detail: process.env.WRITE_PASSWORD ? 'WRITE_PASSWORD is set' : 'WRITE_PASSWORD not set', unlocks: 'Admin pages, /write' });
   out.push({ name: 'Emails (Resend)', ok: Boolean(process.env.RESEND_API_KEY), detail: process.env.RESEND_API_KEY ? `Key set · alerts to ${process.env.NOTIFY_EMAIL || '(NOTIFY_EMAIL not set)'} · from ${process.env.EMAIL_FROM || 'Resend test sender (only reaches your own inbox)'}` : 'RESEND_API_KEY not set', unlocks: 'Submission alerts, welcome, thank-you and salvation emails' });
   try {

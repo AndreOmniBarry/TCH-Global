@@ -7,7 +7,7 @@ export const metadata = {
   description: 'Messages, audio and books from Pastor Uzor Echiejile — the Pastor Uzor Digital Library.',
 };
 
-export const revalidate = 600;
+export const revalidate = 60;
 
 export default async function LibraryPage({ searchParams }: { searchParams: { play?: string } }) {
   const { items, videosConnected } = await getLibrary();

@@ -1,5 +1,6 @@
 import { revalidatePath } from 'next/cache';
 import { timingSafeEqual } from 'crypto';
+import { kv } from '@vercel/kv';
 
 // Sanity webhook target: Studio publish -> fresh pages within seconds.
 // Sanity → API → Webhooks → URL https://<site>/api/revalidate?secret=<SANITY_REVALIDATE_SECRET>,
@@ -29,5 +30,7 @@ export async function POST(req: Request) {
   const paths = new Set(PATHS[body._type ?? ''] ?? ['/', '/blog', '/library', '/live', '/kids', '/teens']);
   if (body._type === 'post' && body.slug) paths.add(body.audience === 'teens' ? `/teens/blog/${body.slug}` : `/blog/${body.slug}`);
   paths.forEach((p) => revalidatePath(p));
+  // Remembered so /admin/status can show the webhook really arrives.
+  await kv.set('webhook:last', { at: Date.now(), type: body._type ?? 'unknown' }).catch(() => {});
   return Response.json({ revalidated: Array.from(paths) });
 }
