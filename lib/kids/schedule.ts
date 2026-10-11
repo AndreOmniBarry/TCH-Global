@@ -45,13 +45,17 @@ export type Daily = { story: Story; season: 'christmas' | 'easter' | null; dayNo
 /** The story for a given day. Seasonal series take their dates; everyday
  * stories run in order on the remaining days with no repeats until the
  * whole library has been told. */
-export function storyFor(day = lagosDay()): Daily {
-  const s = seasonal(day);
+export function storyFor(day = lagosDay(), extra: (Story & { date?: string | null })[] = []): Daily {
   const dayNo = Math.max(0, Math.round((day - EPOCH) / DAY));
+  const iso = new Date(day).toISOString().slice(0, 10);
+  const dated = extra.find((x) => x.date === iso);
+  if (dated) return { story: dated, season: null, dayNo, round: 1 };
+  const s = seasonal(day);
   if (s) return { story: s, season: NATIVITY.includes(s) ? 'christmas' : 'easter', dayNo, round: 1 };
   let n = 0;
   for (let t = EPOCH; t < day; t += DAY) if (!seasonal(t)) n += 1;
-  return { story: GENERAL[n % GENERAL.length], season: null, dayNo, round: Math.floor(n / GENERAL.length) + 1 };
+  const pool = [...GENERAL, ...extra.filter((x) => !x.date)];
+  return { story: pool[n % pool.length], season: null, dayNo, round: Math.floor(n / pool.length) + 1 };
 }
 
 /** Small deterministic random generator (same puzzle for everyone today). */

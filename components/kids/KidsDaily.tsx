@@ -61,7 +61,7 @@ function StoryReader({ story, onDone }: { story: Story; onDone: () => void }) {
   }
   return (
     <div className="kd-story">
-      <div className="kd-scene"><Scene kind={story.scene} prop={story.prop} page={p} /></div>
+      <div className="kd-scene">{story.image ? <img className="kd-scene-img" src={`${story.image}?w=900&auto=format`} alt="" /> : <Scene kind={story.scene} prop={story.prop} page={p} />}</div>
       <div className="kd-page" key={p}>
         <span className="kd-page-no">Page {p + 1} of {story.pages.length}</span>
         <p>{story.pages[p]}</p>

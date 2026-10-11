@@ -156,4 +156,50 @@ export const spotlight = {
   ],
 };
 
-export const schemaTypes = [post, author, announcement, event, testimony, audioMessage, book, spotlight];
+
+const SCENES = ['desert', 'sea', 'night', 'palace', 'field', 'mountain', 'city', 'garden', 'storm', 'stable', 'temple', 'river'];
+const PROPS = ['ark', 'star', 'crown', 'sling', 'lion', 'ladder', 'jar', 'dove', 'scroll', 'fish', 'wall', 'cross', 'tomb', 'harp', 'sun', 'boat', 'gift', 'lamp', 'tree', 'staff'];
+
+// TCH Kids daily story. With a date it shows on that day (and wins over
+// the built-in schedule); without one it joins the end of the everyday
+// rotation, so every new story pushes back the first repeat.
+export const kidsStory = {
+  name: 'kidsStory',
+  title: 'Kids Story',
+  type: 'document',
+  fields: [
+    { name: 'title', title: 'Title', type: 'string', validation: (R: any) => R.required().max(60) },
+    { name: 'ref', title: 'Bible passage', type: 'string', description: 'e.g. "1 Samuel 17"', validation: (R: any) => R.required() },
+    { name: 'date', title: 'Show on date (optional)', type: 'date', description: 'Leave empty to add it to the everyday rotation. Set a date to show it on exactly that day (Lagos time).' },
+    { name: 'pages', title: 'Story pages', type: 'array', of: [{ type: 'text', rows: 3 }], description: 'Three short pages, two or three sentences each.', validation: (R: any) => R.required().min(2).max(6) },
+    { name: 'image', title: 'Picture (optional)', type: 'image', options: { hotspot: true }, description: 'If set, shown instead of the animated scene.' },
+    { name: 'scene', title: 'Animated background', type: 'string', options: { list: SCENES }, initialValue: 'field' },
+    { name: 'prop', title: 'Animated object', type: 'string', options: { list: PROPS }, initialValue: 'star' },
+    { name: 'verseText', title: 'Memory verse (KJV)', type: 'text', rows: 2, validation: (R: any) => R.required() },
+    { name: 'verseRef', title: 'Memory verse reference', type: 'string', validation: (R: any) => R.required() },
+    { name: 'thought', title: 'Think about it', type: 'text', rows: 2, validation: (R: any) => R.required() },
+    { name: 'deep', title: 'Going deeper (older kids & teens)', type: 'text', rows: 4 },
+    { name: 'confess', title: 'Say it out loud (confession)', type: 'string' },
+    { name: 'prayer', title: 'Let’s pray', type: 'text', rows: 2, validation: (R: any) => R.required() },
+    { name: 'challenge', title: 'Today’s challenge', type: 'string', validation: (R: any) => R.required() },
+    {
+      name: 'quiz', title: 'Quiz (3 questions)', type: 'array', validation: (R: any) => R.required().min(1).max(5),
+      of: [{ type: 'object', name: 'question', fields: [
+        { name: 'q', title: 'Question', type: 'string', validation: (R: any) => R.required() },
+        { name: 'options', title: 'Three answers', type: 'array', of: [{ type: 'string' }], validation: (R: any) => R.required().length(3) },
+        { name: 'answer', title: 'Correct answer', type: 'number', options: { list: [{ title: 'First', value: 0 }, { title: 'Second', value: 1 }, { title: 'Third', value: 2 }] }, validation: (R: any) => R.required() },
+      ], preview: { select: { title: 'q' } } }],
+    },
+    {
+      name: 'words', title: 'Puzzle words (5)', type: 'array', description: 'Used for the word search and crossword. One word each, letters only, max 9 letters.', validation: (R: any) => R.required().min(3).max(6),
+      of: [{ type: 'object', name: 'word', fields: [
+        { name: 'w', title: 'Word', type: 'string', validation: (R: any) => R.required().regex(/^[A-Za-z]{2,9}$/, { name: 'letters only, 2–9' }) },
+        { name: 'clue', title: 'Clue', type: 'string', validation: (R: any) => R.required() },
+      ], preview: { select: { title: 'w', subtitle: 'clue' } } }],
+    },
+  ],
+  orderings: [{ title: 'Date', name: 'date', by: [{ field: 'date', direction: 'desc' }] }],
+  preview: { select: { title: 'title', subtitle: 'ref', date: 'date', media: 'image' }, prepare: ({ title, subtitle, date, media }: any) => ({ title, subtitle: date ? `${date} · ${subtitle}` : `Rotation · ${subtitle}`, media }) },
+};
+
+export const schemaTypes = [post, author, announcement, event, testimony, audioMessage, book, spotlight, kidsStory];

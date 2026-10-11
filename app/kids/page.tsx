@@ -1,6 +1,7 @@
 import { SiteHeader, SiteFooter } from '@/components/SiteChrome';
 import KidsDaily from '@/components/kids/KidsDaily';
 import { lagosDay, storyFor } from '@/lib/kids/schedule';
+import { getCmsStories } from '@/lib/kids/cms';
 
 export const metadata = {
   title: 'TCH Kids | Daily Bible Story & Games',
@@ -8,9 +9,9 @@ export const metadata = {
 };
 export const revalidate = 600;
 
-export default function KidsPage() {
+export default async function KidsPage() {
   const day = lagosDay();
-  const { story, season, dayNo } = storyFor(day);
+  const { story, season, dayNo } = storyFor(day, await getCmsStories());
   const dateLabel = new Date(day).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' });
   return (
     <>

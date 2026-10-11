@@ -15,6 +15,7 @@ export type Story = {
   challenge: string;
   deep?: string;
   confess?: string;
+  image?: string;
   quiz: { q: string; options: string[]; a: number }[];
   words: { w: string; clue: string }[];
 };

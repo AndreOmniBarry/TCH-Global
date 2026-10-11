@@ -89,3 +89,24 @@ directly, since there's no additional review step before it's live.
 - YouTube auto-sync
 
 These are the next layer, described in the main migration notes.
+
+## Fix-it-once checklist (Oct 2026)
+
+Open **/admin/status** on the live site after each step; every Sanity row should read *Working*.
+
+1. **Vercel → Settings → Environment Variables** (Production + Preview):
+   - `NEXT_PUBLIC_SANITY_PROJECT_ID=kqruklk1`
+   - `NEXT_PUBLIC_SANITY_DATASET=production`
+   - `SANITY_API_WRITE_TOKEN=` a token from sanity.io/manage → API → Tokens → *Add API token* → role **Editor**. The site also reads with it, so a private dataset works.
+   - `SANITY_REVALIDATE_SECRET=` any long random phrase.
+2. **sanity.io/manage → API → CORS origins**: add `https://tch-global.vercel.app` (and your custom domain) with **Allow credentials** ticked. Without this, /studio cannot log in.
+3. **sanity.io/manage → API → Webhooks → Create**:
+   - URL `https://tch-global.vercel.app/api/revalidate?secret=<SANITY_REVALIDATE_SECRET>`
+   - Dataset `production`, trigger on Create / Update / Delete, HTTP method POST
+   - Projection `{_type, "slug": slug.current, audience}`
+   Studio publishes then appear on the site within seconds.
+4. **sanity.io/manage → Members**: invite each editor (Editor role). They sign in at `/studio`.
+5. Redeploy in Vercel so the new variables take effect.
+
+### Kids stories
+Studio → **Kids Story**. Leave *Show on date* empty to add the story to the everyday rotation (it pushes back the first repeat), or set a date to show it on exactly that day. A picture, if uploaded, replaces the animated scene.

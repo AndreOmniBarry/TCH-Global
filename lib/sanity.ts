@@ -8,12 +8,19 @@ import imageUrlBuilder from '@sanity/image-url';
 const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || 'kqruklk1';
 const dataset = process.env.NEXT_PUBLIC_SANITY_DATASET || 'production';
 
+// On the server we read with a token when one is set, so a private
+// dataset still works, and skip the CDN so a Studio publish shows up on
+// the next revalidation instead of minutes later. Tokens are server-only
+// env vars and never reach the browser bundle.
+const readToken = typeof window === 'undefined' ? process.env.SANITY_API_READ_TOKEN || process.env.SANITY_API_WRITE_TOKEN : undefined;
+
 export const sanityClient: SanityClient | null = projectId
   ? createClient({
       projectId,
       dataset,
       apiVersion: '2024-01-01',
-      useCdn: true,
+      useCdn: !readToken,
+      ...(readToken ? { token: readToken, perspective: 'published' as const } : {}),
     })
   : null;
 
