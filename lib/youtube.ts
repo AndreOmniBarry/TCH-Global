@@ -67,9 +67,18 @@ async function getVideosFromFeed(limit: number): Promise<YouTubeVideo[] | null> 
   const CHANNEL_ID = await getChannelId();
   if (!CHANNEL_ID) return null;
   try {
-    const res = await fetch(`https://www.youtube.com/feeds/videos.xml?channel_id=${encodeURIComponent(CHANNEL_ID)}`, { next: { revalidate: 1800 } });
-    if (!res.ok) throw new Error(`feed ${res.status}`);
-    const xml = await res.text();
+    // The channel feed is flaky from cloud servers; the uploads-playlist
+    // feed (UC… -> UU…) is the same list by another door.
+    const urls = [
+      `https://www.youtube.com/feeds/videos.xml?channel_id=${encodeURIComponent(CHANNEL_ID)}`,
+      `https://www.youtube.com/feeds/videos.xml?playlist_id=${encodeURIComponent(CHANNEL_ID.replace(/^UC/, 'UU'))}`,
+    ];
+    let xml = '';
+    for (const u of urls) {
+      const res = await fetch(u, { headers: { 'User-Agent': 'Mozilla/5.0 (compatible; TCHGlobal/1.0)', Accept: 'application/atom+xml,text/xml' }, next: { revalidate: 1800 } }).catch(() => null);
+      if (res?.ok) { const t = await res.text(); if (t.includes('<entry>')) { xml = t; break; } }
+    }
+    if (!xml) throw new Error('YouTube feeds returned no videos');
     const decode = (t: string) => t.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
     const videos = Array.from(xml.matchAll(/<entry>([\s\S]*?)<\/entry>/g))
       .map((m) => {
