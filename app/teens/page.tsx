@@ -2,6 +2,7 @@ import { SiteHeader, SiteFooter } from '@/components/SiteChrome';
 import { getTeenPosts, getUpcomingEvents } from '@/lib/sanity';
 import { AskAnything, SquadPicker } from '@/components/teens/TeensForms';
 import TeensDaily from '@/components/teens/TeensDaily';
+import DayGuard from '@/components/kids/DayGuard';
 import { lagosDay, teenDaily } from '@/lib/kids/schedule';
 import { getCmsStories } from '@/lib/kids/cms';
 
@@ -9,7 +10,9 @@ export const metadata = {
   title: 'TCH Teens | The Comforters House Global',
   description: 'For ages 11 to 19: hangouts, worship, real talk and the Teens blog at The Comforters House Global.',
 };
-export const revalidate = 60;
+// The daily story depends on today's date, so render on every visit
+// (Sanity reads stay cached for 60s, so this is cheap).
+export const dynamic = 'force-dynamic';
 
 const fmt = (iso: string) => new Date(iso).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'Africa/Lagos' });
 const time = (iso: string) => new Date(iso).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'Africa/Lagos' });
@@ -46,6 +49,7 @@ export default async function TeensPage() {
         </section>
 
         <section className="container tn-section" id="daily">
+          <DayGuard day={day} />
           <TeensDaily story={daily.story} season={daily.season} dayNo={daily.dayNo} dateLabel={dateLabel} trivia={daily.trivia} />
           <p className="td-kids">Younger brother or sister? <a href="/kids">TCH Kids</a> has a picture story and games every day.</p>
         </section>
@@ -93,7 +97,7 @@ export default async function TeensPage() {
           <div>
             <span className="tn-kicker">No judgement zone</span>
             <h2>Ask anything</h2>
-            <p>Got a question about God, life, school, relationships or anything else? Ask it here. You can stay anonymous.</p>
+            <p>Got a question about God, life, school, relationships or anything else? Ask it here. Only Pastor Uzor reads it, and you can stay anonymous.</p>
           </div>
           <AskAnything />
         </section>

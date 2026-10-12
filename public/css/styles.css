@@ -2257,3 +2257,4 @@ body:has(.pl-amodal) .qdock { display: none; }
 .td-kids { margin: 14px 0 0; color: var(--tn-dim); font-size: .9rem; }
 .td-kids a { color: var(--tn-lime); }
 @media (prefers-reduced-motion: reduce) { .tg-chips .shake { animation: none; } }
+.tn-private { margin: 10px 0 0; font-size: .82rem; color: var(--tn-dim); }

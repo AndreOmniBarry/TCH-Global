@@ -1,5 +1,6 @@
 import { SiteHeader, SiteFooter } from '@/components/SiteChrome';
 import KidsDaily from '@/components/kids/KidsDaily';
+import DayGuard from '@/components/kids/DayGuard';
 import { lagosDay, storyFor } from '@/lib/kids/schedule';
 import { getCmsStories } from '@/lib/kids/cms';
 
@@ -7,7 +8,9 @@ export const metadata = {
   title: 'TCH Kids | Daily Bible Story & Games',
   description: 'A new Bible story every day with pictures, a devotional, and games: quiz, word search, crossword and verse builder.',
 };
-export const revalidate = 600;
+// The daily story depends on today's date, so render on every visit
+// (Sanity reads stay cached for 60s, so this is cheap).
+export const dynamic = 'force-dynamic';
 
 export default async function KidsPage() {
   const day = lagosDay();
@@ -26,6 +29,7 @@ export default async function KidsPage() {
           </div>
         </section>
         <section className="container kids-body">
+          <DayGuard day={day} />
           <KidsDaily story={story} season={season} dayNo={dayNo} dateLabel={dateLabel} />
           <div className="kids-foot">
             <a href="/teens" className="kids-teen-link">Older? Visit <strong>TCH Teens</strong> &rarr;</a>

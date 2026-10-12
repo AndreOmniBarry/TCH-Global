@@ -92,6 +92,24 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'That email address doesn’t look right — please check it.' }, { status: 400 });
     }
 
+    // TCH Teens "Ask anything": private. Goes only to the Pastor's own
+    // inbox (PASTOR_EMAIL). Never stored on the site, never copied to the
+    // general NOTIFY_EMAIL, never shown in /admin.
+    if (type === 'teens' && cleanFields.kind === 'question') {
+      const pastor = (process.env.PASTOR_EMAIL || '').split(',').map((x) => x.trim()).filter(Boolean);
+      if (!emailConfigured || !pastor.length) {
+        return NextResponse.json({ error: 'Private questions are being set up. Please talk to a TCH Teens leader in person for now.' }, { status: 503 });
+      }
+      const anon = !cleanFields.name || /^anonymous$/i.test(cleanFields.name);
+      const sent = await sendEmail({
+        to: pastor,
+        subject: `Private question from a teen${anon ? ' (anonymous)' : ` (${cleanFields.name.slice(0, 40)})`}`,
+        html: layout('A private TCH Teens question', `<p style="font-size:13px;color:#6b6490;margin:0 0 14px">Sent from the No judgement zone on the TCH Teens page. This was not saved on the website and went to you alone.</p><p style="font-size:16px;line-height:1.65;white-space:pre-wrap;margin:0 0 14px">${escapeHtml(cleanFields.question || '')}</p><p style="font-size:13px;color:#6b6490;margin:0">From: ${anon ? 'Anonymous' : escapeHtml(cleanFields.name)}</p>`),
+      });
+      if (!sent) return NextResponse.json({ error: 'That didn’t send. Please try again in a moment.' }, { status: 503 });
+      return NextResponse.json({ ok: true });
+    }
+
     const [result, emailed] = await Promise.all([
       formsConfigured ? submitForm(type, cleanFields) : Promise.resolve({ ok: false, error: undefined as string | undefined }),
       notify(type, cleanFields),

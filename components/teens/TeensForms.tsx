@@ -23,7 +23,7 @@ export function AskAnything() {
     try { await send({ kind: 'question', question: q.trim(), name: anon ? 'Anonymous' : name.trim() }); setState('done'); }
     catch (x) { setErr((x as Error).message); setState('idle'); }
   }
-  if (state === 'done') return <div className="tn-done"><strong>Got it.</strong> Our youth leaders read every question. Look out for the answer in a Teens blog post or at the next hangout.</div>;
+  if (state === 'done') return <div className="tn-done"><strong>Sent, privately.</strong> Only Pastor Uzor reads these. It wasn&rsquo;t saved on the website{anon ? ', and your name wasn’t attached' : ''}. You are not alone, and nothing you asked is too much.</div>;
   return (
     <form className="tn-ask" onSubmit={submit}>
       <textarea value={q} onChange={(e) => setQ(e.target.value)} rows={4} maxLength={1000} placeholder="Faith, school, friends, family, the future… nothing is off limits." aria-label="Your question" />
@@ -32,6 +32,7 @@ export function AskAnything() {
         {!anon && <input className="tn-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Your first name" aria-label="Your first name" />}
         <button type="submit" className="tn-btn" disabled={state === 'busy'}>{state === 'busy' ? 'Sending…' : 'Send question'}</button>
       </div>
+      <p className="tn-private">Goes straight to Pastor Uzor&rsquo;s personal inbox and nowhere else. Not stored on this website.</p>
       {err && <p className="tn-err">{err}</p>}
     </form>
   );
