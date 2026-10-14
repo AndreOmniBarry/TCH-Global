@@ -19,9 +19,7 @@ Check anything at **/admin/status**.
 - Teens "Ask anything" goes ONLY to `PASTOR_EMAIL` (not stored, not in /admin)
 
 ## 14 Oct
-- YouTube key: Google Cloud console kept returning `navigation-error` in Chrome (project living-word-499614).
-  Retry in an Incognito window or Safari: Search "YouTube Data API v3" → Enable → Credentials →
-  Create credentials → API key → restrict to YouTube Data API v3 → Vercel `YOUTUBE_API_KEY` → redeploy.
+- YouTube key: added to Vercel as `YOUTUBE_API_KEY` (Production + Preview), from project living-word-499614 (API key 1, restricted to YouTube Data API v3).
 
 ## Next, in order
 0. **Set `PASTOR_EMAIL`** in Vercel. Resend only reaches the Resend account owner until a domain is
