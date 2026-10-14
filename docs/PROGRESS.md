@@ -18,6 +18,11 @@ Check anything at **/admin/status**.
 - TCH Teens Daily drop: own story, journal prompt, rapid-fire trivia, books in order, fill the verse, XP levels
 - Teens "Ask anything" goes ONLY to `PASTOR_EMAIL` (not stored, not in /admin)
 
+## 14 Oct
+- YouTube key: Google Cloud console kept returning `navigation-error` in Chrome (project living-word-499614).
+  Retry in an Incognito window or Safari: Search "YouTube Data API v3" → Enable → Credentials →
+  Create credentials → API key → restrict to YouTube Data API v3 → Vercel `YOUTUBE_API_KEY` → redeploy.
+
 ## Next, in order
 0. **Set `PASTOR_EMAIL`** in Vercel. Resend only reaches the Resend account owner until a domain is
    verified, so either verify a domain or create the Resend account with the Pastor's email.
