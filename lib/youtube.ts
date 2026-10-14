@@ -18,7 +18,7 @@ export type YouTubeVideo = {
   url: string;
 };
 
-const API_KEY = process.env.YOUTUBE_API_KEY;
+const API_KEY = process.env.YOUTUBE_API_KEY?.trim();
 // The church channel. The handle is what people see; the UC... id is what
 // YouTube's feeds and embeds need, so it's looked up from the handle once
 // (and cached) unless YOUTUBE_CHANNEL_ID pins it.

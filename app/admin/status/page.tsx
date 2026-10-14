@@ -54,6 +54,15 @@ async function run(): Promise<Check[]> {
   out.push({ name: 'Admin / publishing password', ok: Boolean(process.env.WRITE_PASSWORD), detail: process.env.WRITE_PASSWORD ? 'WRITE_PASSWORD is set' : 'WRITE_PASSWORD not set', unlocks: 'Admin pages, /write' });
   out.push({ name: 'Emails (Resend)', ok: Boolean(process.env.RESEND_API_KEY), detail: process.env.RESEND_API_KEY ? `Key set · alerts to ${process.env.NOTIFY_EMAIL || '(NOTIFY_EMAIL not set)'} · from ${process.env.EMAIL_FROM || 'Resend test sender (only reaches your own inbox)'}` : 'RESEND_API_KEY not set', unlocks: 'Submission alerts, welcome, thank-you and salvation emails' });
   out.push({ name: 'Teens private questions', ok: Boolean(process.env.PASTOR_EMAIL && process.env.RESEND_API_KEY), detail: process.env.PASTOR_EMAIL ? `Go only to the Pastor's inbox${process.env.EMAIL_FROM ? '' : '. Note: until a domain is verified in Resend, emails only reach the Resend account owner'}` : 'PASTOR_EMAIL not set. Questions are refused until it is.', unlocks: 'Ask anything (No judgement zone) on /teens' });
+  // Ask Google directly so a refused key shows Google's own reason.
+  let ytErr = '';
+  if (process.env.YOUTUBE_API_KEY) {
+    try {
+      const r = await fetch(`https://www.googleapis.com/youtube/v3/channels?part=id&forHandle=%40TheComfortersHouseGlobalMin&key=${process.env.YOUTUBE_API_KEY.trim()}`, { cache: 'no-store' });
+      if (!r.ok) { const j = await r.json().catch(() => null); ytErr = `Google refused the key (${r.status}): ${j?.error?.message ?? r.statusText}`; }
+    } catch (e) { ytErr = `Could not reach Google: ${(e as Error).message}`; }
+  }
+  if (ytErr) out.push({ name: 'YouTube API key', ok: false, detail: ytErr, unlocks: 'PUDLIB! videos, /live, latest message' });
   try {
     const [id, vids] = await Promise.all([timed(() => getChannelId()), timed(() => getLatestVideos(3))]);
     out.push({ name: 'YouTube', ok: Boolean(id && vids?.length), detail: id ? (vids?.length ? `Channel ${id} · ${vids.length} latest videos found${process.env.YOUTUBE_API_KEY ? '' : ' (free RSS feed; add YOUTUBE_API_KEY for reliability)'}` : `Channel ${id} found, but no videos came back. ${process.env.YOUTUBE_API_KEY ? 'The API key may be wrong or restricted: check it in Google Cloud.' : 'YouTube blocks its free feed from some servers: add a YOUTUBE_API_KEY (free, from Google Cloud).'}`) : 'Could not resolve the channel from @TheComfortersHouseGlobalMin', unlocks: 'PUDLIB! videos, /live, latest message' });
