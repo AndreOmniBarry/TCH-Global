@@ -21,6 +21,10 @@ Check anything at **/admin/status**.
 ## 14 Oct
 - YouTube key: added to Vercel as `YOUTUBE_API_KEY` (Production + Preview), from project living-word-499614 (API key 1, restricted to YouTube Data API v3).
 
+## 15 Oct
+- YouTube: key is trimmed before use; /admin/status shows Google's exact error in a "YouTube API key" row
+  if the key is refused. Check that row next.
+
 ## Next, in order
 0. **Set `PASTOR_EMAIL`** in Vercel. Resend only reaches the Resend account owner until a domain is
    verified, so either verify a domain or create the Resend account with the Pastor's email.
