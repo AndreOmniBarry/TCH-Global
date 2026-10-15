@@ -1999,7 +1999,8 @@ html.theme-switching *, html.theme-switching *::before, html.theme-switching *::
 .kids-hero p { font-size: 1.08rem; opacity: .8; }
 .kids-body { padding-bottom: 60px; }
 
-.kd { position: relative; display: grid; gap: 22px; }
+.kd { position: relative; display: grid; gap: 22px; grid-template-columns: minmax(0, 1fr); }
+.kd > * { min-width: 0; }
 .kd-top { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 14px; }
 .kd-date { display: block; font: 700 .78rem var(--font-mono); text-transform: uppercase; letter-spacing: .08em; opacity: .65; }
 .kd-season { display: inline-block; margin-top: 6px; padding: 4px 10px; border-radius: 999px; font: 800 .7rem var(--font-body); color: #fff; }
@@ -2190,7 +2191,8 @@ body:has(.pl-amodal) { overflow: hidden; }
 body:has(.pl-amodal) .qdock { display: none; }
 @media (prefers-reduced-motion: reduce) { .pl-amodal, .pl-audiobar, .pl-aart { animation: none; transition: none; } }
 /* TCH Teens: Daily drop */
-.td { display: grid; gap: 22px; }
+.td { display: grid; gap: 22px; grid-template-columns: minmax(0, 1fr); }
+.td > * { min-width: 0; }
 .td-bar { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 14px; }
 .td-bar h2 { margin: 4px 0 0; font: 800 clamp(1.8rem, 5vw, 2.6rem)/1 var(--font-display); letter-spacing: -.02em; }
 .td-stats { display: flex; flex-wrap: wrap; gap: 8px; }
