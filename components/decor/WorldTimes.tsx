@@ -84,11 +84,12 @@ export default function WorldTimes({ startMs, live }: { startMs: number; live: b
   return (
     <div className="hw" aria-label={live ? 'Live now around the world' : 'Next service around the world'}>
       <span className="hw-lead">{live ? 'Live now in' : 'Starts at'}</span>
+      <div className="hw-track">
       <ul className="hw-list">
-        {list.map((z) => {
+        {[...list, ...list].map((z, i) => {
           const t = fmt(live ? Date.now() : startMs, z.tz, refDay);
           return (
-            <li key={z.label} className={z.tz === mine ? 'is-you' : ''}>
+            <li key={`${z.label}${i}`} className={z.tz === mine ? 'is-you' : ''} aria-hidden={i >= list.length || undefined}>
               <Flag c={z.c} />
               <span className="hw-place">{z.label}</span>
               <strong>{t.time}</strong>
@@ -97,6 +98,7 @@ export default function WorldTimes({ startMs, live }: { startMs: number; live: b
           );
         })}
       </ul>
+      </div>
     </div>
   );
 }

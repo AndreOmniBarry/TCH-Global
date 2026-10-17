@@ -534,7 +534,7 @@ export default function CrystalLiquid() {
             // hero scrolls away and refill on the way back.
             const home = rect.top + sy;
             const drain = Math.min(1, Math.max(0, (rect.top - vh * 0.08) / Math.max(1, home - vh * 0.08)));
-            progress = pour * (0.12 + 0.5 * drain);
+            progress = pour * (0.18 + 0.6 * drain);
           }
         }
         const target = -0.14 + progress * 1.34;
