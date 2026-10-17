@@ -25,6 +25,13 @@ Check anything at **/admin/status**.
 - YouTube: key is trimmed before use; /admin/status shows Google's exact error in a "YouTube API key" row
   if the key is refused. Check that row next.
 
+## 17–18 Oct
+- Instagram (instagram.com/tchglobalmin) and TikTok (@tchglobal) buttons; brand-tinted liquid glass
+- Hero world-time ticker: Nigeria, Ghana, Kenya, South Africa, UK, Germany, US East, Canada, US West
+- Gmail sender (SMTP_USER/SMTP_PASS) so emails reach everyone before the domain
+- Sanity webhook was failing with 401 Bad secret; secret reset to a lowercase value in Vercel and the webhook URL
+- Spotify cover: docs/brand/tch-spotify-cover-3000.jpg
+
 ## Next, in order
 0. **Set `PASTOR_EMAIL`** in Vercel. Resend only reaches the Resend account owner until a domain is
    verified, so either verify a domain or create the Resend account with the Pastor's email.
