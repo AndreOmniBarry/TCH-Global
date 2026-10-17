@@ -2276,6 +2276,6 @@ body:has(.pl-amodal) .qdock { display: none; }
 @media (max-width: 640px) { .hw { flex-direction: column; gap: 6px; max-width: 100%; } .hw-list { max-width: calc(100vw - 32px); } }
 @media (prefers-reduced-motion: reduce) { .hw { animation: none; } }
 @media (min-width: 641px) {
-  .hw { flex-direction: column; gap: 8px; max-width: 640px; }
+  .hw { flex-direction: column; gap: 8px; max-width: 760px; }
   .hw-list { flex-wrap: wrap; justify-content: center; overflow: visible; -webkit-mask-image: none; mask-image: none; }
 }
