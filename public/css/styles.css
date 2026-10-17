@@ -2319,3 +2319,17 @@ body:has(.pl-amodal) .qdock { display: none; }
   .hs-media::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 30%; z-index: 2; background: linear-gradient(0deg, rgb(10 8 24 / .85), transparent); pointer-events: none; }
 }
 @media (min-width: 561px) { .hs-media { -webkit-mask-image: none; mask-image: none; } .hs-slide { min-height: 220px; } }
+/* Spotlight v3: the card takes the poster's own shape. No fixed frame, so
+   nothing is cropped and there are no empty bands. */
+.hs-media { aspect-ratio: auto !important; max-height: none !important; display: block; }
+.hs-media::before, .hs-media::after { display: none !important; }
+.hs-media img { position: relative !important; inset: auto !important; display: block; width: 100%; height: auto !important; max-height: 78vh; object-fit: contain !important; margin: 0 auto; }
+@media (max-width: 560px) {
+  .hs-slide { grid-template-columns: 1fr; }
+  .hs-body { padding: 16px 18px 18px; border-top: 1px solid rgb(255 255 255 / .1); background: linear-gradient(180deg, rgb(20 14 44 / .9), rgb(10 8 24 / .95)); }
+  .hs-bars { top: 12px; }
+}
+@media (min-width: 561px) {
+  .hs-slide { grid-template-columns: minmax(0, 46%) 1fr; align-items: center; }
+  .hs-media img { max-height: 420px; }
+}
