@@ -45,11 +45,13 @@ async function run(): Promise<Check[]> {
     }
   }
   const hook = kvOn ? await kv.get<{ at: number; type: string }>('webhook:last').catch(() => null) : null;
+  const fail = kvOn ? await kv.get<{ at: number; got: string; want: string }>('webhook:fail').catch(() => null) : null;
+  const failNote = fail && (!hook || fail.at > hook.at) ? ` Last attempt ${Math.round((Date.now() - fail.at) / 60000)} min ago was refused: the webhook URL sent ${fail.got}, Vercel expects ${fail.want}.` : '';
   const ago = hook ? Math.round((Date.now() - hook.at) / 60000) : 0;
   out.push({ name: 'Sanity auto-refresh (webhook)', ok: !process.env.SANITY_REVALIDATE_SECRET ? null : hook ? true : false,
     detail: !process.env.SANITY_REVALIDATE_SECRET ? 'SANITY_REVALIDATE_SECRET not set. Studio changes appear within a few minutes instead of seconds.'
       : hook ? `Last refresh received ${ago < 1 ? 'just now' : ago < 120 ? `${ago} min ago` : `${Math.round(ago / 60)} h ago`} (${hook.type})`
-      : 'Secret is set, but no refresh has arrived from Sanity yet. In sanity.io/manage → API → Webhooks, open the webhook → Attempts: 401 means the secret in the URL differs from Vercel; 404 means a wrong URL. Pages still refresh on their own within a minute.',
+      : failNote ? `Refused.${failNote} Make both the same.` : 'Secret is set, but no refresh has arrived from Sanity yet. In sanity.io/manage → API → Webhooks, open the webhook → Attempts: 401 means the secret in the URL differs from Vercel; 404 means a wrong URL. Pages still refresh on their own within a minute.',
     unlocks: 'Studio publishes appear on the site instantly' });
   out.push({ name: 'Admin / publishing password', ok: Boolean(process.env.WRITE_PASSWORD), detail: process.env.WRITE_PASSWORD ? 'WRITE_PASSWORD is set' : 'WRITE_PASSWORD not set', unlocks: 'Admin pages, /write' });
   {
