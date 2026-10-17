@@ -2260,3 +2260,22 @@ body:has(.pl-amodal) .qdock { display: none; }
 .td-kids a { color: var(--tn-lime); }
 @media (prefers-reduced-motion: reduce) { .tg-chips .shake { animation: none; } }
 .tn-private { margin: 10px 0 0; font-size: .82rem; color: var(--tn-dim); }
+/* Hero: next service around the world */
+.hero-chip-mount { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.hw { display: flex; align-items: center; gap: 10px; max-width: min(100%, 760px); color: rgb(255 255 255 / .9); animation: hw-in .7s .3s cubic-bezier(.2,.9,.25,1) both; }
+@keyframes hw-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.hw-lead { flex: none; font: 600 .62rem var(--font-mono); letter-spacing: .14em; text-transform: uppercase; color: rgb(255 255 255 / .6); }
+.hw-list { list-style: none; margin: 0; padding: 2px; display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; -webkit-mask-image: linear-gradient(90deg, #000 85%, transparent); mask-image: linear-gradient(90deg, #000 85%, transparent); }
+.hw-list::-webkit-scrollbar { display: none; }
+.hw-list li { flex: none; display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px 5px 6px; border-radius: 999px; background: rgb(255 255 255 / .08); border: 1px solid rgb(255 255 255 / .14); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); font-size: .76rem; white-space: nowrap; }
+.hw-list li.is-you { background: rgb(255 255 255 / .18); border-color: rgb(255 255 255 / .4); }
+.hw-flag { border-radius: 3px; box-shadow: 0 0 0 1px rgb(255 255 255 / .25); flex: none; }
+.hw-place { color: rgb(255 255 255 / .7); }
+.hw-list strong { font-weight: 700; font-variant-numeric: tabular-nums; }
+.hw-day { font: 600 .62rem var(--font-mono); text-transform: uppercase; color: #f5c542; }
+@media (max-width: 640px) { .hw { flex-direction: column; gap: 6px; max-width: 100%; } .hw-list { max-width: calc(100vw - 32px); } }
+@media (prefers-reduced-motion: reduce) { .hw { animation: none; } }
+@media (min-width: 641px) {
+  .hw { flex-direction: column; gap: 8px; max-width: 640px; }
+  .hw-list { flex-wrap: wrap; justify-content: center; overflow: visible; -webkit-mask-image: none; mask-image: none; }
+}

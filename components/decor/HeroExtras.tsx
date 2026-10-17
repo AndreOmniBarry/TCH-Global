@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
+import WorldTimes from './WorldTimes';
 
 // Africa/Lagos is UTC+1 year-round (no DST).
 const LAGOS_OFFSET_MS = 60 * 60 * 1000;
@@ -96,15 +97,19 @@ function NextGatheringChip({ events }: { events: HeroEvent[] }) {
 
   if (isLive) {
     return (
+      <>
       <a href="/live" className="hero-chip hero-chip--live">
         <span className="hero-chip-dot" aria-hidden="true" />
         <strong>Live now</strong>
         <span className="hero-chip-sep" aria-hidden="true">·</span>
         <span>{next.inProgress ? next.name : 'Join the stream'}</span>
       </a>
+      <WorldTimes startMs={now} live />
+      </>
     );
   }
   return (
+    <>
     <a href="#service" className="hero-chip">
       <span className="hero-chip-dot" aria-hidden="true" />
       <span className="hero-chip-muted">Next</span>
@@ -113,6 +118,8 @@ function NextGatheringChip({ events }: { events: HeroEvent[] }) {
       <span className="hero-chip-muted hero-chip-when">{next.label}</span>
       <span className="hero-chip-count" aria-label={`starts in ${formatCountdown(next.msUntil)}`}>{formatCountdown(next.msUntil)}</span>
     </a>
+    <WorldTimes startMs={now + next.msUntil} live={false} />
+    </>
   );
 }
 
