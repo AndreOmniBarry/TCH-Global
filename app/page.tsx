@@ -13,7 +13,8 @@ import { fallbackPosts } from '@/lib/fallback-posts';
 const FACEBOOK_URL = process.env.NEXT_PUBLIC_FACEBOOK_URL || 'https://www.facebook.com/profile.php?id=61557996937416';
 // Spotify buttons stay hidden until the podcast exists.
 const YOUTUBE_URL = 'https://www.youtube.com/@TheComfortersHouseGlobalMin';
-const INSTAGRAM_URL = process.env.NEXT_PUBLIC_INSTAGRAM_URL || 'https://www.instagram.com';
+const INSTAGRAM_URL = process.env.NEXT_PUBLIC_INSTAGRAM_URL || 'https://www.instagram.com/tchglobalmin';
+const TIKTOK_URL = process.env.NEXT_PUBLIC_TIKTOK_URL || 'https://www.tiktok.com/@tchglobal';
 const SPOTIFY_URL = process.env.NEXT_PUBLIC_SPOTIFY_SHOW_URL || '';
 
 // This page bridges the original hand-authored static homepage into
@@ -32,6 +33,7 @@ const SPOTIFY_URL = process.env.NEXT_PUBLIC_SPOTIFY_SHOW_URL || '';
 
 const ICON_YOUTUBE = `<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M23 7.2a3 3 0 0 0-2.1-2.1C19 4.6 12 4.6 12 4.6s-7 0-8.9.5A3 3 0 0 0 1 7.2 31 31 0 0 0 .5 12a31 31 0 0 0 .5 4.8 3 3 0 0 0 2.1 2.1c1.9.5 8.9.5 8.9.5s7 0 8.9-.5a3 3 0 0 0 2.1-2.1 31 31 0 0 0 .5-4.8 31 31 0 0 0-.5-4.8zM9.7 15.1V8.9l5.8 3.1z"/></svg>`;
 const ICON_FACEBOOK = `<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M14 8.5V6.6c0-.9.6-1.1 1-1.1h2.6V1.6H14c-4 0-4.9 3-4.9 4.9v2H6.8v4.1h2.3v9.8H14v-9.8h3.3l.4-4.1z"/></svg>`;
+const ICON_TIKTOK = `<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M16.6 2h-3.4v13.4a2.9 2.9 0 1 1-2.9-2.9c.3 0 .6 0 .9.1V9.1a6.4 6.4 0 1 0 5.4 6.3V8.6a8 8 0 0 0 4.7 1.5V6.7a4.7 4.7 0 0 1-4.7-4.7z"/></svg>`;
 const ICON_INSTAGRAM = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5.5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.3" cy="6.7" r="1.1" fill="currentColor" stroke="none"/></svg>`;
 const ICON_SPOTIFY = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="10.2" stroke-width="1.8"/><path d="M6.9 9.5c3.4-1 7.3-.7 10.3 1M7.5 12.7c2.8-.8 5.9-.5 8.4.9M8.1 15.7c2.2-.6 4.5-.4 6.4.7" stroke-width="1.7"/></svg>`;
 
@@ -68,6 +70,7 @@ const HOME_HTML_BEFORE_LIBRARY = `
       <a href="${YOUTUBE_URL}" class="btn btn-ghost btn-sm btn-youtube" target="_blank" rel="noopener">${ICON_YOUTUBE} YouTube</a>
       <a href="${FACEBOOK_URL}" class="btn btn-ghost btn-sm btn-facebook" target="_blank" rel="noopener">${ICON_FACEBOOK} Facebook</a>
       <a href="${INSTAGRAM_URL}" class="btn btn-ghost btn-sm btn-instagram" target="_blank" rel="noopener">${ICON_INSTAGRAM} Instagram</a>
+      <a href="${TIKTOK_URL}" class="btn btn-ghost btn-sm btn-tiktok" target="_blank" rel="noopener">${ICON_TIKTOK} TikTok</a>
     </div>
     <div id="hero-spotlight-mount" class="hero-spotlight-mount"></div>
   </div>
@@ -355,6 +358,7 @@ const HOME_HTML_EVENTS_TO_MEDIA = `
           <a href="${FACEBOOK_URL}" target="_blank" rel="noopener" aria-label="Facebook" class="liquid liquid-facebook">${ICON_FACEBOOK}</a>
           <a href="${YOUTUBE_URL}" target="_blank" rel="noopener" aria-label="YouTube" class="liquid liquid-youtube">${ICON_YOUTUBE}</a>
           <a href="${INSTAGRAM_URL}" target="_blank" rel="noopener" aria-label="Instagram" class="liquid liquid-instagram">${ICON_INSTAGRAM}</a>
+          <a href="${TIKTOK_URL}" target="_blank" rel="noopener" aria-label="TikTok" class="liquid liquid-tiktok">${ICON_TIKTOK}</a>
           ${SPOTIFY_URL ? `<a href="${SPOTIFY_URL}" target="_blank" rel="noopener" aria-label="Spotify" class="liquid liquid-spotify">${ICON_SPOTIFY}</a>` : ''}
         </div>
       </div>

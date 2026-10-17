@@ -517,7 +517,8 @@
   .hero-subtitle b { color: #67e8f9; font-weight: 800; }
   .hero-lead { font-size: 1.1rem; font-weight: 600; max-width: 420px; margin-bottom: 28px; color: var(--text-high); text-shadow: 0 1px 8px rgba(0,0,0,.3); }
   .hero-actions { display: flex; flex-direction: column; gap: 12px; margin-bottom: 10px; width: 100%; max-width: 360px; }
-  .stream-row { display: flex; gap: 10px; width: 100%; max-width: 360px; }
+  .stream-row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; width: 100%; max-width: 520px; }
+  @media (max-width: 520px) { .stream-row { grid-template-columns: repeat(2, minmax(0, 1fr)); max-width: 360px; } }
   .stream-row a { flex: 1; }
   /* Crystal-liquid buttons. Every .btn (and any .liquid element) is an
      empty glass container that fills with liquid as it scrolls into
@@ -586,6 +587,9 @@
   .btn-facebook:hover { border-color: #1877f2; }
   .btn-spotify { border-color: color-mix(in srgb, #1db954 45%, var(--border-glass-strong)); }
   .btn-spotify:hover { border-color: #1db954; }
+  .btn-tiktok, .liquid-tiktok { --liquid-a: #111; --liquid-b: #fe2c55; --liquid-c: #25f4ee; --liquid-rgb: 254 44 85; }
+  .btn-tiktok { border-color: color-mix(in srgb, #fe2c55 45%, var(--border-glass-strong)); }
+  .btn-tiktok:hover { border-color: #25f4ee; }
   .btn-instagram { border-color: color-mix(in srgb, #e1306c 45%, var(--border-glass-strong)); }
   .btn-instagram:hover { border-color: #e1306c; }
   @media (prefers-reduced-motion: reduce) {

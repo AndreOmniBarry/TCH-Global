@@ -76,7 +76,7 @@ async function run(): Promise<Check[]> {
     const [id, vids] = await Promise.all([timed(() => getChannelId()), timed(() => getLatestVideos(3))]);
     out.push({ name: 'YouTube', ok: Boolean(id && vids?.length), detail: id ? (vids?.length ? `Channel ${id} · ${vids.length} latest videos found${process.env.YOUTUBE_API_KEY ? '' : ' (free RSS feed; add YOUTUBE_API_KEY for reliability)'}` : `Channel ${id} found, but no videos came back. ${process.env.YOUTUBE_API_KEY ? 'The API key may be wrong or restricted: check it in Google Cloud.' : 'YouTube blocks its free feed from some servers: add a YOUTUBE_API_KEY (free, from Google Cloud).'}`) : 'Could not resolve the channel from @TheComfortersHouseGlobalMin', unlocks: 'PUDLIB! videos, /live, latest message' });
   } catch (e) { out.push({ name: 'YouTube', ok: false, detail: (e as Error).message, unlocks: 'PUDLIB! videos, /live' }); }
-  out.push({ name: 'Instagram link', ok: Boolean(process.env.NEXT_PUBLIC_INSTAGRAM_URL), detail: process.env.NEXT_PUBLIC_INSTAGRAM_URL || 'Not set (button goes to instagram.com)', unlocks: 'Instagram buttons' });
+  out.push({ name: 'Instagram & TikTok', ok: true, detail: process.env.NEXT_PUBLIC_INSTAGRAM_URL || 'instagram.com/tchglobalmin · tiktok.com/@tchglobal', unlocks: 'Instagram buttons' });
   out.push({ name: 'Spotify podcast link', ok: process.env.NEXT_PUBLIC_SPOTIFY_SHOW_URL ? true : null, detail: process.env.NEXT_PUBLIC_SPOTIFY_SHOW_URL || 'Not set (Spotify buttons hidden)', unlocks: 'Spotify buttons' });
   return out;
 }
