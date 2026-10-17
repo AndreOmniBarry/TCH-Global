@@ -29,9 +29,9 @@ export default function TestimonyAdmin({ pending, live }: { pending: Pending[]; 
       {p.length === 0 && <p style={{ fontSize: '.85rem', color: 'var(--text-faint)' }}>Nothing waiting.</p>}
       {p.map((e) => (
         <div key={e.submittedAt} style={box}>
-          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--text-faint)', marginBottom: 6 }}>{new Date(e.submittedAt).toLocaleString()} · {e.fields.category || 'No category'}</div>
-          <p style={{ fontSize: '.88rem', marginBottom: 6 }}>&ldquo;{e.fields.quote}&rdquo;</p>
-          <p style={{ fontSize: '.8rem', marginBottom: 10 }}><strong>{e.fields.name}</strong></p>
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--text-faint)', marginBottom: 6 }}>{e.submittedAt ? new Date(e.submittedAt).toLocaleString() : ""} · {e.fields?.category || 'No category'}</div>
+          <p style={{ fontSize: '.88rem', marginBottom: 6 }}>&ldquo;{e.fields?.quote}&rdquo;</p>
+          <p style={{ fontSize: '.8rem', marginBottom: 10 }}><strong>{e.fields?.name}</strong></p>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             <button type="button" className="btn btn-primary btn-sm" onClick={() => run({ action: 'approve', submittedAt: e.submittedAt }, () => setP((x) => x.filter((y) => y !== e)))}>Publish</button>
             <button type="button" className="btn btn-ghost btn-sm" onClick={() => run({ action: 'approve', submittedAt: e.submittedAt, featured: true }, () => setP((x) => x.filter((y) => y !== e)))}>Publish as miracle</button>
@@ -43,7 +43,7 @@ export default function TestimonyAdmin({ pending, live }: { pending: Pending[]; 
       <h3 style={{ fontSize: '1rem', margin: '24px 0 12px' }}>Published testimonies <span style={{ color: 'var(--text-faint)', fontWeight: 400 }}>({l.length})</span></h3>
       {l.map((t) => (
         <div key={t._id} style={box}>
-          <p style={{ fontSize: '.85rem', marginBottom: 6 }}>&ldquo;{t.quote.length > 180 ? `${t.quote.slice(0, 177)}…` : t.quote}&rdquo; <strong>{t.name}</strong></p>
+          <p style={{ fontSize: '.85rem', marginBottom: 6 }}>&ldquo;{(t.quote ?? "").length > 180 ? `${t.quote.slice(0, 177)}…` : t.quote}&rdquo; <strong>{t.name}</strong></p>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
             <span style={{ fontSize: '.75rem', color: 'var(--text-faint)' }}>{t.category || 'No category'}{t.featured ? ' · Miracle' : ''}</span>
             <button type="button" className="btn btn-ghost btn-sm" onClick={() => run({ action: 'feature', id: t._id, featured: !t.featured }, () => setL((x) => x.map((y) => (y._id === t._id ? { ...y, featured: !t.featured } : y))))}>{t.featured ? 'Remove from miracles' : 'Mark as miracle'}</button>

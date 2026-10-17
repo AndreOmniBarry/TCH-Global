@@ -104,7 +104,7 @@ function Slides({ items }: { items: Spotlight[] }) {
               {...(it.link ? { href: it.link, ...(/^https?:/.test(it.link) ? { target: '_blank', rel: 'noopener' } : {}) } : {})}
             >
               {it.image && (
-                <span className="hs-media" style={it.lqip ? { backgroundImage: `url(${it.lqip})` } : undefined}>
+                <span className="hs-media" style={{ backgroundImage: `url(${it.lqip || img(it.image, 480)})` }}>
                   <img
                     src={img(it.image, 900)}
                     srcSet={`${img(it.image, 480)} 480w, ${img(it.image, 900)} 900w`}

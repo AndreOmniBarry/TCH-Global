@@ -68,13 +68,16 @@ export default async function AdminAnalyticsPage() {
   const mostWatchedVideoSlugs = videoIds.length ? await getMostWatchedSlugs(videoIds, 10) : [];
   const videoTitleById = new Map((videos ?? []).map((v) => [v.id, v.title]));
 
-  const trendingRows = await Promise.all(
-    (trendingSlugs ?? []).map(async (slug) => ({
-      slug,
-      title: slug.startsWith('yt:') ? videoTitleById.get(slug.slice(3)) || slug : getPostTitle(slug, posts),
-      views: await getViewCount(slug),
-    }))
-  );
+  // Trending mixes blog posts, YouTube ids and PUDLIB! items
+  // ("media:au-…" / "media:yt-…"): give every one its real title.
+  const libTitleById = new Map((lib?.items ?? []).map((i) => [i.id, i.title]));
+  const titleOf = (slug: string) =>
+    slug.startsWith('media:') ? libTitleById.get(slug.slice(6)) || (slug.startsWith('media:yt-') ? videoTitleById.get(slug.slice(9)) : null) || 'PUDLIB! message'
+      : slug.startsWith('yt:') ? videoTitleById.get(slug.slice(3)) || 'YouTube video'
+      : getPostTitle(slug, posts);
+  const trendingRows = (await Promise.all(
+    (trendingSlugs ?? []).map(async (slug) => ({ slug, title: titleOf(slug), views: await getViewCount(slug) }))
+  )).sort((a, b) => (b.views ?? 0) - (a.views ?? 0));
 
   const mostWatchedPostRows = await Promise.all(
     (mostWatchedPostSlugs ?? []).map(async (slug) => ({

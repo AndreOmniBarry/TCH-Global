@@ -26,12 +26,12 @@ function SubmissionCard({ entry, fieldOrder }: { entry: FormSubmission; fieldOrd
   return (
     <div style={{ border: '1px solid var(--border-glass)', borderRadius: 'var(--radius-card)', padding: 14, marginBottom: 10 }}>
       <div style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--text-faint)', marginBottom: 8 }}>
-        {formatDate(entry.submittedAt)}
+        {entry.submittedAt ? formatDate(entry.submittedAt) : ''}
       </div>
       {fieldOrder.map((key) =>
         entry.fields[key] ? (
           <p key={key} style={{ fontSize: '.85rem', marginBottom: 4 }}>
-            <strong style={{ color: 'var(--text-high)', textTransform: 'capitalize' }}>{key}:</strong> {entry.fields[key]}
+            <strong style={{ color: 'var(--text-high)', textTransform: 'capitalize' }}>{key}:</strong> {String(entry.fields[key])}
           </p>
         ) : null
       )}
@@ -62,12 +62,19 @@ export default async function AdminSubmissionsPage() {
     );
   }
 
-  const [results, pendingTestimonies, liveTestimonies] = await Promise.all([
-    Promise.all(SECTIONS.map((s) => listSubmissions(s.type, 100))),
-    listSubmissions('testimony', 200),
-    getTestimonies(),
+  // Each source gets 8s and a safe fallback, so one slow or broken source
+  // can't hang the whole page.
+  const within = <T,>(p: Promise<T>, fallback: T) => Promise.race([p.catch(() => fallback), new Promise<T>((r) => setTimeout(() => r(fallback), 8000))]);
+  const valid = (e: unknown): e is FormSubmission => Boolean(e && typeof e === 'object' && (e as FormSubmission).fields && typeof (e as FormSubmission).fields === 'object');
+  const [rawResults, rawPending, liveTestimonies, rawMembers] = await Promise.all([
+    Promise.all(SECTIONS.map((s) => within(listSubmissions(s.type, 100), null))),
+    within(listSubmissions('testimony', 200), null),
+    within(getTestimonies(), null),
+    within(listMembers(), []),
   ]);
-  const members = await listMembers();
+  const results = rawResults.map((r) => (r ?? []).filter(valid));
+  const pendingTestimonies = (rawPending ?? []).filter(valid);
+  const members = rawMembers.filter((m) => m && typeof m.email === 'string');
 
   return (
     <>
@@ -91,7 +98,7 @@ export default async function AdminSubmissionsPage() {
                   <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Emails</th><th>Joined</th></tr></thead>
                   <tbody>
                     {members.map((m) => (
-                      <tr key={m.id}><td>{m.name}</td><td>{m.email}</td><td>{m.phone || ''}</td><td>{m.newsletter ? 'Yes' : 'No'}</td><td>{new Date(m.createdAt).toLocaleDateString('en-US', { dateStyle: 'medium' })}</td></tr>
+                      <tr key={m.id}><td>{m.name}</td><td>{m.email}</td><td>{m.phone || ''}</td><td>{m.newsletter ? 'Yes' : 'No'}</td><td>{m.createdAt && !Number.isNaN(new Date(m.createdAt).getTime()) ? new Date(m.createdAt).toLocaleDateString('en-US', { dateStyle: 'medium' }) : ''}</td></tr>
                     ))}
                   </tbody>
                 </table>
