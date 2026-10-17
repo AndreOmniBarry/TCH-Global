@@ -52,8 +52,17 @@ async function run(): Promise<Check[]> {
       : 'Secret is set, but no refresh has arrived from Sanity yet. In sanity.io/manage → API → Webhooks, open the webhook → Attempts: 401 means the secret in the URL differs from Vercel; 404 means a wrong URL. Pages still refresh on their own within a minute.',
     unlocks: 'Studio publishes appear on the site instantly' });
   out.push({ name: 'Admin / publishing password', ok: Boolean(process.env.WRITE_PASSWORD), detail: process.env.WRITE_PASSWORD ? 'WRITE_PASSWORD is set' : 'WRITE_PASSWORD not set', unlocks: 'Admin pages, /write' });
-  out.push({ name: 'Emails (Resend)', ok: Boolean(process.env.RESEND_API_KEY), detail: process.env.RESEND_API_KEY ? `Key set · alerts to ${process.env.NOTIFY_EMAIL || '(NOTIFY_EMAIL not set)'} · from ${process.env.EMAIL_FROM || 'Resend test sender (only reaches your own inbox)'}` : 'RESEND_API_KEY not set', unlocks: 'Submission alerts, welcome, thank-you and salvation emails' });
-  out.push({ name: 'Teens private questions', ok: Boolean(process.env.PASTOR_EMAIL && process.env.RESEND_API_KEY), detail: process.env.PASTOR_EMAIL ? `Go only to the Pastor's inbox${process.env.EMAIL_FROM ? '' : '. Note: until a domain is verified in Resend, emails only reach the Resend account owner'}` : 'PASTOR_EMAIL not set. Questions are refused until it is.', unlocks: 'Ask anything (No judgement zone) on /teens' });
+  {
+    const smtp = Boolean(process.env.SMTP_USER && process.env.SMTP_PASS);
+    const domain = Boolean(process.env.EMAIL_FROM);
+    out.push({ name: 'Emails', ok: smtp || (Boolean(process.env.RESEND_API_KEY) && domain) ? true : process.env.RESEND_API_KEY ? false : false,
+      detail: domain && process.env.RESEND_API_KEY ? `Resend with your domain · from ${process.env.EMAIL_FROM} · alerts to ${process.env.NOTIFY_EMAIL || '(NOTIFY_EMAIL not set)'}`
+        : smtp ? `Sending through Gmail (${process.env.SMTP_USER}) · reaches everyone · alerts to ${process.env.NOTIFY_EMAIL || '(NOTIFY_EMAIL not set)'}`
+        : process.env.RESEND_API_KEY ? 'Resend test sender: only reaches the Resend account owner. Add SMTP_USER and SMTP_PASS (Gmail app password) so visitors and the Pastor get emails too.'
+        : 'Not set up. Add SMTP_USER and SMTP_PASS (Gmail app password).',
+      unlocks: 'Submission alerts, welcome, thank-you and salvation emails, teen questions to the Pastor' });
+  }
+  out.push({ name: 'Teens private questions', ok: Boolean(process.env.PASTOR_EMAIL && (process.env.RESEND_API_KEY || (process.env.SMTP_USER && process.env.SMTP_PASS))), detail: process.env.PASTOR_EMAIL ? `Go only to the Pastor's inbox${process.env.EMAIL_FROM || (process.env.SMTP_USER && process.env.SMTP_PASS) ? '' : '. Note: add the Gmail sender (SMTP_USER/SMTP_PASS) or a domain so it can reach the Pastor'}` : 'PASTOR_EMAIL not set. Questions are refused until it is.', unlocks: 'Ask anything (No judgement zone) on /teens' });
   // Ask Google directly so a refused key shows Google's own reason.
   let ytErr = '';
   if (process.env.YOUTUBE_API_KEY) {

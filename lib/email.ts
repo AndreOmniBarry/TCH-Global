@@ -12,7 +12,17 @@
 const API_KEY = process.env.RESEND_API_KEY;
 const FROM = process.env.EMAIL_FROM || 'TCH Global <onboarding@resend.dev>';
 
-export const emailConfigured = Boolean(API_KEY);
+// Before the church has its own domain, Resend can only deliver to the
+// account owner. A Gmail account with an app password can email anyone, so
+// when SMTP_USER/SMTP_PASS are set we send through Gmail instead.
+//   SMTP_USER  e.g. tchglobal.church@gmail.com
+//   SMTP_PASS  the 16-letter app password (Google Account → Security → App passwords)
+const SMTP_USER = process.env.SMTP_USER?.trim();
+const SMTP_PASS = process.env.SMTP_PASS?.replace(/\s+/g, '');
+export const smtpConfigured = Boolean(SMTP_USER && SMTP_PASS);
+const useSmtp = smtpConfigured && !process.env.EMAIL_FROM;
+
+export const emailConfigured = Boolean(API_KEY) || smtpConfigured;
 export const notifyRecipients = (process.env.NOTIFY_EMAIL || '')
   .split(',')
   .map((s) => s.trim())
@@ -23,7 +33,19 @@ export function escapeHtml(s: string) {
 }
 
 export async function sendEmail(opts: { to: string[]; subject: string; html: string; replyTo?: string }): Promise<boolean> {
-  if (!API_KEY || !opts.to.length) return false;
+  if (!opts.to.length) return false;
+  if (useSmtp || (!API_KEY && smtpConfigured)) {
+    try {
+      const nodemailer = await import('nodemailer');
+      const t = nodemailer.createTransport({ host: 'smtp.gmail.com', port: 465, secure: true, auth: { user: SMTP_USER, pass: SMTP_PASS } });
+      await t.sendMail({ from: `TCH Global <${SMTP_USER}>`, to: opts.to.join(', '), subject: opts.subject, html: opts.html, replyTo: opts.replyTo });
+      return true;
+    } catch (err) {
+      console.error('Gmail send error:', err);
+      return false;
+    }
+  }
+  if (!API_KEY) return false;
   try {
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
