@@ -29,7 +29,7 @@ export default function TestimonyAdmin({ pending, live }: { pending: Pending[]; 
       {p.length === 0 && <p style={{ fontSize: '.85rem', color: 'var(--text-faint)' }}>Nothing waiting.</p>}
       {p.map((e) => (
         <div key={e.submittedAt} style={box}>
-          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--text-faint)', marginBottom: 6 }}>{e.submittedAt ? new Date(e.submittedAt).toLocaleString() : ""} · {e.fields?.category || 'No category'}</div>
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--text-faint)', marginBottom: 6 }}>{e.submittedAt ? new Date(e.submittedAt).toLocaleString("en-GB", { timeZone: "Africa/Lagos", dateStyle: "medium", timeStyle: "short" }) : ""} · {e.fields?.category || 'No category'}</div>
           <p style={{ fontSize: '.88rem', marginBottom: 6 }}>&ldquo;{e.fields?.quote}&rdquo;</p>
           <p style={{ fontSize: '.8rem', marginBottom: 10 }}><strong>{e.fields?.name}</strong></p>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>

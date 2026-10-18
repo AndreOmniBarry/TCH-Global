@@ -19,7 +19,7 @@ const SECTIONS: { type: FormType; title: string; fieldOrder: string[] }[] = [
 ];
 
 function formatDate(iso: string) {
-  return new Date(iso).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
+  return new Date(iso).toLocaleString('en-GB', { timeZone: 'Africa/Lagos', dateStyle: 'medium', timeStyle: 'short' });
 }
 
 function SubmissionCard({ entry, fieldOrder }: { entry: FormSubmission; fieldOrder: string[] }) {
@@ -98,7 +98,7 @@ export default async function AdminSubmissionsPage() {
                   <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Emails</th><th>Joined</th></tr></thead>
                   <tbody>
                     {members.map((m) => (
-                      <tr key={m.id}><td>{m.name}</td><td>{m.email}</td><td>{m.phone || ''}</td><td>{m.newsletter ? 'Yes' : 'No'}</td><td>{m.createdAt && !Number.isNaN(new Date(m.createdAt).getTime()) ? new Date(m.createdAt).toLocaleDateString('en-US', { dateStyle: 'medium' }) : ''}</td></tr>
+                      <tr key={m.id}><td>{m.name}</td><td>{m.email}</td><td>{m.phone || ''}</td><td>{m.newsletter ? 'Yes' : 'No'}</td><td>{m.createdAt && !Number.isNaN(new Date(m.createdAt).getTime()) ? new Date(m.createdAt).toLocaleDateString('en-GB', { timeZone: 'Africa/Lagos', dateStyle: 'medium' }) : ''}</td></tr>
                     ))}
                   </tbody>
                 </table>
