@@ -2333,3 +2333,17 @@ body:has(.pl-amodal) .qdock { display: none; }
   .hs-slide { grid-template-columns: minmax(0, 46%) 1fr; align-items: center; }
   .hs-media img { max-height: 420px; }
 }
+/* Spotlight motion: each poster drifts in with a slow zoom. */
+.hs-media { overflow: hidden; }
+.hs-slide .hs-media img { transform: scale(1.06); transition: transform 7.5s cubic-bezier(.2, .6, .2, 1); }
+.hs-slide.on .hs-media img { transform: scale(1); }
+@media (prefers-reduced-motion: reduce) { .hs-slide .hs-media img { transform: none; transition: none; } }
+/* Give: bank transfer cards */
+.bank-card { display: grid; gap: 4px; margin-top: 16px; padding: 18px 20px; border-radius: 20px; background: linear-gradient(135deg, rgb(124 58 237 / .14), rgb(34 211 238 / .1)); border: 1px solid var(--border-glass-strong); }
+.bank-purpose { font: 600 .66rem var(--font-mono); letter-spacing: .14em; text-transform: uppercase; color: var(--accent-cyan); }
+.bank-number { justify-self: start; position: relative; display: inline-flex; align-items: center; gap: 12px; padding: 0; border: 0; background: none; color: var(--text-high); font: 700 clamp(1.45rem, 6vw, 1.9rem) var(--font-mono); letter-spacing: .02em; white-space: nowrap; text-align: left; cursor: pointer; font-variant-numeric: tabular-nums; }
+.bank-number i, .bank-number b { font: 600 .66rem var(--font-mono); font-style: normal; letter-spacing: .1em; text-transform: uppercase; padding: 3px 8px; border-radius: 999px; border: 1px solid var(--border-glass-strong); color: var(--text-muted); }
+.bank-number b { display: none; color: #16a34a; border-color: #16a34a; }
+.bank-number.copied i { display: none; } .bank-number.copied b { display: inline; }
+.bank-name { font-weight: 700; color: var(--text-high); }
+.bank-bank { font-size: .86rem; color: var(--text-muted); }

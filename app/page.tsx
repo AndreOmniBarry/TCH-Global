@@ -6,9 +6,10 @@ import SectionTitleStage from '@/components/decor/SectionTitleStage';
 import HeroExtras from '@/components/decor/HeroExtras';
 import { getAllPosts, getUpcomingEvents, getTestimonies, getSpotlights } from '@/lib/sanity';
 import { navHtml } from '@/lib/nav';
-// import HeroSpotlight from '@/components/decor/HeroSpotlight'; // hero banner hidden for now
+import HeroSpotlight from '@/components/decor/HeroSpotlight';
 import SalvationSection from '@/components/SalvationSection';
 import { fallbackPosts } from '@/lib/fallback-posts';
+import { BANK_ACCOUNTS } from '@/lib/giving';
 
 const FACEBOOK_URL = process.env.NEXT_PUBLIC_FACEBOOK_URL || 'https://www.facebook.com/profile.php?id=61557996937416';
 // Spotify buttons stay hidden until the podcast exists.
@@ -310,7 +311,13 @@ const HOME_HTML_EVENTS_TO_MEDIA = `
     <div class="section-header pop">
       <span class="eyebrow">Generous Stewardship</span>
       <h2>Give</h2>
-      <p>Online giving with a secure payment gateway is coming soon. For now, tell us your intent and our finance team will follow up with safe giving options.</p>
+      <p>${BANK_ACCOUNTS.length ? 'Give by bank transfer to the account below. Tap a number to copy it. Online card giving is coming soon.' : 'Online giving with a secure payment gateway is coming soon. For now, tell us your intent and our finance team will follow up with safe giving options.'}</p>
+      ${BANK_ACCOUNTS.map((a) => `<div class="bank-card">
+        <span class="bank-purpose">${a.purpose}${a.currency ? ` · ${a.currency}` : ''}</span>
+        <button type="button" class="bank-number" onclick="navigator.clipboard&&navigator.clipboard.writeText('${a.number}').then(()=>{this.classList.add('copied');setTimeout(()=>this.classList.remove('copied'),1600)})" aria-label="Copy account number ${a.number}">${a.number.replace(/(\d{3})(\d{3})(\d+)/, '$1 $2 $3')}<i>Copy</i><b>Copied</b></button>
+        <span class="bank-name">${a.name}</span>
+        <span class="bank-bank">${a.bank}</span>
+      </div>`).join('')}
     </div>
     <div class="give-form pop" id="give-form-wrap">
       <form id="give-form">
@@ -436,7 +443,7 @@ function blogHtml(list: { slug: string; title: string; excerpt?: string | null; 
 }
 
 export default async function HomePage() {
-  const [posts, events, testimonies] = await Promise.all([getAllPosts(), getUpcomingEvents(), getTestimonies()]);
+  const [posts, events, testimonies, spotlights] = await Promise.all([getAllPosts(), getUpcomingEvents(), getTestimonies(), getSpotlights()]);
   const sorted = [...(posts ?? fallbackPosts)].sort(
     (a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
   );
@@ -451,7 +458,7 @@ export default async function HomePage() {
       <SectionTitleStage />
       <div dangerouslySetInnerHTML={{ __html: HOME_HTML_BEFORE_LIBRARY }} />
       <HeroExtras {...heroData} />
-      {/* Hero banner hidden for now: restore <HeroSpotlight items={await getSpotlights()} /> */}
+      <HeroSpotlight items={spotlights} />
       <PudlibPreview />
       <AnnouncementsSection />
       <div dangerouslySetInnerHTML={{ __html: HOME_HTML_AFTER_LIBRARY }} />
