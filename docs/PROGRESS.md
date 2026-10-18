@@ -32,6 +32,12 @@ Check anything at **/admin/status**.
 - Sanity webhook was failing with 401 Bad secret; secret reset to a lowercase value in Vercel and the webhook URL
 - Spotify cover: docs/brand/tch-spotify-cover-3000.jpg
 
+## 18 Oct: /admin/status 9/10
+- Working: database, Sanity read/write, webhook, admin password, Gmail emails, teens private
+  questions, YouTube, Instagram & TikTok. Only Spotify left (optional, no podcast yet).
+- Fixed: splash stuck over /admin/submissions; spotlight shows whole posters; phone numbers added;
+  Give bank card ready in lib/giving.ts (waiting for account details).
+
 ## Next, in order
 0. **Set `PASTOR_EMAIL`** in Vercel. Resend only reaches the Resend account owner until a domain is
    verified, so either verify a domain or create the Resend account with the Pastor's email.
