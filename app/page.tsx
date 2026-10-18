@@ -6,7 +6,7 @@ import SectionTitleStage from '@/components/decor/SectionTitleStage';
 import HeroExtras from '@/components/decor/HeroExtras';
 import { getAllPosts, getUpcomingEvents, getTestimonies, getSpotlights } from '@/lib/sanity';
 import { navHtml } from '@/lib/nav';
-import HeroSpotlight from '@/components/decor/HeroSpotlight';
+// import HeroSpotlight from '@/components/decor/HeroSpotlight'; // hero banner hidden for now
 import SalvationSection from '@/components/SalvationSection';
 import { fallbackPosts } from '@/lib/fallback-posts';
 
@@ -279,7 +279,7 @@ const HOME_HTML_EVENTS_TO_MEDIA = `
     <div class="contact-card pop" style="margin-top:16px;">
       <h4 style="font-size:.9rem;text-transform:uppercase;letter-spacing:.06em;margin-bottom:14px;">Contact Us</h4>
       <p style="font-size:.85rem;margin-bottom:8px;"><strong style="color:var(--text-high);">Address</strong><br>45 Edosomwan Street, Ikpoba Hill, Benin City</p>
-      <p style="font-size:.85rem;margin-bottom:8px;"><strong style="color:var(--text-high);">Phone</strong><br>(placeholder) 000 000 0000</p>
+      <p style="font-size:.85rem;margin-bottom:8px;"><strong style="color:var(--text-high);">Phone</strong><br><a href="tel:+2348036659700">0803 665 9700</a><br><a href="tel:+2348078682743">0807 868 2743</a></p>
       <p style="font-size:.85rem;"><strong style="color:var(--text-high);">Email</strong><br>info@tchglobal.org</p>
     </div>
   </div>
@@ -387,6 +387,7 @@ const HOME_HTML_EVENTS_TO_MEDIA = `
       <div class="footer-col">
         <h4>Visit</h4>
         <p>45 Edosomwan Street, Ikpoba Hill, Benin City</p>
+        <p style="margin-top:6px;"><a href="tel:+2348036659700">0803 665 9700</a><br><a href="tel:+2348078682743">0807 868 2743</a></p>
         <p style="margin-top:6px;">Sun 7:30 &amp; 9:15 AM<br>Mon Prayer 5:30 PM<br>Wed 5:30 PM</p>
       </div>
     </div>
@@ -435,7 +436,7 @@ function blogHtml(list: { slug: string; title: string; excerpt?: string | null; 
 }
 
 export default async function HomePage() {
-  const [posts, events, testimonies, spotlights] = await Promise.all([getAllPosts(), getUpcomingEvents(), getTestimonies(), getSpotlights()]);
+  const [posts, events, testimonies] = await Promise.all([getAllPosts(), getUpcomingEvents(), getTestimonies()]);
   const sorted = [...(posts ?? fallbackPosts)].sort(
     (a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
   );
@@ -450,7 +451,7 @@ export default async function HomePage() {
       <SectionTitleStage />
       <div dangerouslySetInnerHTML={{ __html: HOME_HTML_BEFORE_LIBRARY }} />
       <HeroExtras {...heroData} />
-      <HeroSpotlight items={spotlights} />
+      {/* Hero banner hidden for now: restore <HeroSpotlight items={await getSpotlights()} /> */}
       <PudlibPreview />
       <AnnouncementsSection />
       <div dangerouslySetInnerHTML={{ __html: HOME_HTML_AFTER_LIBRARY }} />
