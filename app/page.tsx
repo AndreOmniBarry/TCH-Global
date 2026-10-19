@@ -60,7 +60,7 @@ const HOME_HTML_BEFORE_LIBRARY = `
   <div class="hero-cards" id="hero-cards"></div>
   <div class="hero-content container">
     <div id="hero-chip-mount" class="hero-chip-mount"></div>
-    <h1 class="hero-title">TCH <em>Global</em></h1>
+    <h1 class="hero-title" aria-label="TCH Global">TCH <em class="hx" aria-hidden="true">Global</em></h1>
     <p class="hero-subtitle"><b>T</b>he <b>C</b>omforter&rsquo;s <b>H</b>ouse Global</p>
     <p class="hero-lead">Giving Comfort to Your Living.</p>
     <div class="hero-actions">

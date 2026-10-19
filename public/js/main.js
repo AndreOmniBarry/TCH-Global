@@ -419,3 +419,77 @@
     setTimeout(step, 2400);
   });
 })();
+
+// Hero "TCH ____" billboard. GLOBAL owns the screen; three variations make a
+// short entrance each, then it always lands back on GLOBAL. A small cube
+// rolls behind the last letter as it types, and breathes with the caret.
+(function () {
+  const em = document.querySelector('.hero-title .hx');
+  if (!em || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const MAIN = 'Global';
+  const POOL = ['Youth', 'Loveforce', 'Teens', 'Kids', 'Family', 'Worship', 'Nations', 'Prayer', 'Comfort'];
+  const HOLD_MAIN = 6500, HOLD_ALT = 3200, TYPE = 95, DEL = 48, GAP = 280;
+
+  em.textContent = '';
+  const text = document.createTextNode(MAIN);
+  const cube = document.createElement('span'); cube.className = 'hx-cube'; cube.innerHTML = '<i></i>';
+  const caret = document.createElement('i'); caret.className = 'hx-caret';
+  em.append(cube, text, caret);
+  const h1 = em.closest('.hero-title');
+
+  let angle = 0, bag = [];
+  const nextBatch = () => {
+    if (bag.length < 3) bag = POOL.slice().sort(() => Math.random() - 0.5);
+    return bag.splice(0, 3);
+  };
+
+  // Fit long words to the line before typing them (smooth font-size change).
+  const probe = document.createElement('span');
+  probe.style.cssText = 'position:absolute;visibility:hidden;white-space:nowrap;font:inherit;letter-spacing:inherit;text-transform:inherit';
+  em.appendChild(probe);
+  const fit = (w) => {
+    probe.textContent = w;
+    const scale = Math.min(1, (h1.clientWidth * 0.96) / Math.max(1, probe.offsetWidth));
+    em.style.setProperty('--hx-s', scale.toFixed(3));
+  };
+
+  const place = (dir) => {
+    const n = text.data.length;
+    let x = 0, h = em.offsetHeight;
+    if (n) {
+      const r = document.createRange(); r.setStart(text, n - 1); r.setEnd(text, n);
+      const a = r.getBoundingClientRect(), b = em.getBoundingClientRect();
+      const sc = parseFloat(em.style.getPropertyValue('--hx-s')) || 1;
+      x = (a.left - b.left + a.width * 0.55) / sc; h = a.height / sc;
+    }
+    cube.style.setProperty('--x', x.toFixed(1) + 'px');
+    cube.style.setProperty('--h', h.toFixed(1) + 'px');
+    if (dir) {
+      angle += dir * 90;
+      cube.style.setProperty('--a', angle + 'deg');
+      cube.classList.remove('hop'); void cube.offsetWidth; cube.classList.add('hop');
+    }
+  };
+  const idle = (on) => { em.classList.toggle('hx-idle', on); };
+  const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+
+  async function swap(word) {
+    idle(false);
+    while (text.data.length) { text.data = text.data.slice(0, -1); place(-1); await wait(DEL); }
+    fit(word);
+    await wait(GAP);
+    for (let i = 1; i <= word.length; i++) { text.data = word.slice(0, i); place(1); await wait(TYPE + (i === 1 ? 60 : Math.random() * 40)); }
+    idle(true);
+  }
+
+  async function run() {
+    fit(MAIN); place(0); idle(true);
+    await wait(HOLD_MAIN);
+    for (;;) {
+      for (const w of nextBatch()) { await swap(w); await wait(HOLD_ALT); }
+      await swap(MAIN); await wait(HOLD_MAIN);
+    }
+  }
+  addEventListener('resize', () => { fit(text.data || MAIN); place(0); });
+  (document.fonts ? document.fonts.ready : Promise.resolve()).then(run);
+})();
