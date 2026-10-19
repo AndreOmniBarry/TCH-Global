@@ -38,7 +38,7 @@ export default async function BlogIndexPage() {
       <section className="blog-index-hero" data-title="Blog">
         <div className="blog-shell">
           <span className="eyebrow">The Comforters Blog</span>
-          <h1>Words for the Everyday Faith</h1>
+          <h1 className="tw-head" aria-label="Words for the everyday faith"><span aria-hidden="true">Words for the</span><span className="tw-line" aria-hidden="true"><span className="tw" data-words="everyday faith|weary heart|hungry soul|young believer|family of God|seeking mind">everyday faith</span><i className="tw-caret" /></span></h1>
           <p>Weekly reflections from TCH Global — for church family and first-time readers alike. New every Sunday.</p>
           <span className="blog-cadence">Published weekly &middot; Every Sunday</span>
         </div>

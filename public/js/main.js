@@ -399,3 +399,23 @@
   }
   window.addEventListener('pageshow', function () { bar.classList.remove('go'); });
 })();
+
+// Typewriter headings: <span class="tw" data-words="a|b|c">. Types each
+// phrase, holds, deletes, moves on. Static first phrase for reduced motion.
+(function () {
+  const els = document.querySelectorAll('.tw[data-words]');
+  if (!els.length || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  els.forEach((el) => {
+    const words = el.dataset.words.split('|');
+    let w = 0, i = words[0].length, del = false;
+    const step = () => {
+      const word = words[w];
+      if (!del && i === word.length) { del = true; return setTimeout(step, 2200); }
+      if (del && i === 0) { del = false; w = (w + 1) % words.length; return setTimeout(step, 350); }
+      i += del ? -1 : 1;
+      el.textContent = word.slice(0, i);
+      setTimeout(step, del ? 38 : 75 + Math.random() * 50);
+    };
+    setTimeout(step, 2400);
+  });
+})();

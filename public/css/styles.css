@@ -2347,3 +2347,15 @@ body:has(.pl-amodal) .qdock { display: none; }
 .bank-number.copied i { display: none; } .bank-number.copied b { display: inline; }
 .bank-name { font-weight: 700; color: var(--text-high); }
 .bank-bank { font-size: .86rem; color: var(--text-muted); }
+/* Two-row typewriter heading */
+.tw-head > span { display: block; }
+.tw-line { white-space: nowrap; }
+.tw { background: linear-gradient(100deg, var(--accent-violet, #7c3aed), var(--accent-cyan, #22d3ee) 60%, #f5c542); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.tw-caret { display: inline-block; width: .08em; height: .9em; margin-left: .08em; vertical-align: -.06em; border-radius: 2px; background: var(--accent-cyan, #22d3ee); box-shadow: 0 0 14px var(--accent-cyan, #22d3ee); animation: tw-blink 1.05s steps(1) infinite; }
+@keyframes tw-blink { 50% { opacity: 0; } }
+@media (max-width: 700px) { .tw-line { white-space: normal; } }
+@media (prefers-reduced-motion: reduce) { .tw-caret { animation: none; } }
+.tw-head { font-size: clamp(1.45rem, 6.2vw, 4.4rem) !important; line-height: 1.08 !important; }
+.tw-head > span { white-space: nowrap; }
+.tw-line { white-space: nowrap !important; min-height: 1.08em; }
+.tw-head { font-size: clamp(1.45rem, 4.6vw, 3.5rem) !important; }

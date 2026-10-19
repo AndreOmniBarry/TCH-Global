@@ -162,7 +162,7 @@ const HOME_HTML_TESTIMONIES_TO_EVENTS = `
   <div class="container">
     <div class="section-header pop">
       <span class="eyebrow">The Comforters Blog</span>
-      <h2>Words for the Everyday Faith</h2>
+      <h2 class="tw-head" aria-label="Words for the everyday faith"><span aria-hidden="true">Words for the</span><span class="tw-line" aria-hidden="true"><span class="tw" data-words="everyday faith|weary heart|hungry soul|young believer|family of God|seeking mind">everyday faith</span><i class="tw-caret"></i></span></h2>
       <p>Weekly reflections from TCH Global, published every Sunday — free to read, share, and grow from.</p>
     </div>
 
