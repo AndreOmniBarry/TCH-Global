@@ -38,6 +38,11 @@ Check anything at **/admin/status**.
 - Fixed: splash stuck over /admin/submissions; spotlight shows whole posters; phone numbers added;
   Give bank card ready in lib/giving.ts (waiting for account details).
 
+## 19–20 Oct
+- Blog heading: two rows, typewriter second line with caret (sized to its column)
+- Hero billboard: TCH + typed word (GLOBAL ~6.5s, then 3 variations ~3.2s each), rolling cube
+- Fixed: caret wrapping, phrases cut off, text below jumping when the word changed
+
 ## Next, in order
 0. **Set `PASTOR_EMAIL`** in Vercel. Resend only reaches the Resend account owner until a domain is
    verified, so either verify a domain or create the Resend account with the Pastor's email.
