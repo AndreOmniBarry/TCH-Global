@@ -14,11 +14,11 @@ Keep them in a password manager. Never paste them into chat, email or WhatsApp.
 | Name | Value |
 |---|---|
 | SHEP_BRIDGE_URL | the SHEP.HRD address, e.g. https://shep-hrd.vercel.app |
-| SHEP_BRIDGE_KEY_ID | tch-k1 |
+| SHEP_BRIDGE_KEY_ID | K1 |
 | SHEP_BRIDGE_SECRET | the bridge signing secret |
 | BRIDGE_ENC_KEY | the encryption key |
 | BRIDGE_ENC_KEY_ID | 1 |
-| BRIDGE_FLUSH_KEYS | shep-f1:<flush secret> |
+| BRIDGE_FLUSH_KEYS | F1:<flush secret> |
 | CRON_SECRET | the cron secret |
 | BRIDGE_ALERT_EMAILS | (optional) unit heads who get the "needs a look" email, comma-separated |
 | TURNSTILE_SECRET_KEY + NEXT_PUBLIC_TURNSTILE_SITE_KEY | (optional, recommended) from Cloudflare → Turnstile → Add site. Set both or neither. |
@@ -31,11 +31,12 @@ copies can't be read (the emailed copies are unaffected).
 ## 3. SHEP.HRD → Vercel → Environment Variables
 | Name | Value |
 |---|---|
-| BRIDGE_KEYS | [{"id":"tch-k1","secret":"<same bridge signing secret>","church_id":"<TCH church_id>","branch_id":null}] |
+| BRIDGE_KEYS | [{"id":"K1","secret":"<same bridge signing secret>","church_id":"<TCH church_id>","branch_id":null}] |
 | BRIDGE_EXPECTED_HOST | the SHEP host without https://, e.g. shep-hrd.vercel.app |
+| BRIDGE_ENABLED | on |
 | BRIDGE_DAILY_CAP | 300 |
 | BRIDGE_FLUSH_URL | https://tch-global.vercel.app/api/bridge/flush |
-| BRIDGE_FLUSH_KEY_ID | shep-f1 |
+| BRIDGE_FLUSH_KEY_ID | F1 |
 | BRIDGE_FLUSH_SECRET | the flush secret |
 Run the bridge SQL file in Supabase → SQL editor (see the SHEP.HRD branch claude/tch-website-bridge, docs/TCH_WEBSITE_BRIDGE.md). Redeploy.
 
@@ -53,4 +54,4 @@ Add BRIDGE_ENABLED=off in Vercel and redeploy: sign-ups keep queueing safely and
 send when you remove it.
 
 ## Key rotation (yearly, or if a secret may have leaked)
-Add tch-k2 to SHEP BRIDGE_KEYS → set the site to tch-k2 → after 48 h remove tch-k1.
+Add K2 to SHEP BRIDGE_KEYS → set the site to K2 → after 48 h remove K1.

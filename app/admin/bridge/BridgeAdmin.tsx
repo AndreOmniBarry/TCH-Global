@@ -60,6 +60,8 @@ export default function BridgeAdmin(p: Props) {
       </div>
       {msg && <p className="br-msg" role="status">{msg}</p>}
 
+      {!p.configured && <SecretMaker />}
+
       <h3 className="br-h">Need a person ({p.dead.length})</h3>
       <p className="br-note">Held as a suspected bot or flood, refused by SHEP.HRD as invalid, or still undelivered after 24 hours. Release sends it again; Remove deletes it from the queue (the emailed copy remains). Each is kept 30 days.</p>
       {p.dead.length ? <Table rows={p.dead} actions={(r) => (
@@ -100,6 +102,44 @@ function Table({ rows, actions }: { rows: Row[]; actions?: (r: Row) => React.Rea
           {actions && <span className="br-btns">{actions(r)}</span>}
         </div>
       ))}
+    </div>
+  );
+}
+
+// Makes the bridge secrets in this browser (crypto.getRandomValues). They
+// are never sent to the server or saved: copy each into Vercel, then close.
+function SecretMaker() {
+  const [keys, setKeys] = useState<[string, string, string][] | null>(null);
+  const [copied, setCopied] = useState('');
+  const bytes = (n: number) => crypto.getRandomValues(new Uint8Array(n));
+  const hex = (n: number) => Array.from(bytes(n), (b) => b.toString(16).padStart(2, '0')).join('');
+  const b64 = (n: number) => btoa(String.fromCharCode(...Array.from(bytes(n))));
+  function make() {
+    const bridge = hex(32);
+    const flush = hex(32);
+    setKeys([
+      ['SHEP_BRIDGE_SECRET', bridge, 'TCH website, and inside BRIDGE_KEYS on SHEP.HRD'],
+      ['BRIDGE_ENC_KEY', b64(32), 'TCH website only'],
+      ['BRIDGE_FLUSH_KEYS', `F1:${flush}`, 'TCH website only'],
+      ['BRIDGE_FLUSH_SECRET', flush, 'SHEP.HRD only (same value as after F1: above)'],
+      ['CRON_SECRET', hex(24), 'TCH website, and cron-job.org header'],
+    ]);
+  }
+  return (
+    <div className="br-secrets">
+      <h3 className="br-h" style={{ marginTop: 0 }}>Step 1: make your secrets</h3>
+      <p className="br-note">Made in your browser only. Nothing here is sent or saved, so copy each into Vercel before leaving this page. Never paste them into chat, email or WhatsApp.</p>
+      {!keys ? <button className="btn btn-primary" onClick={make}>Make my secrets</button> : (
+        <div className="br-table">
+          {keys.map(([name, val, where]) => (
+            <div key={name} className="br-secret">
+              <strong>{name}</strong><em>{where}</em>
+              <code>{val}</code>
+              <button className="btn" onClick={() => navigator.clipboard?.writeText(val).then(() => { setCopied(name); setTimeout(() => setCopied(''), 1500); })}>{copied === name ? 'Copied' : 'Copy'}</button>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

@@ -2423,3 +2423,8 @@ body:has(.pl-amodal) .qdock { display: none; }
 .consent { display: flex; gap: 10px; align-items: flex-start; margin: 4px 0 14px; font-size: .86rem; line-height: 1.45; text-transform: none; letter-spacing: 0; font-weight: 400; cursor: pointer; color: var(--text-high); }
 .consent input { flex: none; width: 18px; height: 18px; margin: 1px 0 0; padding: 0; accent-color: var(--accent, #7c5cff); cursor: pointer; }
 .cf-turnstile { margin: 0 0 12px; }
+.br-secrets { border: 1px dashed rgba(127,127,127,.4); border-radius: 14px; padding: 16px; display: grid; gap: 10px; }
+.br-secret { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 10px; padding: 10px 12px; border-radius: 10px; background: rgba(127,127,127,.07); }
+.br-secret em { font-style: normal; font-size: .8rem; opacity: .7; grid-column: 1; }
+.br-secret code { grid-column: 1; font-size: .78rem; word-break: break-all; }
+.br-secret .btn { grid-column: 2; grid-row: 1 / span 3; align-self: center; }
