@@ -26,7 +26,8 @@ export type Envelope = {
   data: Record<string, string | string[]>;
 };
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+// Same rule SHEP.HRD applies, so a message is never refused for its email.
+const EMAIL_RE = /^[^\s@<>()[\]\\,;:"]+@[^\s@<>()[\]\\,;:"]+\.[^\s@<>()[\]\\,;:"]{2,}$/;
 
 // Strip control characters (newlines too, unless the field is free text).
 function clean(v: string | undefined, max: number, multiline = false): string {
@@ -37,8 +38,9 @@ function clean(v: string | undefined, max: number, multiline = false): string {
 
 function contact(f: Record<string, string>) {
   const email = clean(f.email, 160).toLowerCase();
-  const phone = clean(f.phone, 32).replace(/[^\d+()\- ]/g, '');
-  return { email: EMAIL_RE.test(email) ? email : '', phone: phone.replace(/\D/g, '').length >= 7 ? phone : '' };
+  const phone = clean(f.phone, 32).replace(/[^\d+()\- ]/g, '').trim();
+  const digits = phone.replace(/\D/g, '').length;
+  return { email: EMAIL_RE.test(email) ? email : '', phone: digits >= 7 && digits <= 20 ? phone : '' };
 }
 
 function put(data: Record<string, string | string[]>, key: string, v: string) {
