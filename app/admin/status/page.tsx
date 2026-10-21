@@ -4,6 +4,7 @@ import AdminNav from '@/components/AdminNav';
 import { sanityClient } from '@/lib/sanity';
 import { writeClient } from '@/lib/sanity-write';
 import { getChannelId, getLatestVideos } from '@/lib/youtube';
+import { bridgeConfigured, bridgeKillSwitch, bridgeMissing, stats as bridgeStats } from '@/lib/bridge/outbox';
 
 export const metadata = { title: 'System status | TCH Global Admin', robots: { index: false } };
 export const dynamic = 'force-dynamic';
@@ -79,6 +80,16 @@ async function run(): Promise<Check[]> {
     out.push({ name: 'YouTube', ok: Boolean(id && vids?.length), detail: id ? (vids?.length ? `Channel ${id} · ${vids.length} latest videos found${process.env.YOUTUBE_API_KEY ? '' : ' (free RSS feed; add YOUTUBE_API_KEY for reliability)'}` : `Channel ${id} found, but no videos came back. ${process.env.YOUTUBE_API_KEY ? 'The API key may be wrong or restricted: check it in Google Cloud.' : 'YouTube blocks its free feed from some servers: add a YOUTUBE_API_KEY (free, from Google Cloud).'}`) : 'Could not resolve the channel from @TheComfortersHouseGlobalMin', unlocks: 'PUDLIB! videos, /live, latest message' });
   } catch (e) { out.push({ name: 'YouTube', ok: false, detail: (e as Error).message, unlocks: 'PUDLIB! videos, /live' }); }
   out.push({ name: 'Instagram & TikTok', ok: true, detail: process.env.NEXT_PUBLIC_INSTAGRAM_URL || 'instagram.com/tchglobalmin · tiktok.com/@tchglobal', unlocks: 'Instagram buttons' });
+  {
+    const b = bridgeConfigured ? await timed(() => bridgeStats()).catch(() => null) : null;
+    out.push({ name: 'SHEP.HRD bridge', ok: !bridgeConfigured ? null : b && !b.authAlert && !bridgeKillSwitch && b.dead === 0 ? true : false,
+      detail: !bridgeConfigured ? `Not connected (optional). Needs ${bridgeMissing().join(', ')}.`
+        : bridgeKillSwitch ? 'Paused with BRIDGE_ENABLED=off. Sign-ups queue safely.'
+        : !b ? 'Could not read the outbox.'
+        : b.authAlert ? 'SHEP.HRD refused the key. Open /admin/bridge.'
+        : `${b.delivered} delivered · ${b.pending} waiting · ${b.dead} need a person${b.dead ? ' (open /admin/bridge)' : ''}`,
+      unlocks: 'Join, salvation, prayer and volunteer sign-ups flowing into SHEP.HRD' });
+  }
   out.push({ name: 'Spotify podcast link', ok: process.env.NEXT_PUBLIC_SPOTIFY_SHOW_URL ? true : null, detail: process.env.NEXT_PUBLIC_SPOTIFY_SHOW_URL || 'Not set (Spotify buttons hidden)', unlocks: 'Spotify buttons' });
   return out;
 }

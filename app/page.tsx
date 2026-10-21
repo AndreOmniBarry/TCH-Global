@@ -8,8 +8,13 @@ import { getAllPosts, getUpcomingEvents, getTestimonies, getSpotlights } from '@
 import { navHtml } from '@/lib/nav';
 import HeroSpotlight from '@/components/decor/HeroSpotlight';
 import SalvationSection from '@/components/SalvationSection';
+import Script from 'next/script';
 import { fallbackPosts } from '@/lib/fallback-posts';
 import { BANK_ACCOUNTS } from '@/lib/giving';
+
+// Cloudflare Turnstile (optional bot check on the forms that reach SHEP.HRD).
+const TS_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || '';
+const TS_BOX = TS_KEY ? `<div class="cf-turnstile" data-sitekey="${TS_KEY}" data-size="flexible" data-theme="auto" data-appearance="interaction-only"></div>` : '';
 
 const FACEBOOK_URL = process.env.NEXT_PUBLIC_FACEBOOK_URL || 'https://www.facebook.com/profile.php?id=61557996937416';
 // Spotify buttons stay hidden until the podcast exists.
@@ -235,6 +240,8 @@ const HOME_HTML_EVENTS_TO_MEDIA = `
         <input type="text" id="volunteer-name" placeholder="Your name" required>
         <label for="volunteer-email">Email</label>
         <input type="email" id="volunteer-email" placeholder="you@example.com" required>
+        <label for="volunteer-phone">Phone / WhatsApp (optional)</label>
+        <input type="tel" id="volunteer-phone" placeholder="0803 000 0000" autocomplete="tel">
         <fieldset class="chip-group">
           <legend>Teams of Interest <span class="chip-hint">pick as many as you like</span></legend>
           <label class="chip-opt"><input type="checkbox" name="team" value="Ushering &amp; Hospitality"><span>Ushering &amp; Hospitality</span></label>
@@ -253,6 +260,8 @@ const HOME_HTML_EVENTS_TO_MEDIA = `
             <textarea id="volunteer-other" rows="3" placeholder="e.g. A drama team for youth programmes, or a welfare team that visits the sick. Tell us what it would do and how you'd help."></textarea>
           </div>
         </fieldset>
+        <label class="consent"><input type="checkbox" name="share" value="yes"><span>Also add this to the TCH church office system so team leads can reach me.</span></label>
+        ${TS_BOX}
         <button type="submit" class="btn btn-primary" style="width:100%;">Submit Interest</button>
       </form>
       <div class="give-form done" id="volunteer-done" hidden>
@@ -270,6 +279,8 @@ const HOME_HTML_EVENTS_TO_MEDIA = `
       <form id="prayer-form">
         <input type="text" name="website" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;" aria-hidden="true">
         <textarea id="prayer-message" rows="4" placeholder="Share your intention, burden, or praise..." required></textarea>
+        <label class="consent"><input type="checkbox" name="share" value="yes"><span>Also share this request, without any name, with the TCH prayer team.</span></label>
+        ${TS_BOX}
         <button type="submit" class="btn btn-primary" style="width:100%;">Send Prayer Request</button>
       </form>
       <div class="give-form done" id="prayer-done" hidden>
@@ -297,6 +308,10 @@ const HOME_HTML_EVENTS_TO_MEDIA = `
         <input type="text" id="join-name" placeholder="Your name" required>
         <label for="join-email">Email</label>
         <input type="email" id="join-email" placeholder="you@example.com" required>
+        <label for="join-phone">Phone / WhatsApp (optional)</label>
+        <input type="tel" id="join-phone" placeholder="0803 000 0000" autocomplete="tel">
+        <label class="consent"><input type="checkbox" name="share" value="yes"><span>Also add this to the TCH church office system so the membership and care team can follow up with me.</span></label>
+        ${TS_BOX}
         <button type="submit" class="btn btn-primary" style="width:100%;">Join Us</button>
       </form>
       <div class="give-form done" id="join-done" hidden>
@@ -455,6 +470,7 @@ export default async function HomePage() {
   };
   return (
     <>
+      {TS_KEY && <Script src="https://challenges.cloudflare.com/turnstile/v0/api.js" strategy="afterInteractive" />}
       <SectionTitleStage />
       <div dangerouslySetInnerHTML={{ __html: HOME_HTML_BEFORE_LIBRARY }} />
       <HeroExtras {...heroData} />

@@ -127,19 +127,20 @@
 
   // One automatic retry: phones on patchy data often drop the first
   // request, which used to surface as a scary "network error".
-  function postForm(type, fields, honeypot, attempt) {
+  function postForm(type, fields, honeypot, attempt, extra) {
     attempt = attempt || 1;
+    extra = extra || {};
     return fetch('/api/forms', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ type: type, fields: fields, website: honeypot || '' }),
+      body: JSON.stringify({ type: type, fields: fields, website: honeypot || '', t: extra.t || 0, cf: extra.cf || '' }),
     }).then(function (res) {
       return res.json().catch(function () { return {}; }).then(function (data) {
         return { ok: res.ok, data: data || {} };
       });
     }, function (err) {
       if (attempt < 2) {
-        return new Promise(function (r) { setTimeout(r, 1200); }).then(function () { return postForm(type, fields, honeypot, attempt + 1); });
+        return new Promise(function (r) { setTimeout(r, 1200); }).then(function () { return postForm(type, fields, honeypot, attempt + 1, extra); });
       }
       throw err;
     });
@@ -188,6 +189,10 @@
     var type = formId.replace(/-form$/, '');
     var submitBtn = form.querySelector('button[type="submit"]');
     var originalLabel = submitBtn ? submitBtn.textContent : '';
+    // When the visitor started filling the form (a bot check: humans take
+    // more than a second or two).
+    var startedAt = 0;
+    form.addEventListener('focusin', function () { if (!startedAt) startedAt = Date.now(); });
 
     form.addEventListener('submit', function (e) {
       e.preventDefault();
@@ -223,13 +228,18 @@
       });
 
       var honeypot = form.querySelector('input[name="website"]');
+      // "Share with the church office" consent (SHEP.HRD), unticked by default.
+      var share = form.querySelector('input[name="share"]');
+      if (share) fields.share = share.checked ? 'yes' : 'no';
+      var cfInput = form.querySelector('input[name="cf-turnstile-response"]');
+      var extra = { t: startedAt ? Date.now() - startedAt : 0, cf: cfInput ? cfInput.value : '' };
 
       if (submitBtn) {
         submitBtn.disabled = true;
         submitBtn.textContent = 'Sending…';
       }
 
-      postForm(type, fields, honeypot ? honeypot.value : '')
+      postForm(type, fields, honeypot ? honeypot.value : '', 1, extra)
         .then(function (result) {
           if (result.ok) {
             var st = form.parentNode.querySelector('.form-status');

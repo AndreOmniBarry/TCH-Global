@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { submitForm, FormType, formsConfigured } from '@/lib/forms';
 import { sendEmail, emailConfigured, notifyRecipients, escapeHtml, layout } from '@/lib/email';
+import { waitUntil } from '@vercel/functions';
+import { limited } from '@/lib/auth';
+import { toEnvelope } from '@/lib/bridge/messages';
+import { enqueue, deliver, drain, bridgeConfigured, bridgeKillSwitch } from '@/lib/bridge/outbox';
 
 const LABELS: Record<FormType, string> = {
   volunteer: 'Volunteer interest',
@@ -56,10 +60,53 @@ function isFormType(value: unknown): value is FormType {
   return typeof value === 'string' && value in REQUIRED_FIELDS;
 }
 
+const MAX_BODY = 16 * 1024;
+const MAX_FIELDS = 20;
+
+// Cloudflare Turnstile (optional): only checked when the secret is set.
+async function humanCheck(token: unknown, ip: string): Promise<boolean | null> {
+  const secret = process.env.TURNSTILE_SECRET_KEY;
+  if (!secret) return null;
+  if (typeof token !== 'string' || !token || token.length > 2048) return false;
+  try {
+    const r = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+      method: 'POST',
+      body: new URLSearchParams({ secret, response: token, remoteip: ip }),
+      signal: AbortSignal.timeout(4000),
+    });
+    const j = (await r.json()) as { success?: boolean };
+    return j.success === true;
+  } catch {
+    return false;
+  }
+}
+
+// SHEP.HRD hand-off (docs/shep-bridge). Runs only with the visitor's
+// consent. Stored durably before we answer; a suspected bot or a flood is
+// parked for a human instead of reaching the church office's queues.
+async function bridge(type: FormType, fields: Record<string, string>, ip: string, elapsed: number, token: unknown) {
+  // With the kill switch on, messages still queue safely; they just wait.
+  if (!bridgeConfigured) return;
+  const env = toEnvelope(type, fields);
+  if (!env) return;
+  let held: string | undefined;
+  const human = await humanCheck(token, ip);
+  if (human === false) held = 'failed human check';
+  else if (elapsed > 0 && elapsed < 1500) held = 'filled too fast';
+  else if (await limited(`bridge:hour:${type}:${new Date().toISOString().slice(0, 13)}`, 60, 3600)) held = 'hourly cap reached';
+  if (!(await enqueue(env, held)) || held || bridgeKillSwitch) return;
+  await Promise.race([deliver(env.id), new Promise((r) => setTimeout(r, 4000))]).catch(() => {});
+  // Anything older still waiting: a few, after the response.
+  waitUntil(drain(3, 8000).catch(() => undefined));
+}
+
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
-    const { type, fields, website } = body || {};
+    const raw = await req.text();
+    if (raw.length > MAX_BODY) return NextResponse.json({ error: 'That is too long to send. Please shorten it.' }, { status: 413 });
+    const body = JSON.parse(raw);
+    const { type, fields, website, t, cf } = body || {};
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'x';
 
     // Honeypot: a hidden field real visitors never see or fill. A bot
     // that fills every field trips it — reply success so it doesn't
@@ -72,10 +119,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Unknown form type.' }, { status: 400 });
     }
 
+    if (await limited(`form:${ip}`, 20, 600)) {
+      return NextResponse.json({ error: 'Too many messages from this connection. Please wait a few minutes.' }, { status: 429 });
+    }
+
     const cleanFields: Record<string, string> = {};
     if (fields && typeof fields === 'object') {
-      for (const [key, value] of Object.entries(fields)) {
-        if (typeof value === 'string') cleanFields[key] = value.trim().slice(0, 4000);
+      for (const [key, value] of Object.entries(fields).slice(0, MAX_FIELDS)) {
+        if (typeof value === 'string' && /^[a-z_]{1,24}$/i.test(key)) cleanFields[key] = value.trim().slice(0, 4000);
       }
     }
 
@@ -118,6 +169,8 @@ export async function POST(req: NextRequest) {
       const fallback = formsConfigured ? result.error : "This form isn't connected yet — please email info@tchglobal.org directly for now.";
       return NextResponse.json({ error: fallback || 'Could not save your submission right now.' }, { status: 503 });
     }
+    // Never fails the visitor's submission: the church already has it.
+    await bridge(type, cleanFields, ip, typeof t === 'number' ? t : 0, cf).catch((e) => console.error('bridge', (e as Error).name));
     return NextResponse.json({ ok: true });
   } catch {
     return NextResponse.json({ error: 'Something went wrong. Please try again.' }, { status: 500 });

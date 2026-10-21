@@ -1,4 +1,12 @@
-# TCH website ⇄ SHEP.HRD bridge — design (draft v0, pre security review)
+# TCH website ⇄ SHEP.HRD bridge — design v1 (security review applied)
+
+Status: website side built and tested (21 Oct 2026). Wire format: CONTRACT.md.
+Changes from the security review: Option B is now a signed *flush* (SHEP asks the
+site to push; no endpoint ever returns personal data); SHEP writes inbox + domain
+row in one transaction; sends are awaited, never fire-and-forget; forms:* lists
+are encrypted too; digests carry no personal data; admin sessions expire (72 h);
+teens data is not bridged until guardian consent exists; per-IP + hourly caps,
+fill-time check and optional Turnstile park suspected bots for a person.
 
 Scope: The Comforters House (TCH) only. Additive service: the website keeps
 its current behaviour (email + KV copy of every form). The bridge only adds
@@ -35,14 +43,14 @@ Backoff 1m,5m,15m,1h,3h,6h,12h (≤24h). Drained: inline after each form,
 opportunistically on later submissions, daily cron, admin "retry now".
 Metadata-only log (id, type, status, ts) for /admin/status.
 
-## Option B — SHEP pulls
-GET {site}/api/bridge/outbox (signed by SHEP with a different secret,
-direction-separated), returns ≤ 25 pending envelopes; POST /api/bridge/ack
-(signed) with delivered ids. Delivered ids removed from outbox.
+## Option B — SHEP (or a scheduler) triggers a flush
+POST {site}/api/bridge/flush signed with a separate secret, or GET with
+Bearer CRON_SECRET. The site pushes its due items; the response is counts only.
 
 ## Option C — human fallback
-Items pending > 24h → moved to dead-letter + email digest (admin + unit head)
-with a CSV attachment matching SHEP's import format. Never silently dropped.
+Items pending > 24h, held, or refused as invalid → "Need a person" in
+/admin/bridge + email digest (counts and short ids only). CSV export (formula-safe)
+is only from /admin. Kept 30 days; the digest warns 5 days before expiry.
 
 ## SHEP → website
 GET {SHEP}/api/bridge/events (signed) → upcoming public events for TCH's

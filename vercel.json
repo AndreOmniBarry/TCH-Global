@@ -1,0 +1,5 @@
+{
+  "crons": [
+    { "path": "/api/bridge/flush", "schedule": "0 7 * * *" }
+  ]
+}

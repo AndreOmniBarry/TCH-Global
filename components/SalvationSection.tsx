@@ -1,6 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+
+const TS_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || '';
+type TurnstileApi = { render: (el: HTMLElement, o: Record<string, string>) => string };
 
 const PRAYER = [
   'O Lord God, I believe with all my heart in Jesus Christ, Son of the living God. I believe He’s alive today. I confess with my mouth that Jesus Christ is the Lord of my life from this day.',
@@ -14,6 +17,20 @@ export default function SalvationSection() {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
   const [name, setName] = useState('');
+  const started = useRef(0);
+  const tsBox = useRef<HTMLDivElement>(null);
+
+  // Turnstile (when configured) renders once the form is on screen.
+  useEffect(() => {
+    if (step !== 'form' || !TS_KEY || !tsBox.current) return;
+    let tries = 0;
+    const id = setInterval(() => {
+      const ts = (window as unknown as { turnstile?: TurnstileApi }).turnstile;
+      if (ts && tsBox.current && !tsBox.current.childElementCount) { ts.render(tsBox.current, { sitekey: TS_KEY, size: 'flexible', appearance: 'interaction-only' }); clearInterval(id); }
+      if (++tries > 40) clearInterval(id);
+    }, 250);
+    return () => clearInterval(id);
+  }, [step]);
 
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -22,7 +39,7 @@ export default function SalvationSection() {
     if (!f.phone?.trim() && !f.email?.trim()) return setErr('Leave a phone number or an email so we can reach you.');
     setBusy(true);
     try {
-      const r = await fetch('/api/forms', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'salvation', fields: { name: f.name, phone: f.phone, email: f.email, city: f.city, note: f.note }, website: f.website }) });
+      const r = await fetch('/api/forms', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'salvation', fields: { name: f.name, phone: f.phone, email: f.email, city: f.city, note: f.note, share: f.share === 'yes' ? 'yes' : 'no' }, website: f.website, t: started.current ? Date.now() - started.current : 0, cf: f['cf-turnstile-response'] || '' }) });
       const d = await r.json().catch(() => ({}));
       if (!r.ok) return setErr(d.error || 'Something went wrong. Please try again.');
       setName(f.name.split(' ')[0]);
@@ -58,7 +75,7 @@ export default function SalvationSection() {
             </div>
           )}
           {step === 'form' && (
-            <form className="salv-form" onSubmit={submit}>
+            <form className="salv-form" onSubmit={submit} onFocus={() => { if (!started.current) started.current = Date.now(); }}>
               <p className="salv-welcome">Welcome to the family of God. Let us know how to reach you.</p>
               <input type="text" name="website" tabIndex={-1} autoComplete="off" className="hp-field" aria-hidden="true" />
               <label htmlFor="salv-name">Your name</label>
@@ -77,6 +94,8 @@ export default function SalvationSection() {
               <input id="salv-city" name="city" autoComplete="address-level2" />
               <label htmlFor="salv-note">Anything you&rsquo;d like Pastor to pray about? (optional)</label>
               <textarea id="salv-note" name="note" rows={3} />
+              <label className="consent"><input type="checkbox" name="share" value="yes" /><span>Also add this to the TCH church office system so the care team can follow up with me.</span></label>
+              {TS_KEY && <div ref={tsBox} />}
               {err && <p className="form-status" data-kind="error">{err}</p>}
               <button type="submit" className="btn btn-primary" disabled={busy} style={{ width: '100%' }}>{busy ? 'Sending…' : 'Ask Pastor to reach me'}</button>
             </form>

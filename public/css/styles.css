@@ -2396,3 +2396,30 @@ body:has(.pl-amodal) .qdock { display: none; }
   box-shadow: inset .03em .03em 0 rgb(255 255 255 / .55), inset -.04em -.05em 0 rgb(20 10 60 / .45), .06em .09em .2em rgb(124 58 237 / .55), 0 0 .45em rgb(34 211 238 / .5) !important; }
 :root[data-theme="dark"] .hx-cube i { background: linear-gradient(135deg, #7c3aed 0%, #22d3ee 100%) !important; box-shadow: inset 0 0 0 .025em rgb(245 197 66 / .85), inset -.04em -.05em 0 rgb(0 0 0 / .4), .06em .09em .22em rgb(245 197 66 / .4), 0 0 .5em rgb(124 58 237 / .55) !important; }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .hx-cube i { background: linear-gradient(135deg, #7c3aed 0%, #22d3ee 100%) !important; box-shadow: inset 0 0 0 .025em rgb(245 197 66 / .85), inset -.04em -.05em 0 rgb(0 0 0 / .4), .06em .09em .22em rgb(245 197 66 / .4), 0 0 .5em rgb(124 58 237 / .55) !important; } }
+
+/* Admin: SHEP.HRD bridge */
+.br { display: grid; gap: 14px; }
+.br-tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.br-tiles > div { border: 1px solid var(--border, rgba(127,127,127,.25)); border-radius: 14px; padding: 14px 16px; display: grid; gap: 2px; }
+.br-tiles b { font-size: 1.7rem; font-family: var(--font-display, inherit); }
+.br-tiles span, .br-note, .br-empty { font-size: .85rem; opacity: .72; }
+.br-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.br-msg { font-size: .9rem; }
+.br-h { margin: 18px 0 0; font-size: 1.1rem; text-transform: none; }
+.br-table, .br-log { display: grid; gap: 6px; }
+.br-tr, .br-log > div { display: grid; grid-template-columns: 6.5em 9em 7em minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 9px 12px; border-radius: 10px; background: rgba(127,127,127,.07); font-size: .86rem; }
+.br-log > div { grid-template-columns: 6.5em 9em minmax(0, 1fr) 7em; }
+.br-log em { font-style: normal; opacity: .65; text-align: right; }
+.br-btns { display: flex; gap: 6px; }
+.br-btns button { font: inherit; font-size: .8rem; padding: 5px 10px; border-radius: 999px; border: 1px solid rgba(127,127,127,.35); background: transparent; color: inherit; cursor: pointer; }
+.br-erase { display: flex; gap: 8px; flex-wrap: wrap; }
+.br-erase input { flex: 1 1 220px; min-width: 0; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(127,127,127,.35); background: transparent; color: inherit; font: inherit; }
+@media (max-width: 640px) {
+  .br-tr, .br-log > div { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .br-btns { grid-column: 1 / -1; }
+}
+
+/* "Also share with the church office" consent (SHEP.HRD), unticked by default */
+.consent { display: flex; gap: 10px; align-items: flex-start; margin: 4px 0 14px; font-size: .86rem; line-height: 1.45; text-transform: none; letter-spacing: 0; font-weight: 400; cursor: pointer; color: var(--text-high); }
+.consent input { flex: none; width: 18px; height: 18px; margin: 1px 0 0; padding: 0; accent-color: var(--accent, #7c5cff); cursor: pointer; }
+.cf-turnstile { margin: 0 0 12px; }
