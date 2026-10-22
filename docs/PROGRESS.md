@@ -66,3 +66,15 @@ resend.com → API Keys → Create (Sending access) → Vercel: `RESEND_API_KEY`
 ## Also outstanding
 - Have the Pastor or children's team review the kids stories
 - Sanity Growth trial ends in about 17 days; check the Free plan limits before then
+
+## 21–22 Oct: SHEP.HRD bridge
+- Security review first (24 required fixes), then built to it. Website side: commits d40853e, 4326553, 2349b66.
+  SHEP.HRD side: shepherd-app branch claude/tch-website-bridge (83e97c2), cross-checked: signature,
+  host, timestamps, schema and status codes match.
+- Join us, salvation, prayer (anonymous) and volunteer go to SHEP.HRD only when the visitor ticks the
+  consent box. Teens, giving, testimonies and newsletter are never shared.
+- Encrypted outbox, retries for 24 h, then "Need a person" in /admin/bridge with an email alert
+  (counts only). Signed flush endpoint plus a daily Vercel cron; cron-job.org every 10 min recommended.
+- Admin logins now expire after 72 h. /admin/bridge can make the secrets in the browser.
+- To switch on: follow docs/shep-bridge/SETUP.md (merge the SHEP branch, run SQL 84, church id,
+  secrets, env vars on both Vercel projects, redeploy, cron-job.org, test with Join us).
