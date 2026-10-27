@@ -492,15 +492,24 @@
 
   const place = (dir) => {
     const n = text.data.length;
-    let x = 0, h = em.offsetHeight;
+    // The cube sits behind the last letter, centred on it and about 1.35x
+    // its size (the larger of its width and the capital height).
+    const fs = parseFloat(getComputedStyle(em).fontSize) || 40;
+    let x = 0, y = 0, side = fs * 0.72 * 1.35;
     if (n) {
       const r = document.createRange(); r.setStart(text, n - 1); r.setEnd(text, n);
       const a = r.getBoundingClientRect(), b = em.getBoundingClientRect();
       const sc = parseFloat(em.style.getPropertyValue('--hx-s')) || 1;
-      x = (a.left - b.left + a.width * 0.55) / sc; h = a.height / sc;
+      const aw = a.width / sc, ah = a.height / sc;
+      side = Math.max(aw, fs * 0.72) * 1.35;
+      const cx = (a.left - b.left) / sc + aw / 2;
+      // Middle of a capital: baseline (~78% down the glyph box) minus half the cap height.
+      const cy = (a.top - b.top) / sc + ah * 0.78 - fs * 0.36;
+      x = cx - side / 2; y = cy - side / 2;
     }
     cube.style.setProperty('--x', x.toFixed(1) + 'px');
-    cube.style.setProperty('--h', h.toFixed(1) + 'px');
+    cube.style.setProperty('--y', y.toFixed(1) + 'px');
+    cube.style.setProperty('--s', side.toFixed(1) + 'px');
     if (dir) {
       angle += dir * 90;
       cube.style.setProperty('--a', angle + 'deg');
