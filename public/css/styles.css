@@ -2428,3 +2428,6 @@ body:has(.pl-amodal) .qdock { display: none; }
 .br-secret em { font-style: normal; font-size: .8rem; opacity: .7; grid-column: 1; }
 .br-secret code { grid-column: 1; font-size: .78rem; word-break: break-all; }
 .br-secret .btn { grid-column: 2; grid-row: 1 / span 3; align-self: center; }
+.tn-guardian-h { margin: 14px 0 6px; font-size: .78rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; opacity: .75; }
+.tn-guardian-ok { margin: 10px 0 4px; align-items: flex-start; }
+.tn-guardian-ok span { font-size: .86rem; line-height: 1.45; }

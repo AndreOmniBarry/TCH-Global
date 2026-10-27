@@ -143,6 +143,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'That email address doesn’t look right — please check it.' }, { status: 400 });
     }
 
+    // TCH Teens squad: a parent or guardian must agree (NDPA s.31).
+    if (type === 'teens' && cleanFields.kind === 'squad' && (!cleanFields.guardian || !cleanFields.guardian_contact || cleanFields.guardian_ok !== 'yes')) {
+      return NextResponse.json({ error: 'A parent or guardian needs to add their name and phone and tick the box.' }, { status: 400 });
+    }
+
     // TCH Teens "Ask anything": private. Goes only to the Pastor's own
     // inbox (PASTOR_EMAIL). Never stored on the site, never copied to the
     // general NOTIFY_EMAIL, never shown in /admin.
