@@ -2,6 +2,7 @@ import 'server-only';
 import { kv } from '@vercel/kv';
 import { seal, unseal, signature } from './crypto';
 import { encryptionOn } from './crypto';
+import { randomUUID } from 'crypto';
 import type { Envelope, BridgeType } from './messages';
 
 // Durable outbox for SHEP.HRD (docs/shep-bridge/CONTRACT.md).
@@ -180,6 +181,49 @@ export async function deliver(id: string): Promise<Outcome> {
   } finally {
     await kv.del(K.lock(id)).catch(() => {});
   }
+}
+
+// "Test connection": a correctly signed message whose data is deliberately
+// empty. SHEP.HRD checks the signature first and the data second, so it
+// can never create a record, and its answer says exactly which part works:
+// 422 = keys, address and switch all correct; 401 = keys/address mismatch;
+// 503 = BRIDGE_ENABLED not "on" (or not redeployed); 404 = bridge code not live.
+export async function probe(): Promise<{ ok: boolean; code: number | string; say: string }> {
+  if (!bridgeConfigured) return { ok: false, code: 'setup', say: `Website side not set up: ${bridgeMissing().join(', ')}.` };
+  const u = target()!;
+  const path = '/api/bridge/ingest';
+  const now = new Date().toISOString();
+  const body = JSON.stringify({ v: 1, id: randomUUID(), type: 'prayer.request', occurredAt: now, consent: { version: 'probe', at: now }, data: {} });
+  const ts = String(Math.floor(Date.now() / 1000));
+  const sig = signature(SECRET, 'POST', path, u.host, ts, KEY_ID, body);
+  let code: number | string = 'network';
+  let detail = '';
+  try {
+    const res = await fetch(`${u.origin}${path}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Bridge-Key': KEY_ID, 'X-Bridge-Timestamp': ts, 'X-Bridge-Signature': `v1=${sig}` },
+      body, redirect: 'manual', cache: 'no-store', signal: AbortSignal.timeout(8000),
+    });
+    code = res.status;
+    detail = String(((await res.json().catch(() => ({}))) as { error?: string }).error || '');
+  } catch (e) {
+    code = (e as Error).name === 'TimeoutError' ? 'timeout' : 'network';
+  }
+  const host = u.host;
+  const say: Record<string, string> = {
+    422: `Both sides trust each other. ${host} checked the signature and is ready to receive sign-ups.`,
+    401: `${host} refused the key. In shepherd-app check that BRIDGE_KEYS has "id":"K1" and exactly the same secret as SHEP_BRIDGE_SECRET here, and that BRIDGE_EXPECTED_HOST is exactly ${host}. Then redeploy shepherd-app.`,
+    503: `${host} has the bridge switched off. In shepherd-app set BRIDGE_ENABLED to on, then redeploy shepherd-app.`,
+    500: `${host} could not read its bridge settings (usually BRIDGE_KEYS is not valid JSON, or the branch does not belong to the church). Re-check BRIDGE_KEYS and redeploy shepherd-app.`,
+    404: `${host} does not have the bridge yet. Redeploy shepherd-app from main.`,
+    timeout: `${host} did not answer within 8 seconds. Try again; if it repeats, check shepherd-app is online.`,
+    network: `Could not reach ${host}. Check SHEP_BRIDGE_URL is https://${host} and the site is online.`,
+  };
+  const fallback = typeof code === 'number' && code >= 300 && code < 400
+    ? `${host} redirects to another address. Use the final address in SHEP_BRIDGE_URL and BRIDGE_EXPECTED_HOST.`
+    : `Unexpected answer ${code}${detail ? ` (${detail})` : ''}.`;
+  await log('probe', 'test', code === 422 ? 'test ok' : 'test failed', code);
+  return { ok: code === 422, code, say: say[String(code)] || fallback };
 }
 
 // Send whatever is due, oldest first, within a time budget.

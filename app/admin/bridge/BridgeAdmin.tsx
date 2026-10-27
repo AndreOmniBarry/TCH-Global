@@ -20,6 +20,13 @@ export default function BridgeAdmin(p: Props) {
   const [msg, setMsg] = useState('');
   const [busy, setBusy] = useState(false);
   const [who, setWho] = useState('');
+  const [test, setTest] = useState<{ ok: boolean; say: string; code: string } | null>(null);
+  async function runTest() {
+    setBusy(true); setTest(null);
+    try { const j = await call({ action: 'test' }); setTest({ ok: j.ok, say: j.say, code: String(j.code) }); }
+    catch (e) { setTest({ ok: false, say: (e as Error).message, code: '' }); }
+    finally { setBusy(false); }
+  }
   async function act(body: object, done: (j: Record<string, number>) => string) {
     setBusy(true); setMsg('');
     try { const j = await call(body); setMsg(done(j)); setTimeout(() => location.reload(), 1400); }
@@ -53,11 +60,19 @@ export default function BridgeAdmin(p: Props) {
       )}
 
       <div className="br-actions">
-        <button className="btn btn-primary" disabled={busy || !p.configured} onClick={() => act({ action: 'send-now' }, (j) => `Tried ${j.tried}, delivered ${j.delivered}.`)}>Send waiting items now</button>
+        <button className="btn btn-primary" disabled={busy || !p.configured} onClick={runTest}>{busy && !test ? 'Testing…' : 'Test connection'}</button>
+        <button className="btn" disabled={busy || !p.configured} onClick={() => act({ action: 'send-now' }, (j) => `Tried ${j.tried}, delivered ${j.delivered}.`)}>Send waiting items now</button>
         <a className="btn" href="/admin/api/bridge?export=dead">Export &ldquo;need a person&rdquo; (CSV)</a>
         <a className="btn" href="/admin/api/bridge?export=pending">Export waiting (CSV)</a>
         {p.stats?.authAlert && <button className="btn" disabled={busy} onClick={() => act({ action: 'clear-alert' }, () => 'Alert cleared.')}>Keys fixed: clear alert</button>}
       </div>
+      {test && (
+        <div className={`st-row st-row--${test.ok ? 'ok' : 'bad'}`} role="status">
+          <span className="st-dot" aria-hidden="true" />
+          <div><strong>{test.ok ? 'Test passed' : 'Test failed'}</strong><span>{test.say}</span><em>No record was created in SHEP.HRD by this test.</em></div>
+          <b>{test.code}</b>
+        </div>
+      )}
       {msg && <p className="br-msg" role="status">{msg}</p>}
 
       {!p.configured && <SecretMaker />}

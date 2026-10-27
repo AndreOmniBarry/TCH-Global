@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requeue, discard, drain, listItems, readItem, clearAuthAlert, bridgeConfigured } from '@/lib/bridge/outbox';
+import { probe, requeue, discard, drain, listItems, readItem, clearAuthAlert, bridgeConfigured } from '@/lib/bridge/outbox';
 import { eraseSubmissions } from '@/lib/forms';
 
 // Behind the /admin password (middleware.ts). Retry, release, remove,
@@ -42,6 +42,7 @@ export async function POST(req: NextRequest) {
       const r = await drain(25, 20000);
       return NextResponse.json({ ok: true, ...r });
     }
+    if (action === 'test') return NextResponse.json(await probe());
     if (action === 'release') { await requeue(list); return NextResponse.json({ ok: true }); }
     if (action === 'remove') { await discard(list); return NextResponse.json({ ok: true }); }
     if (action === 'clear-alert') { await clearAuthAlert(); return NextResponse.json({ ok: true }); }
