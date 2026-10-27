@@ -45,6 +45,11 @@ cron-job.org → Create cronjob → URL https://tch-global.vercel.app/api/bridge
 every 10 minutes, Advanced → Headers: `Authorization: Bearer <cron secret>`.
 (The site also retries on every new submission and once a day by itself.)
 
+## Live values (27 Oct 2026)
+SHEP host is **www.justshephrd.com** (justshephrd.com redirects there with a 308, and the bridge
+never follows redirects). Church id 00000000-0000-0000-0000-000000000001, all branches (branch_id null).
+Use /admin/bridge → Test connection after any change: it names the address, key and secret ending in use.
+
 ## 5. Check
 /admin/status shows "SHEP.HRD bridge: Working". /admin/bridge shows deliveries,
 anything waiting, anything needing a person, and lets you export or erase.
