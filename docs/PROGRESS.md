@@ -78,3 +78,13 @@ resend.com → API Keys → Create (Sending access) → Vercel: `RESEND_API_KEY`
 - Admin logins now expire after 72 h. /admin/bridge can make the secrets in the browser.
 - To switch on: follow docs/shep-bridge/SETUP.md (merge the SHEP branch, run SQL 84, church id,
   secrets, env vars on both Vercel projects, redeploy, cron-job.org, test with Join us).
+
+## 27–28 Oct: bridge live, water buttons, phones, bank
+- SHEP.HRD bridge live: test connection passes (www.justshephrd.com), cron-job.org flush every 10 min,
+  first 2 Join us sign-ups delivered after fixing SHEP's first_timers.assigned_to foreign key
+  (docs/shep-bridge/sql/85_first_timers_assigned_to_users.sql; copy into shepherd-app/scripts).
+- Buttons: simulated water (height field), consistent behaviour across all buttons.
+- Phone fields: flag + country code picker everywhere; stored as +234 803…
+- Give: GTBank 0168368717, Sterling 0101421732 (account name pending).
+- Waiting on: Spotify show link, exact bank account name, why web sign-ups don't show in SHEP's
+  First timers screen (branch filter vs branch_id null).
