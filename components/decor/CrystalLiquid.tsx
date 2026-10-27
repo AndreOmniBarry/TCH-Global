@@ -278,7 +278,7 @@ export default function CrystalLiquid() {
           if (l) l.visible = entry.isIntersecting;
         }
       },
-      { rootMargin: '15% 0px' }
+      { rootMargin: '40% 0px' }
     );
 
     function readColors(l: Liquid) {
@@ -457,8 +457,6 @@ export default function CrystalLiquid() {
       const scrollAcc = dt > 0 ? (scrollVel - prevVel) / dt : 0;
 
       const vh = window.innerHeight;
-      const start = vh * 0.86;
-      const end = vh * 0.5;
       const dpr = Math.min(window.devicePixelRatio || 1, 1);
       if (document.hidden) return;
       let drawnThisFrame = 0;
@@ -482,7 +480,13 @@ export default function CrystalLiquid() {
         // Buttons already on the first screen can't be scrolled any higher,
         // so they fill completely instead of sitting half full.
         const aboveFold = rect.top + sy < vh * 0.95;
-        let progress = Math.min(Math.max((start - rect.top) / (start - end), 0), 1);
+        // Fill as the button comes fully into view from below, drain as it
+        // leaves at the top. Anything fully on screen is full, so buttons at
+        // the very bottom of the page (the footer icons) fill too.
+        const band = Math.max(40, vh * 0.12);
+        const entering = (vh * 0.98 - rect.bottom) / band;
+        const leaving = (rect.top + rect.height * 0.3) / band;
+        let progress = Math.min(Math.max(Math.min(entering, leaving), 0), 1);
         if (aboveFold) {
           // First-screen buttons can't be scrolled higher: once the splash
           // lifts they pour full over ~1.4s, staggered left to right.
@@ -494,13 +498,13 @@ export default function CrystalLiquid() {
             progress = pour;
           }
         }
-        // Every button tops out at the same level (~82%) so each keeps a
-        // visible surface that reacts, instead of some brimming over.
-        const target = -0.14 + progress * 0.96;
+        // Full means full: the surface settles just above the rim, so the
+        // button is filled edge to edge and only waves dip below it.
+        const target = -0.14 + progress * 1.18;
 
         // Level: critically damped. Water poured in doesn't overshoot; it
         // just arrives, and the pour stirs the surface where it lands.
-        const acc = 44 * (target - l.level) - 13.3 * l.vel;
+        const acc = 110 * (target - l.level) - 21 * l.vel;
         l.vel += acc * dt;
         l.level += l.vel * dt;
         if (Math.abs(l.vel) > 0.08 && l.level > 0) {
