@@ -2,6 +2,8 @@
 // Leave the list empty to hide the bank card.
 export type BankAccount = { purpose: string; bank: string; name: string; number: string; currency?: string };
 
+// name: the exact account name the bank shows (leave '' to hide it until confirmed).
 export const BANK_ACCOUNTS: BankAccount[] = [
-  // { purpose: 'Tithes & Offerings', bank: 'Bank name', name: 'The Comforters House Global', number: '0000000000', currency: 'NGN' },
+  { purpose: 'Tithes, offerings & seeds', bank: 'GTBank (Guaranty Trust Bank)', name: '', number: '0168368717', currency: 'NGN' },
+  { purpose: 'Tithes, offerings & seeds', bank: 'Sterling Bank', name: '', number: '0101421732', currency: 'NGN' },
 ];

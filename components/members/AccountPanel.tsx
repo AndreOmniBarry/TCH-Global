@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useSlidingPill } from '@/components/useSlidingPill';
 import { useMember } from './useMember';
+import PhoneField from '@/components/PhoneField';
+import { withCountry } from '@/lib/phone';
 
 const BENEFITS = [
   ['Respond on the blog', 'Share encouragement, prayers and testimonies under every message.'],
@@ -38,6 +40,7 @@ export default function AccountPanel({ initialMode, next }: { initialMode: 'sign
     setErr('');
     const f = new FormData(e.currentTarget);
     const body = Object.fromEntries(f.entries()) as Record<string, string>;
+    if ('phone_cc' in body) { body.phone = withCountry(body.phone || '', body.phone_cc); delete body.phone_cc; }
     setBusy(true);
     try {
       const r = await fetch(`/api/auth/${mode === 'signup' ? 'signup' : 'login'}`, {
@@ -76,11 +79,11 @@ export default function AccountPanel({ initialMode, next }: { initialMode: 'sign
         <span className="eyebrow">Your account</span>
         <h2>Welcome, {member.name.split(' ')[0]}</h2>
         <p className="account-muted">Signed in as {member.email} &middot; member since {new Date(member.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</p>
-        <form className="account-form" onSubmit={(e) => { e.preventDefault(); const f = new FormData(e.currentTarget); update({ name: f.get('name'), phone: f.get('phone') }); }}>
+        <form className="account-form" onSubmit={(e) => { e.preventDefault(); const f = new FormData(e.currentTarget); update({ name: f.get('name'), phone: withCountry(String(f.get('phone') || ''), String(f.get('phone_cc') || '')) }); }}>
           <label htmlFor="acc-name">Name</label>
           <input id="acc-name" name="name" defaultValue={member.name} required minLength={2} />
           <label htmlFor="acc-phone">Phone (optional)</label>
-          <input id="acc-phone" name="phone" type="tel" defaultValue={member.phone ?? ''} placeholder="For the follow-up team" />
+          <PhoneField id="acc-phone" name="phone" defaultValue={member.phone ?? ''} placeholder="For the follow-up team" />
           <label className="account-check">
             <input type="checkbox" checked={member.newsletter} onChange={(e) => update({ newsletter: e.target.checked })} />
             <span>Email me new messages, blog posts and announcements</span>
@@ -135,7 +138,7 @@ export default function AccountPanel({ initialMode, next }: { initialMode: 'sign
           {mode === 'signup' && (
             <>
               <label htmlFor="acc-phone">Phone (optional)</label>
-              <input id="acc-phone" name="phone" type="tel" autoComplete="tel" />
+              <PhoneField id="acc-phone" name="phone" />
               <label className="account-check">
                 <input type="checkbox" name="newsletter" defaultChecked />
                 <span>Email me new messages, blog posts and announcements</span>

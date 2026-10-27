@@ -146,6 +146,33 @@
     });
   }
 
+  // Phone country pickers (lib/phone.ts phoneFieldHtml): show the chosen
+  // country's flag and code, and preselect from the visitor's time zone.
+  function phoneShow(sel) {
+    var box = sel.closest('.ph-cc');
+    if (!box) return;
+    Array.prototype.forEach.call(box.querySelectorAll('.ph-flag'), function (f) { f.hidden = f.dataset.iso !== sel.value; });
+    var opt = sel.options[sel.selectedIndex];
+    var dial = box.querySelector('.ph-dial');
+    if (dial && opt) dial.textContent = '+' + opt.dataset.dial;
+  }
+  document.addEventListener('change', function (e) {
+    if (e.target && e.target.matches && e.target.matches('select.ph-select[data-autocountry]')) phoneShow(e.target);
+  });
+  (function () {
+    var tz = '';
+    try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch (err) {}
+    var map = [[/^Africa\/Accra/, 'GH'], [/^Africa\/Nairobi/, 'KE'], [/^Africa\/Johannesburg/, 'ZA'], [/^Africa\/Douala/, 'CM'],
+      [/^Africa\/Porto-Novo/, 'BJ'], [/^Africa\/Lome/, 'TG'], [/^Europe\/London/, 'GB'], [/^Europe\/Dublin/, 'IE'],
+      [/^Europe\/Berlin/, 'DE'], [/^Europe\/Paris/, 'FR'], [/^Europe\/Rome/, 'IT'], [/^Europe\/Amsterdam/, 'NL'],
+      [/^Europe\/Madrid/, 'ES'], [/^Asia\/Dubai/, 'AE'], [/^Australia\//, 'AU'],
+      [/^America\/(Toronto|Vancouver|Edmonton|Winnipeg|Halifax|Regina|St_Johns)/, 'CA'], [/^America\//, 'US']];
+    var iso = 'NG';
+    for (var i = 0; i < map.length; i++) if (map[i][0].test(tz)) { iso = map[i][1]; break; }
+    if (iso === 'NG') return;
+    Array.prototype.forEach.call(document.querySelectorAll('select.ph-select[data-autocountry]'), function (sel) { sel.value = iso; phoneShow(sel); });
+  })();
+
   // Volunteer team chips: "Other" reveals a free-text box.
   Array.prototype.forEach.call(document.querySelectorAll('[data-other-toggle]'), function (box) {
     var input = box.closest('fieldset').querySelector('.chip-other-input');

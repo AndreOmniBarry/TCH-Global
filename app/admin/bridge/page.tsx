@@ -20,7 +20,11 @@ function ago(t?: number | null) {
 export default async function BridgePage() {
   const kvOn = Boolean(process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN);
   const [s, pending, dead] = kvOn
-    ? await Promise.all([stats().catch(() => null), listItems('pending').catch(() => []), listItems('dead').catch(() => [])])
+    ? await Promise.all([
+      stats().catch(() => null),
+      listItems('pending').catch((e) => { console.error('bridge page pending', (e as Error).message); return []; }),
+      listItems('dead').catch((e) => { console.error('bridge page dead', (e as Error).message); return []; }),
+    ])
     : [null, [], []];
   const row = (i: { id: string; type: string; createdAt: number; attempts: number; lastCode?: number | string; held?: string }) => ({
     id: i.id, type: LABEL[i.type] || i.type, created: ago(i.createdAt), attempts: i.attempts, last: i.lastCode == null ? '' : String(i.lastCode), held: i.held || '',

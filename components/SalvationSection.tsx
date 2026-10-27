@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import PhoneField from '@/components/PhoneField';
+import { withCountry } from '@/lib/phone';
 
 const TS_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || '';
 type TurnstileApi = { render: (el: HTMLElement, o: Record<string, string>) => string };
@@ -39,7 +41,7 @@ export default function SalvationSection() {
     if (!f.phone?.trim() && !f.email?.trim()) return setErr('Leave a phone number or an email so we can reach you.');
     setBusy(true);
     try {
-      const r = await fetch('/api/forms', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'salvation', fields: { name: f.name, phone: f.phone, email: f.email, city: f.city, note: f.note, share: f.share === 'yes' ? 'yes' : 'no' }, website: f.website, t: started.current ? Date.now() - started.current : 0, cf: f['cf-turnstile-response'] || '' }) });
+      const r = await fetch('/api/forms', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'salvation', fields: { name: f.name, phone: withCountry(f.phone, f.phone_cc), email: f.email, city: f.city, note: f.note, share: f.share === 'yes' ? 'yes' : 'no' }, website: f.website, t: started.current ? Date.now() - started.current : 0, cf: f['cf-turnstile-response'] || '' }) });
       const d = await r.json().catch(() => ({}));
       if (!r.ok) return setErr(d.error || 'Something went wrong. Please try again.');
       setName(f.name.split(' ')[0]);
@@ -83,7 +85,7 @@ export default function SalvationSection() {
               <div className="publish-grid">
                 <div>
                   <label htmlFor="salv-phone">Phone / WhatsApp</label>
-                  <input id="salv-phone" name="phone" type="tel" autoComplete="tel" />
+                  <PhoneField id="salv-phone" name="phone" />
                 </div>
                 <div>
                   <label htmlFor="salv-email">Email</label>

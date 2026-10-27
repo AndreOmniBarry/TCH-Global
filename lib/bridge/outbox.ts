@@ -264,11 +264,16 @@ export async function discard(ids: string[]) {
   }
 }
 
+// Never returns fewer rows than the index holds: an item whose details
+// can't be read still shows (as "unknown") so the count and list agree.
 export async function listItems(which: 'pending' | 'dead', limit = 200): Promise<Item[]> {
   const ids = await kv.zrange<string[]>(which === 'pending' ? K.pending : K.dead, 0, limit - 1);
   if (!ids.length) return [];
-  const items = await Promise.all(ids.map((id) => kv.get<Item>(K.item(id))));
-  return items.filter(Boolean) as Item[];
+  const items = await Promise.all(ids.map((id) => kv.get<Item>(K.item(id)).catch((e) => {
+    console.error('bridge listItems get', id, (e as Error).name);
+    return null;
+  })));
+  return ids.map((id, i) => items[i] || ({ id, type: 'unknown', sealed: '', createdAt: Date.now(), attempts: 0, lastCode: 'unreadable' } as unknown as Item));
 }
 
 export async function stats() {

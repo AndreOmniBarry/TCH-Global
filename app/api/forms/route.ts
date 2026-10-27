@@ -3,6 +3,7 @@ import { submitForm, FormType, formsConfigured } from '@/lib/forms';
 import { sendEmail, emailConfigured, notifyRecipients, escapeHtml, layout } from '@/lib/email';
 import { waitUntil } from '@vercel/functions';
 import { limited } from '@/lib/auth';
+import { withCountry } from '@/lib/phone';
 import { toEnvelope } from '@/lib/bridge/messages';
 import { enqueue, deliver, drain, bridgeConfigured, bridgeKillSwitch } from '@/lib/bridge/outbox';
 
@@ -128,6 +129,14 @@ export async function POST(req: NextRequest) {
       for (const [key, value] of Object.entries(fields).slice(0, MAX_FIELDS)) {
         if (typeof value === 'string' && /^[a-z_]{1,24}$/i.test(key)) cleanFields[key] = value.trim().slice(0, 4000);
       }
+    }
+
+    // Country pickers send "<field>_cc" (e.g. phone_cc=NG) beside the number.
+    for (const key of Object.keys(cleanFields)) {
+      if (!key.endsWith('_cc')) continue;
+      const base = key.slice(0, -3);
+      if (cleanFields[base] && !cleanFields[base].includes('@')) cleanFields[base] = withCountry(cleanFields[base], cleanFields[key]);
+      delete cleanFields[key];
     }
 
     for (const required of REQUIRED_FIELDS[type]) {

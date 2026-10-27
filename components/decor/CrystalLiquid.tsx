@@ -15,202 +15,123 @@ void main() {
 }
 `;
 
+// Water, not effects: the surface is a real height field (see step()),
+// and everything the shader draws is derived from it. Slope gives the
+// glint on the waterline, curvature focuses light into caustics below,
+// depth absorbs light (Beer-Lambert), and water wets the glass, so the
+// line climbs a few pixels at each wall.
+const N = 40;
 const fragment = /* glsl */ `
 precision highp float;
 varying vec2 vUv;
 uniform vec2 uRes;
 uniform float uTime;
 uniform float uLevel;
-uniform float uTilt;
-uniform float uWave;
+uniform vec4 uH[10];
 uniform vec3 uColA;
 uniform vec3 uColB;
 uniform vec3 uColC;
 uniform float uDark;
 uniform float uSeed;
-uniform vec2 uMouse;
-uniform float uRipple;
-uniform vec3 uDrop;
 
+float bsp(float t) {
+  t = abs(t);
+  if (t < 0.5) return 0.75 - t * t;
+  if (t < 1.5) { float a = 1.5 - t; return 0.5 * a * a; }
+  return 0.0;
+}
+void acc(float i, float hv, vec3 fx, inout vec3 h, inout vec3 w) {
+  vec3 k = vec3(bsp(fx.x - i), bsp(fx.y - i), bsp(fx.z - i));
+  h += k * hv;
+  w += k;
+}
+// Smooth (quadratic B-spline) surface at x-e, x, x+e.
+vec3 surface(float x, float e) {
+  vec3 fx = vec3(x - e, x, x + e) * ${N - 1}.0;
+  vec3 h = vec3(0.0);
+  vec3 w = vec3(1e-5);
+  for (int j = 0; j < 10; j++) {
+    vec4 q = uH[j];
+    float b = float(j * 4);
+    acc(b, q.x, fx, h, w);
+    acc(b + 1.0, q.y, fx, h, w);
+    acc(b + 2.0, q.z, fx, h, w);
+    acc(b + 3.0, q.w, fx, h, w);
+  }
+  return h / w;
+}
 float hash21(vec2 p) {
   p = fract(p * vec2(123.34, 456.21));
   p += dot(p, p + 45.32);
   return fract(p.x * p.y);
 }
-vec2 hash22(vec2 p) {
-  float n = hash21(p);
-  return vec2(n, hash21(p + n));
-}
 float noise(vec2 p) {
   vec2 i = floor(p);
   vec2 f = fract(p);
   vec2 u = f * f * (3.0 - 2.0 * f);
-  float a = hash21(i);
-  float b = hash21(i + vec2(1.0, 0.0));
-  float c = hash21(i + vec2(0.0, 1.0));
-  float d = hash21(i + vec2(1.0, 1.0));
-  return mix(mix(a, b, u.x), mix(c, d, u.x), u.y);
-}
-float fbm(vec2 p) {
-  float v = 0.0;
-  float a = 0.5;
-  for (int i = 0; i < 4; i++) {
-    v += a * noise(p);
-    p = p * 2.03 + 17.1;
-    a *= 0.5;
-  }
-  return v;
-}
-vec2 voronoi(vec2 p, float t) {
-  vec2 n = floor(p);
-  vec2 f = fract(p);
-  float f1 = 8.0;
-  float f2 = 8.0;
-  for (int j = -1; j <= 1; j++) {
-    for (int i = -1; i <= 1; i++) {
-      vec2 g = vec2(float(i), float(j));
-      vec2 o = hash22(n + g);
-      o = 0.5 + 0.45 * sin(t + 6.2831 * o);
-      float d = length(g + o - f);
-      if (d < f1) { f2 = f1; f1 = d; }
-      else if (d < f2) { f2 = d; }
-    }
-  }
-  return vec2(f1, f2);
-}
-
-// A dropped-stone wave packet: three rings trailing the front, each
-// longer and weaker than the last (water waves disperse as they travel).
-float dropWave(float r, float front) {
-  float w = 0.0;
-  for (int k = 0; k < 3; k++) {
-    float fk = float(k);
-    float rk = front - fk * 0.07;
-    if (rk < 0.0) continue;
-    float lam = 0.05 + fk * 0.02;
-    w += sin((r - rk) / lam * 6.2831) * exp(-pow((r - rk) / (lam * 0.9), 2.0)) * (1.0 - fk * 0.3);
-  }
-  return w;
+  return mix(mix(hash21(i), hash21(i + vec2(1.0, 0.0)), u.x), mix(hash21(i + vec2(0.0, 1.0)), hash21(i + vec2(1.0, 1.0)), u.x), u.y);
 }
 
 void main() {
   vec2 uv = vUv;
   float aspect = uRes.x / uRes.y;
-  vec2 p = vec2(uv.x * aspect, uv.y);
   float px = 1.0 / uRes.y;
-  float t = uTime + uSeed * 7.31;
+  float e = 2.0 / uRes.x;
 
-  // Free surface: level + slosh tilt + scroll-excited travelling waves
-  // + a faint idle ripple so the liquid never looks frozen.
-  float x = uv.x - 0.5;
-  float X = p.x;
-  float dropAge = t - uDrop.z;
-  float dropAmp = dropAge > 0.0 ? exp(-dropAge * 1.4) : 0.0;
-  float dropR = dropAge * 0.55;
-  float mx = uMouse.x * aspect;
-  float md = abs(X - mx);
-  float surf = uLevel
-    + uTilt * x * 2.0
-    + uWave * (0.050 * sin(X * 6.0 - t * 4.2 + uSeed) + 0.028 * sin(X * 11.0 + t * 6.1 + uSeed * 1.7))
-    + 0.022 * sin(X * 2.3 + t * 1.15 + uSeed) + 0.013 * sin(X * 4.7 - t * 1.6 + uSeed * 0.5)
-    + 0.006 * sin(X * 9.0 - t * 2.4)
-    + uRipple * 0.13 * sin(md * 11.0 - t * 6.5) * exp(-md * 1.4)
-    + dropAmp * 0.040 * dropWave(abs(X - uDrop.x * aspect), dropR);
+  vec3 s = surface(uv.x, e);
+  // Meniscus: water wets the glass and climbs ~3px at each wall.
+  float wallPx = min(uv.x, 1.0 - uv.x) * uRes.x;
+  float surf = uLevel + s.y + 3.0 * px * exp(-wallPx / 5.0);
   float d = surf - uv.y;
-  if (d < -14.0 * px) { gl_FragColor = vec4(0.0); return; }
+  if (d < -6.0 * px) { gl_FragColor = vec4(0.0); return; }
 
-  float inside = smoothstep(-1.25 * px, 1.25 * px, d);
-  float line = exp(-abs(d) / (1.4 * px));
-  float halo = exp(-abs(d) / (7.0 * px));
+  // Slope in screen terms (height units per height unit).
+  float slope = (s.z - s.x) / (2.0 * e) / aspect;
+  float curv = (s.z - 2.0 * s.y + s.x) / (e * e);
 
-  // Refraction: domain-warped coordinates bend everything seen "through"
-  // the liquid, like looking into cut crystal.
-  vec2 m = vec2(mx, uMouse.y);
-  float mdist = length(p - m);
-  vec2 rippleWarp = (p - m) / max(mdist, 1e-3) * sin(mdist * 16.0 - t * 7.0) * 0.065 * uRipple * exp(-mdist * 1.5);
-  vec2 dp = vec2(uDrop.x * aspect, uDrop.y);
-  float dd = length(p - dp);
-  float dring = dropWave(dd, dropR) * dropAmp;
-  rippleWarp += (p - dp) / max(dd, 1e-3) * dring * 0.02;
-  vec2 q = p * 1.6 + vec2(t * 0.35, -t * 0.12) + rippleWarp * 4.0;
-  float w = fbm(q + 1.9 * fbm(q * 1.2 + vec2(-t * 0.2, t * 0.08)));
-  vec2 rp = p + (w - 0.5) * 0.45 + rippleWarp;
+  float inside = smoothstep(-0.9 * px, 0.9 * px, d);
 
-  float g = clamp(0.5 * uv.x + 0.5 * (1.0 - uv.y) + (w - 0.5) * 0.5, 0.0, 1.0);
+  // Body colour: the brand liquid, lit from above and absorbed with depth.
+  float g = clamp(0.62 * uv.x + 0.38 * (1.0 - uv.y), 0.0, 1.0);
   vec3 col = g < 0.5 ? mix(uColA, uColB, g * 2.0) : mix(uColB, uColC, g * 2.0 - 1.0);
+  float depth = clamp(d, 0.0, 1.2);
+  col *= exp(-depth * 0.42) * 1.12;
 
-  float depth = clamp(d * 1.6, 0.0, 1.0);
-  col *= mix(1.12, 0.74, depth);
+  // Caustics: light through a moving surface makes a soft, wavy net of
+  // bright lines that drifts with the waves. The net is ridge noise warped
+  // by the surface slope; where the surface curves like a lens it focuses
+  // more light, so the net brightens under passing troughs.
+  vec3 sr = surface(uv.x + slope * depth * 0.25, e * 4.0);
+  float lens = -(sr.z - 2.0 * sr.y + sr.x) / (16.0 * e * e);
+  vec2 cp = vec2(uv.x * aspect, uv.y) * vec2(4.2, 5.5) + vec2(slope * 3.0 + uSeed, -uTime * 0.18);
+  float n1 = noise(cp + vec2(0.0, uTime * 0.11));
+  float n2 = noise(cp * 1.7 + vec2(uTime * 0.07, 3.1));
+  float ridge = pow(1.0 - abs(n1 + n2 - 1.0), 7.0);
+  float caus = ridge * (0.6 + clamp(lens * 0.35, 0.0, 0.9));
+  col += caus * (0.07 + 0.035 * uDark) * smoothstep(0.03, 0.2, depth) * (1.0 - smoothstep(0.55, 1.2, depth));
 
-  // Cut-glass facets: large slow voronoi cells, bright ridges on cell edges.
-  vec2 vf = voronoi(rp * 2.4 + vec2(t * 0.25, 0.0), t * 0.5);
-  col += (0.5 - vf.x) * 0.025;
-  col += (1.0 - smoothstep(0.0, 0.22, vf.y - vf.x)) * 0.015;
+  // Just under the surface we see it from below at a grazing angle:
+  // total internal reflection makes a bright silvery band.
+  float under = exp(-max(d, 0.0) / (3.5 * px));
+  col += under * (0.10 + clamp(abs(slope) * 2.0, 0.0, 0.25));
 
-  // Caustics: fine fast voronoi network, strongest near the surface.
-  vec2 vc = voronoi(rp * 4.2 + vec2(t * 0.4, t * 0.3), t * 0.8);
-  float caus = pow(1.0 - smoothstep(0.0, 0.32, vc.y - vc.x), 2.2);
-  float causPulse = 0.55 + 0.45 * sin(t * 0.6 + w * 4.0);
-  col += caus * (0.13 + 0.09 * uDark) * causPulse * (1.0 - depth * 0.6);
+  // Waterline: a thin highlight whose brightness follows the slope facing
+  // the light (from the upper left), so crests glint as they travel.
+  float line = exp(-abs(d) / (1.0 * px));
+  float spec = 0.55 + clamp(-slope * 3.0, -0.2, 0.45) + clamp(-curv * 0.002, 0.0, 0.15);
+  col = mix(col, vec3(1.0), line * clamp(spec, 0.35, 1.0));
+  // The surface seen from just above: a faint bright film over the line.
+  col += exp(-max(-d, 0.0) / (2.0 * px)) * step(d, 0.0) * 0.12;
 
-  // Current: thin streaks drifting along the surface layer, so the fill
-  // reads as moving water rather than a still tank.
-  float flowN = noise(vec2(p.x * 2.2 - t * 0.9, uv.y * 22.0 + w * 3.0));
-  col += smoothstep(0.62, 0.95, flowN) * 0.11 * (1.0 - smoothstep(0.0, 0.45, d));
-
-  // Glints: a few points on the surface, each flaring on its own random
-  // schedule instead of all at once.
-  for (int i = 0; i < 3; i++) {
-    float fi = float(i);
-    float h = hash21(vec2(fi * 5.7, uSeed));
-    float life = fract(t * (0.13 + 0.07 * h) + h * 3.0);
-    float flare = pow(sin(3.1416 * life), 12.0);
-    float gx = fract(h * 13.1 + floor(t * (0.13 + 0.07 * h) + h * 3.0) * 0.37) * aspect;
-    vec2 gp = vec2(gx, surf - 0.03);
-    vec2 dg = (p - gp) * vec2(1.0, 1.6);
-    float star = exp(-length(dg) * 90.0) + exp(-abs(dg.y) * 260.0) * exp(-abs(dg.x) * 34.0) * 0.6;
-    col += star * flare * 0.9;
-  }
-
-  // Subsurface light just under the surface.
-  float band = smoothstep(0.0, 0.06, d) * (1.0 - smoothstep(0.06, 0.35, d));
-  col += vec3(0.09) * band;
-
-  // Glossy specular streaks — light hitting the glass front.
+  // The glass in front: one soft diagonal reflection, and walls that
+  // darken the liquid slightly where it touches them.
   float diag = uv.x * aspect * 0.18 - uv.y;
-  col += exp(-pow((diag + 0.32) / 0.05, 2.0)) * 0.22;
-  col += exp(-pow((diag + 0.52) / 0.018, 2.0)) * 0.16;
+  col += exp(-pow((diag + 0.36) / 0.06, 2.0)) * 0.10;
+  float rim = smoothstep(0.0, 0.08, min(min(uv.x, 1.0 - uv.x) * aspect, uv.y));
+  col *= mix(0.88, 1.0, rim);
+  col = mix(col, col * 1.06 + 0.015, uDark);
 
-  // Rising bubbles that pop at the surface.
-  for (int i = 0; i < 5; i++) {
-    float fi = float(i);
-    float h1 = hash21(vec2(fi, uSeed));
-    float h2 = hash21(vec2(fi * 3.1, uSeed + 1.3));
-    float lvl = max(uLevel, 0.0);
-    float y = fract(h1 * 7.0 + t * (0.08 + 0.12 * h2)) * lvl;
-    float bx = h1 * aspect + 0.03 * sin(t * 1.7 + fi);
-    float r = 0.018 + 0.022 * h2;
-    float dist = length(vec2(p.x - bx, uv.y - y));
-    float ring = smoothstep(1.2 * px, 0.0, abs(dist - r));
-    float spot = smoothstep(r * 0.4, 0.0, length(vec2(p.x - bx + r * 0.35, uv.y - y - r * 0.35)));
-    float fade = smoothstep(0.0, 0.08, surf - y) * smoothstep(0.0, 0.1, y);
-    col += (ring * 0.28 + spot * 0.4) * fade;
-  }
-
-  // Container rim: liquid darkens slightly where it meets the glass walls.
-  float rim = smoothstep(0.0, 0.1, min(min(uv.x, 1.0 - uv.x) * aspect, uv.y));
-  col *= mix(0.86, 1.0, rim);
-
-  // Meniscus: a crisp bright line plus a soft glow on both sides.
-  col = mix(col, vec3(1.0), line * 0.55);
-  col += halo * 0.08;
-
-  col = mix(vec3(dot(col, vec3(0.299, 0.587, 0.114))), col, 1.24);
-  col += min(uRipple, 1.4) * 0.32 * smoothstep(0.4, 0.0, abs(sin(mdist * 16.0 - t * 7.0))) * exp(-mdist * 1.7) * inside;
-  col += dring * 0.29 * inside;
-  col = mix(col, col * 1.08 + 0.02, uDark);
-
-  float alpha = max(inside, line * 0.55);
+  float alpha = max(inside, line * 0.6);
   gl_FragColor = vec4(clamp(col, 0.0, 1.0) * alpha, alpha);
 }
 `;
@@ -222,11 +143,15 @@ type Liquid = {
   visible: boolean;
   level: number;
   vel: number;
-  tilt: number;
-  tiltVel: number;
-  wave: number;
+  /** Surface height (relative to the level) and vertical speed per column. */
+  H: Float32Array;
+  V: Float32Array;
+  /** H plus the tilt plane: what the shader draws. */
+  U: number[];
+  plane: number;
+  nextStir: number;
+  dir2: number;
   seed: number;
-  dir: number;
   colA: number[];
   colB: number[];
   colC: number[];
@@ -237,12 +162,47 @@ type Liquid = {
   cleared: boolean;
   mx: number;
   my: number;
-  ripple: number;
   hover: boolean;
-  drop: number[];
-  nextDrop: number;
   nextAt?: number;
 };
+
+// Shallow-water surface along the button's width: N columns, walls at both
+// ends that reflect waves, viscosity that kills short ripples faster than
+// the slosh (as in real water), and mean height held at zero so the volume
+// never changes. Wave speed grows with depth (c = sqrt(g*depth)): a nearly
+// empty button sloshes slowly, a full one quickly.
+function step(l: Liquid, dt: number) {
+  const H = l.H;
+  const V = l.V;
+  const depth = Math.min(Math.max(l.level, 0.05), 1);
+  const c = 1.1 + 2.4 * Math.sqrt(depth); // button widths per second
+  const k = (c * (N - 1)) ** 2;
+  const n = Math.max(1, Math.ceil((c * dt * (N - 1)) / 0.4));
+  const h = dt / n;
+  const damp = 0.9; // overall loss
+  const visc = 1.5 * h; // extra loss on short wavelengths
+  for (let s = 0; s < n; s++) {
+    for (let i = 0; i < N; i++) {
+      const a = H[i === 0 ? 1 : i - 1];
+      const b = H[i === N - 1 ? N - 2 : i + 1];
+      const va = V[i === 0 ? 1 : i - 1];
+      const vb = V[i === N - 1 ? N - 2 : i + 1];
+      V[i] += (k * (a + b - 2 * H[i]) - damp * V[i]) * h + visc * (va + vb - 2 * V[i]);
+    }
+    let mean = 0;
+    for (let i = 0; i < N; i++) { H[i] += V[i] * h; mean += H[i]; }
+    mean /= N;
+    for (let i = 0; i < N; i++) H[i] = Math.max(-0.45, Math.min(0.45, H[i] - mean));
+  }
+}
+
+// Push the surface down around x (0-1): a drop, a fingertip, a pour.
+function poke(l: Liquid, x: number, strength: number, width = 0.035) {
+  for (let i = 0; i < N; i++) {
+    const dx = i / (N - 1) - x;
+    l.V[i] -= strength * Math.exp(-(dx * dx) / (2 * width * width));
+  }
+}
 
 function parseHex(value: string, fallback: number[]): number[] {
   const hex = value.trim().replace('#', '');
@@ -295,16 +255,13 @@ export default function CrystalLiquid() {
         uRes: { value: [1, 1] },
         uTime: { value: 0 },
         uLevel: { value: 0 },
-        uTilt: { value: 0 },
-        uWave: { value: 0 },
+        // A plain array: OGL only maps uniform arrays (uH[0]..) from Array values.
+        uH: { value: new Array(N).fill(0) },
         uColA: { value: [1, 0, 0] },
         uColB: { value: [1, 0, 0] },
         uColC: { value: [1, 0, 0] },
         uDark: { value: 0 },
         uSeed: { value: 0 },
-        uMouse: { value: [0.5, 0.5] },
-        uRipple: { value: 0 },
-        uDrop: { value: [0.5, 0.5, -99] },
       },
     });
     const mesh = new Mesh(gl, { geometry: new Triangle(gl), program });
@@ -348,11 +305,13 @@ export default function CrystalLiquid() {
         visible: false,
         level: -0.12,
         vel: 0,
-        tilt: 0,
-        tiltVel: 0,
-        wave: 0,
+        H: new Float32Array(N),
+        V: new Float32Array(N),
+        U: new Array(N).fill(0),
+        plane: 0,
+        nextStir: Math.random() * 2,
+        dir2: Math.random() < 0.5 ? -1 : 1,
         seed: Math.random() * 100,
-        dir: Math.random() < 0.5 ? -1 : 1,
         colA: [],
         colB: [],
         colC: [],
@@ -363,10 +322,7 @@ export default function CrystalLiquid() {
         cleared: true,
         mx: 0.5,
         my: 0.5,
-        ripple: 0,
         hover: false,
-        drop: [0.5, 0.5, -99],
-        nextDrop: Math.random() * 3,
       };
       readColors(l);
       liquids.set(el, l);
@@ -436,10 +392,16 @@ export default function CrystalLiquid() {
       hovered = l;
       if (!l) return;
       const r = l.el.getBoundingClientRect();
-      l.mx = (e.clientX - r.left) / r.width;
-      l.my = 1 - (e.clientY - r.top) / r.height;
+      const mx = (e.clientX - r.left) / r.width;
+      const my = 1 - (e.clientY - r.top) / r.height;
+      // A fingertip moving through the water pushes a small wake.
+      if (l.hover && my < l.level + 0.08) {
+        const speed = Math.min(Math.abs(mx - l.mx) * 40, 2.5);
+        if (speed > 0.05) poke(l, mx, speed, 0.05);
+      }
+      l.mx = mx;
+      l.my = my;
       l.hover = true;
-      l.wave = Math.min(1, l.wave + 0.04);
     }
     function onPointerLeaveDoc() {
       if (hovered) hovered.hover = false;
@@ -448,9 +410,9 @@ export default function CrystalLiquid() {
     function onPointerDown(e: PointerEvent) {
       onPointerMove(e);
       if (hovered) {
-        hovered.ripple = 2;
-        hovered.drop = [hovered.mx, hovered.my, (performance.now() - t0) / 1000];
-        hovered.wave = 1;
+        // A tap is a drop: one ring that runs out, bounces off the walls
+        // and dies away.
+        poke(hovered, hovered.mx, 6, 0.03);
         if (e.pointerType !== 'mouse') hovered.hover = false;
       }
     }
@@ -492,7 +454,9 @@ export default function CrystalLiquid() {
       const sy = window.scrollY;
       const rawVel = dt > 0 ? (sy - lastScroll) / dt : 0;
       lastScroll = sy;
+      const prevVel = scrollVel;
       scrollVel += (rawVel - scrollVel) * 0.25;
+      const scrollAcc = dt > 0 ? (scrollVel - prevVel) / dt : 0;
 
       const vh = window.innerHeight;
       const start = vh * 0.86;
@@ -539,26 +503,40 @@ export default function CrystalLiquid() {
         }
         const target = -0.14 + progress * 1.34;
 
-        // Level: slightly underdamped spring — lags the scroll, overshoots
-        // a touch, settles.
-        const acc = 70 * (target - l.level) - 11 * l.vel;
+        // Level: critically damped. Water poured in doesn't overshoot; it
+        // just arrives, and the pour stirs the surface where it lands.
+        const acc = 44 * (target - l.level) - 13.3 * l.vel;
         l.vel += acc * dt;
         l.level += l.vel * dt;
-
-        // Slosh: tilt chases scroll speed, then rings back and forth
-        // (low damping) once scrolling stops.
-        const drive = Math.max(-0.22, Math.min(0.22, scrollVel * 0.00011 * l.dir + deviceTilt));
-        const accT = 38 * (drive - l.tilt) - 3.2 * l.tiltVel;
-        l.tiltVel += accT * dt;
-        l.tilt += l.tiltVel * dt;
-
-        const waveTarget = Math.min(1, Math.abs(l.vel) * 1.4 + Math.abs(l.tiltVel) * 0.25 + Math.abs(scrollVel) * 0.0004);
-        l.wave += (waveTarget - l.wave) * (1 - Math.exp(-dt * 6));
-        l.ripple += ((l.hover ? 1.2 : 0) - l.ripple) * (1 - Math.exp(-dt * (l.hover ? 6 : 0.9)));
-        if (time > l.nextDrop) {
-          l.drop = [0.15 + Math.random() * 0.7, Math.max(0.1, Math.min(l.level, 1) * (0.3 + Math.random() * 0.5)), time];
-          l.nextDrop = time + 1.8 + Math.random() * 3;
+        if (Math.abs(l.vel) > 0.08 && l.level > 0) {
+          poke(l, 0.18 + Math.random() * 0.1, Math.min(Math.abs(l.vel), 1.2) * 40 * dt * Math.random(), 0.04);
         }
+
+        // Phone tilt: the water stays level with the ground, so relative to
+        // the screen its surface tilts. Shift the plane under the surface
+        // and let the waves carry the change, which is the slosh.
+        const aspect = bw / bh;
+        const plane = Math.max(-0.6, Math.min(0.6, -deviceTilt * aspect));
+        const dPlane = plane - l.plane;
+        if (dPlane) {
+          for (let i = 0; i < N; i++) l.H[i] -= dPlane * (i / (N - 1) - 0.5);
+          l.plane = plane;
+        }
+        // A sharp stop or start of scrolling jolts the glass: a small
+        // centre-versus-edges wobble.
+        if (Math.abs(scrollAcc) > 4000) {
+          const j = Math.max(-1, Math.min(1, scrollAcc / 40000)) * 3 * dt * l.dir2;
+          for (let i = 0; i < N; i++) l.V[i] += j * Math.cos((2 * Math.PI * i) / (N - 1));
+        }
+        // Air never leaves water perfectly still: a faint stir now and then.
+        if (time > l.nextStir) {
+          poke(l, Math.random(), 0.15 + Math.random() * 0.15, 0.08);
+          l.nextStir = time + 0.8 + Math.random() * 1.6;
+        }
+        step(l, dt);
+        // Draw the tilt as part of the surface.
+        if (l.plane) for (let i = 0; i < N; i++) l.U[i] = l.H[i] + l.plane * (i / (N - 1) - 0.5);
+        else for (let i = 0; i < N; i++) l.U[i] = l.H[i];
 
         const fillN = Math.min(Math.max(l.level, 0), 1);
         if (Math.abs(fillN - l.fillN) > 0.004) {
@@ -581,7 +559,9 @@ export default function CrystalLiquid() {
           l.cleared = true;
         }
 
-        const settledEmpty = l.level < -0.1 && Math.abs(l.vel) < 0.01 && l.ripple < 0.01;
+        let energy = 0;
+        for (let i = 0; i < N; i += 3) energy = Math.max(energy, Math.abs(l.V[i]));
+        const settledEmpty = l.level < -0.1 && Math.abs(l.vel) < 0.01;
         if (settledEmpty) {
           if (!l.cleared) {
             l.ctx.clearRect(0, 0, w, h);
@@ -593,7 +573,7 @@ export default function CrystalLiquid() {
         if (!drawThisFrame) continue;
         // Frame budget: moving liquid ~30fps, settled liquid ~11fps. Idle
         // buttons redrawing at 60fps was what made laptops feel laggy.
-        const busy = l.hover || l.ripple > 0.03 || Math.abs(l.vel) > 0.02 || Math.abs(l.tiltVel) > 0.02 || l.wave > 0.08;
+        const busy = l.hover || energy > 0.02 || Math.abs(l.vel) > 0.02;
         if (now < (l.nextAt ?? 0)) continue;
         l.nextAt = now + (busy ? 32 : 90);
         // Phones: at most 4 liquid buttons rendered per frame, rotating
@@ -611,16 +591,12 @@ export default function CrystalLiquid() {
         u.uRes.value = [w, h];
         u.uTime.value = time;
         u.uLevel.value = l.level;
-        u.uTilt.value = l.tilt;
-        u.uWave.value = l.wave;
+        u.uH.value = l.U;
         u.uColA.value = l.colA;
         u.uColB.value = l.colB;
         u.uColC.value = l.colC;
         u.uDark.value = dark ? 1 : 0;
         u.uSeed.value = l.seed;
-        u.uMouse.value = [l.mx, l.my];
-        u.uRipple.value = l.ripple;
-        u.uDrop.value = l.drop;
 
         gl.viewport(0, 0, w, h);
         gl.clearColor(0, 0, 0, 0);

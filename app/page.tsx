@@ -11,6 +11,7 @@ import SalvationSection from '@/components/SalvationSection';
 import Script from 'next/script';
 import { fallbackPosts } from '@/lib/fallback-posts';
 import { BANK_ACCOUNTS } from '@/lib/giving';
+import { phoneFieldHtml } from '@/lib/phone';
 
 // Cloudflare Turnstile (optional bot check on the forms that reach SHEP.HRD).
 const TS_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || '';
@@ -241,7 +242,7 @@ const HOME_HTML_EVENTS_TO_MEDIA = `
         <label for="volunteer-email">Email</label>
         <input type="email" id="volunteer-email" placeholder="you@example.com" required>
         <label for="volunteer-phone">Phone / WhatsApp (optional)</label>
-        <input type="tel" id="volunteer-phone" placeholder="0803 000 0000" autocomplete="tel">
+        ${phoneFieldHtml('volunteer-phone')}
         <fieldset class="chip-group">
           <legend>Teams of Interest <span class="chip-hint">pick as many as you like</span></legend>
           <label class="chip-opt"><input type="checkbox" name="team" value="Ushering &amp; Hospitality"><span>Ushering &amp; Hospitality</span></label>
@@ -309,7 +310,7 @@ const HOME_HTML_EVENTS_TO_MEDIA = `
         <label for="join-email">Email</label>
         <input type="email" id="join-email" placeholder="you@example.com" required>
         <label for="join-phone">Phone / WhatsApp (optional)</label>
-        <input type="tel" id="join-phone" placeholder="0803 000 0000" autocomplete="tel">
+        ${phoneFieldHtml('join-phone')}
         <label class="consent"><input type="checkbox" name="share" value="yes"><span>Also add this to the TCH church office system so the membership and care team can follow up with me.</span></label>
         ${TS_BOX}
         <button type="submit" class="btn btn-primary" style="width:100%;">Join Us</button>
@@ -326,11 +327,11 @@ const HOME_HTML_EVENTS_TO_MEDIA = `
     <div class="section-header pop">
       <span class="eyebrow">Generous Stewardship</span>
       <h2>Give</h2>
-      <p>${BANK_ACCOUNTS.length ? 'Give by bank transfer to the account below. Tap a number to copy it. Online card giving is coming soon.' : 'Online giving with a secure payment gateway is coming soon. For now, tell us your intent and our finance team will follow up with safe giving options.'}</p>
+      <p>${BANK_ACCOUNTS.length ? `Give by bank transfer to ${BANK_ACCOUNTS.length > 1 ? 'either account' : 'the account'} below. Tap a number to copy it. Online card giving is coming soon.` : 'Online giving with a secure payment gateway is coming soon. For now, tell us your intent and our finance team will follow up with safe giving options.'}</p>
       ${BANK_ACCOUNTS.map((a) => `<div class="bank-card">
         <span class="bank-purpose">${a.purpose}${a.currency ? ` · ${a.currency}` : ''}</span>
         <button type="button" class="bank-number" onclick="navigator.clipboard&&navigator.clipboard.writeText('${a.number}').then(()=>{this.classList.add('copied');setTimeout(()=>this.classList.remove('copied'),1600)})" aria-label="Copy account number ${a.number}">${a.number.replace(/(\d{3})(\d{3})(\d+)/, '$1 $2 $3')}<i>Copy</i><b>Copied</b></button>
-        <span class="bank-name">${a.name}</span>
+        ${a.name ? `<span class="bank-name">${a.name}</span>` : ''}
         <span class="bank-bank">${a.bank}</span>
       </div>`).join('')}
     </div>

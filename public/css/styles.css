@@ -2433,3 +2433,19 @@ body:has(.pl-amodal) .qdock { display: none; }
 .tn-guardian-ok span { font-size: .86rem; line-height: 1.45; }
 .br-more summary { cursor: pointer; font-size: .9rem; font-weight: 600; padding: 8px 0; }
 .br-more[open] summary { margin-bottom: 8px; }
+
+/* Phone with country picker (lib/phone.ts, components/PhoneField.tsx).
+   A native <select> sits invisibly over the flag + code, so phones get
+   their own country wheel and keyboards/screen readers work as usual. */
+.ph { display: flex; gap: 8px; align-items: stretch; margin-bottom: 14px; }
+.ph > input { flex: 1 1 auto; min-width: 0; margin-bottom: 0; }
+.ph-cc { position: relative; flex: none; display: inline-flex; align-items: center; gap: 6px; padding: 0 10px 0 12px; border-radius: var(--radius-control, 12px); border: 1px solid var(--border-glass, rgba(127,127,127,.35)); background: var(--glass-fill-low, transparent); color: var(--text-high, inherit); font: 600 .9rem var(--font-body, inherit); transition: border-color .2s ease, box-shadow .2s ease; }
+.ph-cc:focus-within { border-color: var(--accent-cyan, #22d3ee); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-cyan, #22d3ee) 25%, transparent); }
+.ph-flag { display: inline-flex; line-height: 0; }
+.ph-flag[hidden] { display: none; }
+.ph-flag svg { width: 22px; height: 15px; border-radius: 3px; box-shadow: 0 0 0 1px rgb(0 0 0 / .14); }
+.ph-dial { font-variant-numeric: tabular-nums; }
+.ph-chev { opacity: .6; }
+.ph-select { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; margin: 0; padding: 0; border: 0; cursor: pointer; font-size: 16px; }
+.tn .ph-cc { background: #0a0714; border: 1.5px solid rgb(246 243 255 / .2); color: var(--tn-ink); border-radius: 14px; }
+.tn-squad-row .ph { flex: 1 1 200px; margin: 0; }

@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import PhoneField from '@/components/PhoneField';
+import { withCountry } from '@/lib/phone';
 
 const SQUADS = ['Worship & Band', 'Media & Content', 'Drama & Dance', 'Sports', 'Tech & Gaming', 'Outreach'];
 
@@ -46,12 +48,12 @@ export function SquadPicker() {
     e.preventDefault();
     const f = Object.fromEntries(new FormData(e.currentTarget).entries()) as Record<string, string>;
     if (!picked.length) return setErr('Pick at least one squad.');
-    if (!f.name?.trim() || !f.contact?.trim()) return setErr('Add your name and a phone or email.');
+    if (!f.name?.trim() || !f.contact?.trim()) return setErr('Add your name and phone number.');
     // NDPA s.31: a parent or guardian agrees before a child's details are kept.
     if (!f.guardian?.trim() || !f.guardian_contact?.trim()) return setErr('Add your parent or guardian’s name and phone.');
     if (f.guardian_ok !== 'yes') return setErr('Your parent or guardian needs to tick the box to say yes.');
     setErr(''); setState('busy');
-    try { await send({ kind: 'squad', squad: picked.join(', '), name: f.name, age: f.age, contact: f.contact, guardian: f.guardian, guardian_contact: f.guardian_contact, guardian_ok: 'yes' }); setState('done'); }
+    try { await send({ kind: 'squad', squad: picked.join(', '), name: f.name, age: f.age, contact: withCountry(f.contact, f.contact_cc), guardian: f.guardian, guardian_contact: withCountry(f.guardian_contact, f.guardian_contact_cc), guardian_ok: 'yes' }); setState('done'); }
     catch (x) { setErr((x as Error).message); setState('idle'); }
   }
   if (state === 'done') return <div className="tn-done"><strong>You&rsquo;re in.</strong> A squad leader will reach out before the next hangout.</div>;
@@ -66,12 +68,12 @@ export function SquadPicker() {
       <div className="tn-squad-row">
         <input name="name" placeholder="First name" aria-label="First name" autoComplete="given-name" />
         <input name="age" placeholder="Age" aria-label="Age" inputMode="numeric" maxLength={2} />
-        <input name="contact" placeholder="Phone or email" aria-label="Phone or email" />
+        <PhoneField name="contact" placeholder="Your phone" ariaLabel="Your phone number" />
       </div>
       <p className="tn-guardian-h">Parent or guardian</p>
       <div className="tn-squad-row">
         <input name="guardian" placeholder="Their full name" aria-label="Parent or guardian's full name" autoComplete="off" />
-        <input name="guardian_contact" placeholder="Their phone" aria-label="Parent or guardian's phone" inputMode="tel" autoComplete="off" />
+        <PhoneField name="guardian_contact" placeholder="Their phone" ariaLabel="Parent or guardian's phone number" autoComplete="off" />
       </div>
       <label className="tn-toggle tn-guardian-ok"><input type="checkbox" name="guardian_ok" value="yes" /><i aria-hidden="true" /><span>I am this teen&rsquo;s parent or guardian and I agree to TCH Teens leaders contacting them about squads.</span></label>
       {err && <p className="tn-err">{err}</p>}
