@@ -2431,3 +2431,5 @@ body:has(.pl-amodal) .qdock { display: none; }
 .tn-guardian-h { margin: 14px 0 6px; font-size: .78rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; opacity: .75; }
 .tn-guardian-ok { margin: 10px 0 4px; align-items: flex-start; }
 .tn-guardian-ok span { font-size: .86rem; line-height: 1.45; }
+.br-more summary { cursor: pointer; font-size: .9rem; font-weight: 600; padding: 8px 0; }
+.br-more[open] summary { margin-bottom: 8px; }

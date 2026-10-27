@@ -75,7 +75,12 @@ export default function BridgeAdmin(p: Props) {
       )}
       {msg && <p className="br-msg" role="status">{msg}</p>}
 
-      {!p.configured && <SecretMaker />}
+      {!p.configured ? <SecretMaker /> : (
+        <details className="br-more">
+          <summary>Make a new secret (to replace one, e.g. CRON_SECRET)</summary>
+          <SecretMaker />
+        </details>
+      )}
 
       <h3 className="br-h">Need a person ({p.dead.length})</h3>
       <p className="br-note">Held as a suspected bot or flood, refused by SHEP.HRD as invalid, or still undelivered after 24 hours. Release sends it again; Remove deletes it from the queue (the emailed copy remains). Each is kept 30 days.</p>
