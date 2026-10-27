@@ -4,6 +4,6 @@ export type BankAccount = { purpose: string; bank: string; name: string; number:
 
 // name: the exact account name the bank shows (leave '' to hide it until confirmed).
 export const BANK_ACCOUNTS: BankAccount[] = [
-  { purpose: 'Tithes, offerings & seeds', bank: 'GTBank (Guaranty Trust Bank)', name: '', number: '0168368717', currency: 'NGN' },
-  { purpose: 'Tithes, offerings & seeds', bank: 'Sterling Bank', name: '', number: '0101421732', currency: 'NGN' },
+  { purpose: 'Tithes, offerings & seeds', bank: 'GTBank (Guaranty Trust Bank)', name: 'The Comforters House Global/Consolation Ministry', number: '0168368717', currency: 'NGN' },
+  { purpose: 'Tithes, offerings & seeds', bank: 'Sterling Bank', name: 'The Comforters House Global/Consolation Ministry', number: '0101421732', currency: 'NGN' },
 ];
