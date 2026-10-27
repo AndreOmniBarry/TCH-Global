@@ -188,7 +188,7 @@ export async function deliver(id: string): Promise<Outcome> {
 // can never create a record, and its answer says exactly which part works:
 // 422 = keys, address and switch all correct; 401 = keys/address mismatch;
 // 503 = BRIDGE_ENABLED not "on" (or not redeployed); 404 = bridge code not live.
-export async function probe(): Promise<{ ok: boolean; code: number | string; say: string }> {
+export async function probe(): Promise<{ ok: boolean; code: number | string; say: string; using?: string }> {
   if (!bridgeConfigured) return { ok: false, code: 'setup', say: `Website side not set up: ${bridgeMissing().join(', ')}.` };
   const u = target()!;
   const path = '/api/bridge/ingest';
@@ -223,7 +223,10 @@ export async function probe(): Promise<{ ok: boolean; code: number | string; say
     ? `${host} redirects to another address. Use the final address in SHEP_BRIDGE_URL and BRIDGE_EXPECTED_HOST.`
     : `Unexpected answer ${code}${detail ? ` (${detail})` : ''}.`;
   await log('probe', 'test', code === 422 ? 'test ok' : 'test failed', code);
-  return { ok: code === 422, code, say: say[String(code)] || fallback };
+  // What this deployment is actually using, so a stale deploy or a typo is
+  // visible at a glance. Only the last 4 characters of the secret show.
+  const using = `This site is using: address ${host} · key ${KEY_ID} · secret …${SECRET.slice(-4)} (${SECRET.length} characters)${URL_RAW !== URL_RAW.trim() ? ' · the address has extra spaces' : ''}`;
+  return { ok: code === 422, code, say: say[String(code)] || fallback, using };
 }
 
 // Send whatever is due, oldest first, within a time budget.

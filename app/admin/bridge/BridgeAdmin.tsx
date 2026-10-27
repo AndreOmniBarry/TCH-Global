@@ -20,10 +20,10 @@ export default function BridgeAdmin(p: Props) {
   const [msg, setMsg] = useState('');
   const [busy, setBusy] = useState(false);
   const [who, setWho] = useState('');
-  const [test, setTest] = useState<{ ok: boolean; say: string; code: string } | null>(null);
+  const [test, setTest] = useState<{ ok: boolean; say: string; code: string; using?: string } | null>(null);
   async function runTest() {
     setBusy(true); setTest(null);
-    try { const j = await call({ action: 'test' }); setTest({ ok: j.ok, say: j.say, code: String(j.code) }); }
+    try { const j = await call({ action: 'test' }); setTest({ ok: j.ok, say: j.say, code: String(j.code), using: j.using }); }
     catch (e) { setTest({ ok: false, say: (e as Error).message, code: '' }); }
     finally { setBusy(false); }
   }
@@ -69,7 +69,7 @@ export default function BridgeAdmin(p: Props) {
       {test && (
         <div className={`st-row st-row--${test.ok ? 'ok' : 'bad'}`} role="status">
           <span className="st-dot" aria-hidden="true" />
-          <div><strong>{test.ok ? 'Test passed' : 'Test failed'}</strong><span>{test.say}</span><em>No record was created in SHEP.HRD by this test.</em></div>
+          <div><strong>{test.ok ? 'Test passed' : 'Test failed'}</strong><span>{test.say}</span>{test.using && <span style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: '.8rem', opacity: .8 }}>{test.using}</span>}<em>No record was created in SHEP.HRD by this test.</em></div>
           <b>{test.code}</b>
         </div>
       )}
