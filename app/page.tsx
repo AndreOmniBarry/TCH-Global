@@ -11,7 +11,7 @@ import SalvationSection from '@/components/SalvationSection';
 import Script from 'next/script';
 import { fallbackPosts } from '@/lib/fallback-posts';
 import { BANK_ACCOUNTS } from '@/lib/giving';
-import { phoneFieldHtml } from '@/lib/phone';
+import { phoneFieldHtml, flagSvg } from '@/lib/phone';
 
 // Cloudflare Turnstile (optional bot check on the forms that reach SHEP.HRD).
 const TS_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || '';
@@ -329,11 +329,12 @@ const HOME_HTML_EVENTS_TO_MEDIA = `
       <h2>Give</h2>
       <p>${BANK_ACCOUNTS.length ? `Give by bank transfer to ${BANK_ACCOUNTS.length > 1 ? 'either account' : 'the account'} below. Tap a number to copy it. Online card giving is coming soon.` : 'Online giving with a secure payment gateway is coming soon. For now, tell us your intent and our finance team will follow up with safe giving options.'}</p>
       ${BANK_ACCOUNTS.map((a) => `<div class="bank-card">
-        <span class="bank-purpose">${a.purpose}${a.currency ? ` · ${a.currency}` : ''}</span>
-        <button type="button" class="bank-number" onclick="navigator.clipboard&&navigator.clipboard.writeText('${a.number}').then(()=>{this.classList.add('copied');setTimeout(()=>this.classList.remove('copied'),1600)})" aria-label="Copy account number ${a.number}">${a.number.replace(/(\d{3})(\d{3})(\d+)/, '$1 $2 $3')}<i>Copy</i><b>Copied</b></button>
+        <span class="bank-top"><span class="bank-purpose">${a.purpose}</span>${a.currency === 'NGN' ? `<span class="bank-cur">${flagSvg('NG')}NGN · Naira</span>` : a.currency ? `<span class="bank-cur">${a.currency}</span>` : ''}</span>
+        <button type="button" class="bank-number" onclick="navigator.clipboard&&navigator.clipboard.writeText('${a.number}').then(()=>{this.classList.add('copied');setTimeout(()=>this.classList.remove('copied'),1600)})" aria-label="Copy account number ${a.number}">${a.number}<i>Copy</i><b>Copied</b></button>
         ${a.name ? `<span class="bank-name">${a.name}</span>` : ''}
         <span class="bank-bank">${a.bank}</span>
       </div>`).join('')}
+      ${BANK_ACCOUNTS.some((a) => a.currency === 'NGN') ? `<p class="bank-note">${flagSvg('NG')}<span>These are Nigerian Naira (NGN) accounts. Send in Naira from any Nigerian bank. Giving from abroad? Use the form and our finance team will share the right option for your currency.</span></p>` : ''}
     </div>
     <div class="give-form pop" id="give-form-wrap">
       <form id="give-form">
