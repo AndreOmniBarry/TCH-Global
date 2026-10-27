@@ -150,7 +150,6 @@ type Liquid = {
   U: number[];
   plane: number;
   nextStir: number;
-  dir2: number;
   seed: number;
   colA: number[];
   colB: number[];
@@ -310,7 +309,6 @@ export default function CrystalLiquid() {
         U: new Array(N).fill(0),
         plane: 0,
         nextStir: Math.random() * 2,
-        dir2: Math.random() < 0.5 ? -1 : 1,
         seed: Math.random() * 100,
         colA: [],
         colB: [],
@@ -493,15 +491,12 @@ export default function CrystalLiquid() {
             if (!splashEnd) splashEnd = now;
             const delay = 250 + (rect.left / Math.max(1, window.innerWidth)) * 350 + (rect.top + sy) / vh * 200;
             const pour = Math.min(1, Math.max(0, (now - splashEnd - delay) / 1400));
-            // Hero buttons stop at ~70% so the waterline, waves and slosh stay
-            // visible (a full button reads as a flat block), then drain as the
-            // hero scrolls away and refill on the way back.
-            const home = rect.top + sy;
-            const drain = Math.min(1, Math.max(0, (rect.top - vh * 0.08) / Math.max(1, home - vh * 0.08)));
-            progress = pour * (0.18 + 0.6 * drain);
+            progress = pour;
           }
         }
-        const target = -0.14 + progress * 1.34;
+        // Every button tops out at the same level (~82%) so each keeps a
+        // visible surface that reacts, instead of some brimming over.
+        const target = -0.14 + progress * 0.96;
 
         // Level: critically damped. Water poured in doesn't overshoot; it
         // just arrives, and the pour stirs the surface where it lands.
@@ -525,7 +520,7 @@ export default function CrystalLiquid() {
         // A sharp stop or start of scrolling jolts the glass: a small
         // centre-versus-edges wobble.
         if (Math.abs(scrollAcc) > 4000) {
-          const j = Math.max(-1, Math.min(1, scrollAcc / 40000)) * 3 * dt * l.dir2;
+          const j = Math.max(-1, Math.min(1, scrollAcc / 40000)) * 3 * dt;
           for (let i = 0; i < N; i++) l.V[i] += j * Math.cos((2 * Math.PI * i) / (N - 1));
         }
         // Air never leaves water perfectly still: a faint stir now and then.
