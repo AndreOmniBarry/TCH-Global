@@ -523,11 +523,11 @@
   /* Crystal-liquid buttons. Every .btn (and any .liquid element) is an
      empty glass container that fills with liquid as it scrolls into
      view and drains as it scrolls back out. The liquid itself is
-     rendered by components/decor/CrystalLiquid.tsx (WebGL: refraction,
-     caustics, facets, bubbles, spring-simulated slosh) into a
+     rendered by components/decor/CrystalLiquid.tsx (Canvas 2D: a simulated
+     water surface, scroll-linked level, caustics) into a
      .liquid-canvas it inserts; it then adds .btn--gl and keeps
      --fill-n (0-1) and data-liquid ("on" once the liquid covers the
-     label) updated. Without WebGL/motion, the ::before clip-path fill
+     label) updated. Without JS/motion, the ::before clip-path fill
      driven by main.js's --fill takes over as a plain fallback.
      --liquid-a/b/c must stay plain hex: the engine parses them. */
   .btn, .liquid {
@@ -2454,3 +2454,9 @@ body:has(.pl-amodal) .qdock { display: none; }
 .bank-cur svg, .bank-note svg { width: 18px; height: 12px; border-radius: 2px; box-shadow: 0 0 0 1px rgb(0 0 0 / .14); flex: none; }
 .bank-note { display: flex; gap: 10px; align-items: flex-start; margin-top: 14px; font-size: .84rem; line-height: 1.5; color: var(--text-muted); }
 .bank-note svg { margin-top: 4px; }
+
+/* Hero billboard brick (public/js/main.js): a canvas behind the word, drawn
+   in the word's own (unscaled) coordinates; positioned by the script. */
+.hx-brick { position: absolute; z-index: -1; pointer-events: none; }
+.hx-cube { display: none; }
+@media (prefers-reduced-motion: reduce) { .hx-brick { display: none; } }

@@ -350,6 +350,8 @@
           el.style.transform = progress >= 1 ? 'none' :
             'translate3d(0,' + (40 * (1 - progress)).toFixed(1) + 'px,0) rotateX(' + (14 * (1 - progress)).toFixed(1) + 'deg) scale(' + (0.94 + 0.06 * progress).toFixed(3) + ')';
         } else {
+          // The water engine (CrystalLiquid) owns this button: no fallback writes.
+          if (el.classList.contains('btn--gl')) continue;
           var raw = (btnStart - top) / (btnStart - btnEnd);
           if (top + scrollY < vh * 0.95 && splashDone) raw = 1;
           var f = Math.min(Math.max(raw, 0), 1);
@@ -458,8 +460,13 @@
 })();
 
 // Hero "TCH ____" billboard. GLOBAL owns the screen; three variations make a
-// short entrance each, then it always lands back on GLOBAL. A small cube
-// rolls behind the last letter as it types, and breathes with the caret.
+// short entrance each, then it always lands back on GLOBAL.
+//
+// Behind the last letter sits a lit 3D brick, about 1.35x the letter. It
+// stands on the text's baseline and physically tips over its bottom edge
+// onto the next letter as each one is typed (and back as letters are
+// deleted), always landing flat. Drawn on its own canvas with real face
+// lighting and a contact shadow, and only redrawn while it moves.
 (function () {
   const em = document.querySelector('.hero-title .hx');
   if (!em || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
@@ -469,18 +476,19 @@
 
   em.textContent = '';
   const text = document.createTextNode(MAIN);
-  const cube = document.createElement('span'); cube.className = 'hx-cube'; cube.innerHTML = '<i></i>';
+  const brick = document.createElement('canvas'); brick.className = 'hx-brick'; brick.setAttribute('aria-hidden', 'true');
   const caret = document.createElement('i'); caret.className = 'hx-caret';
-  em.append(cube, text, caret);
+  em.append(brick, text, caret);
   const h1 = em.closest('.hero-title');
+  const ctx = brick.getContext('2d');
 
-  let angle = 0, bag = [];
+  let bag = [];
   const nextBatch = () => {
     if (bag.length < 3) bag = POOL.slice().sort(() => Math.random() - 0.5);
     return bag.splice(0, 3);
   };
 
-  // Fit long words to the line before typing them (smooth font-size change).
+  // Fit long words to the line before typing them (smooth scale change).
   const probe = document.createElement('span');
   probe.style.cssText = 'position:absolute;visibility:hidden;white-space:nowrap;font:inherit;letter-spacing:inherit;text-transform:inherit';
   em.appendChild(probe);
@@ -490,32 +498,192 @@
     em.style.setProperty('--hx-s', scale.toFixed(3));
   };
 
-  const place = (dir) => {
-    const n = text.data.length;
-    // The cube sits behind the last letter, centred on it and about 1.35x
-    // its size (the larger of its width and the capital height).
+  // ---- the brick -------------------------------------------------------
+  const isDark = () => {
+    const t = document.documentElement.dataset.theme;
+    return t ? t === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+  };
+  // Cube corners (bit 0: x, bit 1: y down, bit 2: z toward viewer) and faces.
+  const V = [];
+  for (let i = 0; i < 8; i++) V.push([i & 1 ? 1 : -1, i & 2 ? 1 : -1, i & 4 ? 1 : -1]);
+  const FACES = [
+    { v: [4, 5, 7, 6], n: [0, 0, 1], c: ['#22d3ee', '#7c3aed'] },   // front
+    { v: [0, 1, 5, 4], n: [0, -1, 0], c: ['#67e8f9', '#22d3ee'] },  // top
+    { v: [1, 3, 7, 5], n: [1, 0, 0], c: ['#6d28d9', '#3730a3'] },   // right
+    { v: [0, 4, 6, 2], n: [-1, 0, 0], c: ['#22d3ee', '#0e7490'] },  // left
+    { v: [2, 6, 7, 3], n: [0, 1, 0], c: ['#5b21b6', '#312e81'] },   // bottom
+    { v: [0, 2, 3, 1], n: [0, 0, -1], c: ['#8b5cf6', '#22d3ee'] },  // back
+  ];
+  const AX = 0.42, AY = -0.55; // view: a little from above and from the right
+  const L = (() => { const l = [-0.45, -0.8, 0.75]; const m = Math.hypot(...l); return l.map((x) => x / m); })();
+  const rot = (p, th) => {
+    // roll (screen plane, clockwise with y down), then view tilt.
+    let [x, y, z] = p;
+    const c = Math.cos(th), s = Math.sin(th);
+    [x, y] = [x * c - y * s, x * s + y * c];
+    // Turn to show the right side, then look down a little: vertical
+    // edges stay vertical on screen, as with a real camera.
+    const cb = Math.cos(AY), sb = Math.sin(AY);
+    [x, z] = [x * cb - z * sb, x * sb + z * cb];
+    const ca = Math.cos(AX), sa = Math.sin(AX);
+    [y, z] = [y * ca - z * sa, y * sa + z * ca];
+    return [x, y, z];
+  };
+
+  // Height of the brick on screen at rest, in cube units, so the drawn
+  // brick (top face included) is exactly st.side tall.
+  const REST_H = (() => {
+    let lo = Infinity, hi = -Infinity;
+    for (const v of V) { const q = rot(v, 0); const y = q[1] * 14 / (14 - q[2]); lo = Math.min(lo, y); hi = Math.max(hi, y); }
+    return hi - lo;
+  })();
+  const st = { x: 0, vx: 0, tx: 0, base: 0, side: 0, th: 0, vth: 0, tth: 0, glint: -1, nextGlint: 0, m: 0, w: 0, h: 0 };
+  let raf = 0;
+
+  function layout() {
     const fs = parseFloat(getComputedStyle(em).fontSize) || 40;
-    let x = 0, y = 0, side = fs * 0.72 * 1.35;
+    const m = fs * 1.4;
+    const w = em.offsetWidth + m * 2, h = em.offsetHeight + m * 1.6;
+    const r = Math.min(window.devicePixelRatio || 1, 2);
+    if (Math.abs(w - st.w) > 0.5 || Math.abs(h - st.h) > 0.5 || st.m !== m) {
+      st.w = w; st.h = h; st.m = m;
+      brick.style.left = -m + 'px'; brick.style.top = -m + 'px';
+      brick.style.width = w + 'px'; brick.style.height = h + 'px';
+      brick.width = Math.round(w * r); brick.height = Math.round(h * r);
+    }
+    return fs;
+  }
+
+  const place = (dir) => {
+    const fs = layout();
+    const n = text.data.length;
     if (n) {
       const r = document.createRange(); r.setStart(text, n - 1); r.setEnd(text, n);
       const a = r.getBoundingClientRect(), b = em.getBoundingClientRect();
-      const sc = parseFloat(em.style.getPropertyValue('--hx-s')) || 1;
+      // The word may be mid-way through its fit-to-width rescale, so use
+      // the scale actually on screen, not the one it is heading to.
+      const sc = b.width / Math.max(1, em.offsetWidth) || 1;
       const aw = a.width / sc, ah = a.height / sc;
-      side = Math.max(aw, fs * 0.72) * 1.35;
-      const cx = (a.left - b.left) / sc + aw / 2;
-      // Middle of a capital: baseline (~78% down the glyph box) minus half the cap height.
-      const cy = (a.top - b.top) / sc + ah * 0.78 - fs * 0.36;
-      x = cx - side / 2; y = cy - side / 2;
+      // ~1.35x the letter: its capital height, but never narrower than the
+      // letter itself (this font's letters are wide).
+      const cap = fs * 0.72;
+      st.side = Math.min(cap * 1.7, Math.max(cap * 1.35, aw * 1.05));
+      st.tx = (a.left - b.left) / sc + aw / 2 + st.m;
+      st.base = (a.top - b.top) / sc + ah * 0.78 + st.m;
     }
-    cube.style.setProperty('--x', x.toFixed(1) + 'px');
-    cube.style.setProperty('--y', y.toFixed(1) + 'px');
-    cube.style.setProperty('--s', side.toFixed(1) + 'px');
-    if (dir) {
-      angle += dir * 90;
-      cube.style.setProperty('--a', angle + 'deg');
-      cube.classList.remove('hop'); void cube.offsetWidth; cube.classList.add('hop');
-    }
+    if (!st.x) st.x = st.tx;
+    if (dir) st.tth += dir * Math.PI / 2;
+    kick();
   };
+
+  function draw(now) {
+    const r = brick.width / st.w;
+    ctx.setTransform(r, 0, 0, r, 0, 0);
+    ctx.clearRect(0, 0, st.w, st.h);
+    const half = st.side / 2;
+    const dark = isDark();
+    // Project the corners around the origin, then stand the lowest one on
+    // the baseline: during a roll the pivot edge stays on the ground, so
+    // the lift comes out of the geometry, as it does for a real brick.
+    const u = st.side / REST_H;
+    const P = V.map((v) => {
+      const q = rot(v, st.th);
+      const k = 14 / (14 - q[2]);
+      return [q[0] * k * u, q[1] * k * u, q[2]];
+    });
+    let lowest = -Infinity;
+    for (const p of P) lowest = Math.max(lowest, p[1]);
+    const ox = st.x, oy = st.base - lowest;
+    const lift = Math.max(0, (half * Math.SQRT2 * 1.05 - lowest) / half);
+
+    // Contact shadow, softer and smaller when the brick is up on an edge.
+    const sh = ctx.createRadialGradient(ox, st.base + 1, 0, ox, st.base + 1, half * 1.25);
+    sh.addColorStop(0, `rgba(0,0,0,${(0.42 - lift * 0.25).toFixed(3)})`);
+    sh.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.save();
+    ctx.translate(0, st.base + 1); ctx.scale(1, 0.22); ctx.translate(0, -(st.base + 1));
+    ctx.fillStyle = sh;
+    ctx.beginPath(); ctx.arc(ox, st.base + 1, half * 1.25, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+
+    const vis = [];
+    for (const f of FACES) {
+      const n = rot(f.n, st.th);
+      if (n[2] <= 0.02) continue;
+      const z = f.v.reduce((s, i) => s + P[i][2], 0) / 4;
+      vis.push({ f, n, z });
+    }
+    vis.sort((a, b) => a.z - b.z);
+    const t = now / 1000;
+    for (const { f, n } of vis) {
+      const pts = f.v.map((i) => [ox + P[i][0], oy + P[i][1]]);
+      const lam = Math.max(0, n[0] * L[0] + n[1] * L[1] + n[2] * L[2]);
+      const cA = dark ? f.c[1] : f.c[0], cB = dark ? f.c[0] : f.c[1];
+      const g = ctx.createLinearGradient(pts[0][0], pts[0][1], pts[2][0], pts[2][1]);
+      g.addColorStop(0, cA); g.addColorStop(1, cB);
+      ctx.beginPath();
+      pts.forEach((p, i) => (i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])));
+      ctx.closePath();
+      ctx.fillStyle = g; ctx.fill();
+      // Lighting: shade faces turned from the light, lift those facing it.
+      ctx.fillStyle = `rgba(8,6,30,${(0.55 * (1 - lam)).toFixed(3)})`; ctx.fill();
+      ctx.fillStyle = `rgba(255,255,255,${(0.22 * Math.pow(lam, 3)).toFixed(3)})`; ctx.fill();
+      // Tetris bevel: a slightly lighter inset face with a crisp inner edge.
+      const cx = pts.reduce((s, p) => s + p[0], 0) / 4, cy = pts.reduce((s, p) => s + p[1], 0) / 4;
+      const inset = pts.map((p) => [cx + (p[0] - cx) * 0.8, cy + (p[1] - cy) * 0.8]);
+      ctx.beginPath();
+      inset.forEach((p, i) => (i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])));
+      ctx.closePath();
+      ctx.fillStyle = 'rgba(255,255,255,0.07)'; ctx.fill();
+      ctx.strokeStyle = 'rgba(255,255,255,0.14)'; ctx.lineWidth = 1; ctx.stroke();
+      // Glint: a band of light that sweeps across now and then.
+      if (st.glint >= 0) {
+        ctx.save();
+        ctx.beginPath();
+        pts.forEach((p, i) => (i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])));
+        ctx.closePath(); ctx.clip();
+        const u = st.glint, gx = ox - half * 2 + u * half * 4;
+        const gl = ctx.createLinearGradient(gx - half * 0.5, oy - half, gx + half * 0.5, oy + half);
+        gl.addColorStop(0, 'rgba(255,255,255,0)'); gl.addColorStop(0.5, 'rgba(255,255,255,0.45)'); gl.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx.fillStyle = gl; ctx.fillRect(ox - half * 2, oy - half * 2, half * 4, half * 4);
+        ctx.restore();
+      }
+      // Edges: soft white by day, gold by night.
+      ctx.beginPath();
+      pts.forEach((p, i) => (i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])));
+      ctx.closePath();
+      ctx.lineJoin = 'round';
+      ctx.strokeStyle = dark ? 'rgba(245,197,66,0.85)' : 'rgba(255,255,255,0.45)';
+      ctx.lineWidth = Math.max(1, st.side * 0.022);
+      ctx.stroke();
+    }
+    void t;
+  }
+
+  let last = 0;
+  function tick(now) {
+    const dt = Math.min(0.05, last ? (now - last) / 1000 : 0.016);
+    last = now;
+    // Critically damped springs: quick, no wobble past the target.
+    // Integrated in small fixed steps so a slow frame can never make the
+    // springs overshoot and run away.
+    const kx = 380, kt = 520, dx = 2 * Math.sqrt(kx), dth = 2 * Math.sqrt(kt);
+    for (let h = dt; h > 0; h -= 1 / 240) {
+      const e = Math.min(h, 1 / 240);
+      st.vx += (kx * (st.tx - st.x) - dx * st.vx) * e; st.x += st.vx * e;
+      st.vth += (kt * (st.tth - st.th) - dth * st.vth) * e; st.th += st.vth * e;
+    }
+    if (st.glint >= 0) { st.glint += dt / 0.9; if (st.glint > 1) st.glint = -1; }
+    draw(now);
+    const moving = Math.abs(st.tx - st.x) > 0.2 || Math.abs(st.tth - st.th) > 0.002 || Math.abs(st.vth) > 0.01 || st.glint >= 0;
+    if (moving) raf = requestAnimationFrame(tick);
+    else { st.x = st.tx; st.th = st.tth; draw(now); raf = 0; last = 0; }
+  }
+  function kick() { if (!raf) raf = requestAnimationFrame(tick); }
+  // A glint every few seconds while the word rests.
+  setInterval(() => { if (em.classList.contains('hx-idle') && !document.hidden && st.glint < 0) { st.glint = 0; kick(); } }, 4200);
+  new MutationObserver(() => kick()).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
   const idle = (on) => { em.classList.toggle('hx-idle', on); };
   const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -536,6 +704,7 @@
       await swap(MAIN); await wait(HOLD_MAIN);
     }
   }
+  em.addEventListener('transitionend', () => place(0));
   addEventListener('resize', () => { fit(text.data || MAIN); place(0); });
   (document.fonts ? document.fonts.ready : Promise.resolve()).then(run);
 })();
