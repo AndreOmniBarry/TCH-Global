@@ -323,8 +323,24 @@
       entries.forEach(function (e) { if (e.isIntersecting) near.add(e.target); else near.delete(e.target); });
       requestFrame();
     }, { rootMargin: '25% 0px 25% 0px' });
-    popEls.forEach(function (el) { io.observe(el); });
-    btnEls.forEach(function (el) { io.observe(el); });
+    // Track blocks by watching the page, not a list taken once at load:
+    // when React rebuilds part of the page (for example after a server/
+    // browser mismatch), the new blocks would otherwise never be revealed
+    // and whole sections stayed invisible.
+    function track() {
+      Array.prototype.forEach.call(document.querySelectorAll('.pop, .btn'), function (el) {
+        if (!el._popTracked) { el._popTracked = true; io.observe(el); }
+      });
+      near.forEach(function (el) { if (!el.isConnected) near.delete(el); });
+      requestFrame();
+    }
+    track();
+    var trackTimer = 0;
+    new MutationObserver(function () {
+      clearTimeout(trackTimer);
+      trackTimer = setTimeout(track, 120);
+    }).observe(document.body, { childList: true, subtree: true });
+    window.addEventListener('pageshow', requestFrame);
     var splashDone = false;
 
     function updateFrame() {
@@ -557,7 +573,10 @@
   const place = (dir) => {
     const fs = layout();
     const n = text.data.length;
-    if (n) {
+    if (!n) {
+      // Between words: wait at the start of the line, beside the caret.
+      st.tx = st.m + st.side * 0.5;
+    } else {
       const r = document.createRange(); r.setStart(text, n - 1); r.setEnd(text, n);
       const a = r.getBoundingClientRect(), b = em.getBoundingClientRect();
       // The word may be mid-way through its fit-to-width rescale, so use
@@ -667,7 +686,7 @@
     // Critically damped springs: quick, no wobble past the target.
     // Integrated in small fixed steps so a slow frame can never make the
     // springs overshoot and run away.
-    const kx = 380, kt = 520, dx = 2 * Math.sqrt(kx), dth = 2 * Math.sqrt(kt);
+    const kx = 1500, kt = 1900, dx = 2 * Math.sqrt(kx), dth = 2 * Math.sqrt(kt);
     for (let h = dt; h > 0; h -= 1 / 240) {
       const e = Math.min(h, 1 / 240);
       st.vx += (kx * (st.tx - st.x) - dx * st.vx) * e; st.x += st.vx * e;
