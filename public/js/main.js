@@ -303,7 +303,12 @@
   // pop-up book; scrolling back up folds them flat again.
   (function () {
     var prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    var parallaxLayers = Array.prototype.slice.call(document.querySelectorAll('[data-speed]'));
+    // Parallax runs in the browser's compositor via CSS scroll-driven
+    // animations where supported (styles.css), so it moves in lockstep
+    // with the scroll however fast it is. Older browsers get this capped
+    // script version instead.
+    var cssParallax = window.CSS && CSS.supports && CSS.supports('animation-timeline: scroll()');
+    var parallaxLayers = cssParallax ? [] : Array.prototype.slice.call(document.querySelectorAll('[data-speed]'));
     var popEls = Array.prototype.slice.call(document.querySelectorAll('.pop'));
     var btnEls = Array.prototype.slice.call(document.querySelectorAll('.btn'));
 
@@ -354,7 +359,10 @@
       near.forEach(function (el) { reads.push([el, el.getBoundingClientRect().top]); });
       parallaxLayers.forEach(function (el) {
         var speed = parseFloat(el.dataset.speed) || 0;
-        el.style.transform = 'translate3d(0,' + (scrollY * speed).toFixed(1) + 'px,0)';
+        // Bounded: the hero photo only moves while the hero is on screen,
+        // the background glows never drift more than ~180px.
+        var y = el.classList.contains('hero-bg-photo') ? Math.min(scrollY, vh) * speed : Math.max(-180, Math.min(180, scrollY * speed));
+        el.style.transform = 'translate3d(0,' + y.toFixed(1) + 'px,0)';
       });
       for (var i = 0; i < reads.length; i++) {
         var el = reads[i][0], top = reads[i][1];

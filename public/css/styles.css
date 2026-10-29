@@ -344,7 +344,9 @@
     background: linear-gradient(180deg, var(--bg-root-alt) 0%, var(--surface-low) 60%, var(--bg-root) 100%);
     transition: background-color .4s ease; }
   .hero-bg-photo {
-    position: absolute; inset: -8% -4%; z-index: 0;
+    /* Extra photo above the frame: parallax moves it down by up to 22vh
+       while the hero scrolls away, and the top must never show a gap. */
+    position: absolute; inset: calc(-8% - 22vh) -4% -8%; z-index: 0;
     background-image: url('../images/hero-worship.webp');
     background-size: cover; background-position: center 30%;
     will-change: transform;
@@ -2460,3 +2462,20 @@ body:has(.pl-amodal) .qdock { display: none; }
 .hx-brick { position: absolute; z-index: -1; pointer-events: none; }
 .hx-cube { display: none; }
 @media (prefers-reduced-motion: reduce) { .hx-brick { display: none; } }
+
+/* Parallax in the compositor (scroll-driven animations): in lockstep with
+   the scroll at any speed, and bounded. The hero photo drifts 22vh over
+   the first screen; the background glows drift a little over the whole
+   page. Browsers without support use the capped script in main.js. */
+@supports (animation-timeline: scroll()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .hero-bg-photo { animation: tch-par-hero linear both; animation-timeline: scroll(root block); animation-range: 0px 100vh; }
+    .blob-field .blob { animation: tch-par-blob linear both; animation-timeline: scroll(root block); }
+    .blob-field .blob-1 { --par: 160px; }
+    .blob-field .blob-2 { --par: -200px; }
+    .blob-field .blob-3 { --par: 120px; }
+    .blob-field .blob-4 { --par: -170px; }
+  }
+}
+@keyframes tch-par-hero { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(0, 22vh, 0); } }
+@keyframes tch-par-blob { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(0, var(--par, 0px), 0); } }
