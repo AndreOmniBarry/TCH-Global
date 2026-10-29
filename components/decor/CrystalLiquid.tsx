@@ -121,7 +121,8 @@ function makeCaustics(): HTMLCanvasElement | null {
     for (let x = 0; x < S; x++) {
       const px = (x / S) * P, py = (y / S) * P;
       const n = noise(px, py, 1) + noise(px, py + 0.5, 2) * 0.9;
-      const r = Math.pow(Math.max(0, 1 - Math.abs(n - 0.95) * 1.35), 6);
+      // Thin, soft ridges: real caustics are fine lines, not bold strokes.
+      const r = Math.pow(Math.max(0, 1 - Math.abs(n - 0.95) * 1.9), 10);
       const o = (y * S + x) * 4;
       img.data[o] = 255; img.data[o + 1] = 255; img.data[o + 2] = 255;
       img.data[o + 3] = Math.round(r * 255);
@@ -299,48 +300,48 @@ export default function CrystalLiquid() {
 
       ctx.save();
       ctx.clip();
-      // Lit just under the surface, darker with depth.
+      // Caustics: a fine, faint net of light that drifts with the water,
+      // about 26px per cell whatever the screen density. Drawn before the
+      // depth shading so it fades with depth, as real light does.
       const top = h * (1 - Math.min(Math.max(l.level, 0), 1.05));
-      const deep = ctx.createLinearGradient(0, top, 0, h);
-      deep.addColorStop(0, 'rgba(255,255,255,0.12)');
-      deep.addColorStop(0.14, 'rgba(255,255,255,0)');
-      deep.addColorStop(1, dark ? 'rgba(0,0,0,0.22)' : 'rgba(0,0,0,0.30)');
-      ctx.fillStyle = deep;
-      ctx.fillRect(0, 0, w, h);
-      // Caustic net: two layers drifting against each other.
       if (caustics) {
         const pat = ctx.createPattern(caustics, 'repeat');
         if (pat) {
-          const sc = (h / 192) * 1.6;
-          ctx.globalCompositeOperation = 'lighter';
-          ctx.globalAlpha = dark ? 0.2 : 0.16;
-          pat.setTransform(new DOMMatrix().translateSelf(((t * 9 + l.seed) % 192) * sc, ((t * 5) % 192) * sc).scaleSelf(sc, sc));
+          const sc = (156 * r) / 192;
+          ctx.globalAlpha = dark ? 0.11 : 0.08;
+          pat.setTransform(new DOMMatrix().translateSelf(((t * 7 + l.seed) % 192) * sc, ((t * 4) % 192) * sc).scaleSelf(sc, sc));
           ctx.fillStyle = pat;
-          ctx.fillRect(0, 0, w, h);
-          ctx.globalAlpha = dark ? 0.13 : 0.1;
-          pat.setTransform(new DOMMatrix().translateSelf(-((t * 6 + l.seed * 0.7) % 192) * sc * 1.3, ((t * 7 + 40) % 192) * sc * 1.3).scaleSelf(sc * 1.3, sc * 1.3));
-          ctx.fillRect(0, 0, w, h);
-          ctx.globalCompositeOperation = 'source-over';
+          ctx.fillRect(0, top, w, h - top);
+          ctx.globalAlpha = dark ? 0.07 : 0.05;
+          pat.setTransform(new DOMMatrix().translateSelf(-((t * 5 + l.seed * 0.7) % 192) * sc * 1.4, ((t * 6 + 40) % 192) * sc * 1.4).scaleSelf(sc * 1.4, sc * 1.4));
+          ctx.fillRect(0, top, w, h - top);
           ctx.globalAlpha = 1;
         }
       }
+      // Slightly lighter just under the surface, darker with depth.
+      const deep = ctx.createLinearGradient(0, top, 0, h);
+      deep.addColorStop(0, 'rgba(255,255,255,0.06)');
+      deep.addColorStop(0.12, 'rgba(255,255,255,0)');
+      deep.addColorStop(1, dark ? 'rgba(0,0,0,0.24)' : 'rgba(0,0,0,0.32)');
+      ctx.fillStyle = deep;
+      ctx.fillRect(0, 0, w, h);
       ctx.restore();
 
-      // Waterline: a soft glow, then a crisp line that brightens where the
-      // surface faces the light (upper left), so travelling crests glint.
+      // Waterline as seen through glass: a fine meniscus line, a little
+      // brighter where the surface tilts toward the light, and a faint
+      // darker edge just under it where the surface refracts. No halo.
       ctx.lineJoin = 'round';
-      ctx.strokeStyle = 'rgba(255,255,255,0.16)';
-      ctx.lineWidth = 4 * r;
+      ctx.lineWidth = 1 * r;
+      ctx.strokeStyle = 'rgba(0,0,0,0.14)';
       ctx.beginPath();
       for (let j = 0; j <= M; j++) {
-        if (j) ctx.lineTo(pts[j * 2], pts[j * 2 + 1]);
-        else ctx.moveTo(pts[0], pts[1]);
+        if (j) ctx.lineTo(pts[j * 2], pts[j * 2 + 1] + 1.5 * r);
+        else ctx.moveTo(pts[0], pts[1] + 1.5 * r);
       }
       ctx.stroke();
-      ctx.lineWidth = 1.2 * r;
       for (let j = 0; j < M; j++) {
         const slope = (pts[j * 2 + 3] - pts[j * 2 + 1]) / Math.max(1, pts[j * 2 + 2] - pts[j * 2]);
-        const a = Math.min(0.95, Math.max(0.35, 0.6 + slope * 1.6));
+        const a = Math.min(0.6, Math.max(0.22, 0.36 + slope * 1.2));
         ctx.strokeStyle = `rgba(255,255,255,${a.toFixed(2)})`;
         ctx.beginPath();
         ctx.moveTo(pts[j * 2], pts[j * 2 + 1]);
