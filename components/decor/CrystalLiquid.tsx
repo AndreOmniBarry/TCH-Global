@@ -19,7 +19,7 @@ const N = 40; // surface columns per button
  * water level with the ground.
  *
  * Drawing is plain Canvas 2D straight into each button's own canvas: one
- * path, a few gradients and a shared caustic texture. No WebGL readback,
+ * path and a few gradients. No WebGL readback,
  * no per-button contexts, so it stays at full frame rate on laptops and
  * phones alike. Every frame reads all positions first and writes after,
  * so the browser never has to recompute layout mid-frame. */
@@ -39,6 +39,8 @@ type Liquid = {
   colA: string;
   colB: string;
   colC: string;
+  /** Brand drawing variant from --liquid-brand (e.g. 'tiktok'). */
+  brand: string;
   w: number;
   h: number;
   on: boolean;
@@ -94,44 +96,6 @@ function surfaceAt(H: Float32Array, x: number) {
   return 0.5 * (2 * p1 + (-p0 + p2) * t + (2 * p0 - 5 * p1 + 4 * p2 - p3) * t * t + (-p0 + 3 * p1 - 3 * p2 + p3) * t * t * t);
 }
 
-// A tileable caustic net, made once and shared by every button: the bright
-// ridges of two periodic noise fields, which is what light through a
-// rippled surface looks like.
-function makeCaustics(): HTMLCanvasElement | null {
-  const S = 192;
-  const c = document.createElement('canvas');
-  c.width = S; c.height = S;
-  const g = c.getContext('2d');
-  if (!g) return null;
-  const img = g.createImageData(S, S);
-  const P = 6;
-  const wrap = (v: number) => ((v % P) + P) % P;
-  const rnd = (x: number, y: number, s: number) => {
-    const v = Math.sin(wrap(x) * 127.1 + wrap(y) * 311.7 + s * 74.7) * 43758.5453;
-    return v - Math.floor(v);
-  };
-  const noise = (x: number, y: number, s: number) => {
-    const xi = Math.floor(x), yi = Math.floor(y);
-    const xf = x - xi, yf = y - yi;
-    const u = xf * xf * (3 - 2 * xf), v = yf * yf * (3 - 2 * yf);
-    const a = rnd(xi, yi, s), b = rnd(xi + 1, yi, s), cc = rnd(xi, yi + 1, s), d = rnd(xi + 1, yi + 1, s);
-    return (a + (b - a) * u) * (1 - v) + (cc + (d - cc) * u) * v;
-  };
-  for (let y = 0; y < S; y++) {
-    for (let x = 0; x < S; x++) {
-      const px = (x / S) * P, py = (y / S) * P;
-      const n = noise(px, py, 1) + noise(px, py + 0.5, 2) * 0.9;
-      // Thin, soft ridges: real caustics are fine lines, not bold strokes.
-      const r = Math.pow(Math.max(0, 1 - Math.abs(n - 0.95) * 1.9), 10);
-      const o = (y * S + x) * 4;
-      img.data[o] = 255; img.data[o + 1] = 255; img.data[o + 2] = 255;
-      img.data[o + 3] = Math.round(r * 255);
-    }
-  }
-  g.putImageData(img, 0, 0);
-  return c;
-}
-
 function isDarkTheme() {
   const theme = document.documentElement.dataset.theme;
   if (theme === 'dark') return true;
@@ -142,8 +106,98 @@ function isDarkTheme() {
 export default function CrystalLiquid() {
   useEffect(() => {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    const caustics = makeCaustics();
     let dark = isDarkTheme();
+
+    // Caustics: the light a rippled surface focuses into a web of sharp,
+    // thin, bright threads meeting at junctions. They are recomputed every
+    // frame (a periodic Voronoi edge field whose seeds wander), so the web
+    // reshapes and shimmers like the real thing instead of sliding along
+    // as a picture. One small shared texture, tinted copies for TikTok.
+    const CS = 96, CELLS = 4;
+    const cTex = document.createElement('canvas');
+    cTex.width = CS; cTex.height = CS;
+    const cCtx = cTex.getContext('2d');
+    const cImg = cCtx ? cCtx.createImageData(CS, CS) : null;
+    const seeds = Array.from({ length: CELLS * CELLS }, () => ({ ph: Math.random() * 6.28, sp: 0.6 + Math.random() * 0.8, ox: Math.random(), oy: Math.random() }));
+    const tinted: Record<string, HTMLCanvasElement> = {};
+    const rowWarp = new Float32Array(CS), colWarp = new Float32Array(CS);
+    const rowSin = new Float32Array(CS), rowCos = new Float32Array(CS);
+    const colSin = new Float32Array(CS), colCos = new Float32Array(CS);
+    let cStamp = -1;
+    function updateCaustics(t: number, needTint: boolean) {
+      if (!cCtx || !cImg) return;
+      const frameId = Math.floor(t * 24); // 24 fps is plenty for shimmer
+      if (frameId === cStamp) return;
+      cStamp = frameId;
+      const px: number[] = [], py: number[] = [];
+      for (let k = 0; k < seeds.length; k++) {
+        const sd = seeds[k];
+        const cx = (k % CELLS + sd.ox * 0.6 + 0.2 + 0.18 * Math.sin(t * sd.sp + sd.ph)) / CELLS;
+        const cy = (Math.floor(k / CELLS) + sd.oy * 0.6 + 0.2 + 0.18 * Math.cos(t * sd.sp * 0.8 + sd.ph * 1.3)) / CELLS;
+        px.push(cx); py.push(cy);
+      }
+      const d = cImg.data;
+      const TAU = Math.PI * 2;
+      // Everything that depends on only the row or only the column is
+      // worked out once here, not per pixel: this is what keeps the web
+      // cheap enough to recompute every frame.
+      for (let i = 0; i < CS; i++) {
+        const g = i / CS;
+        // Bend the web (integer frequencies keep the tile seamless).
+        rowWarp[i] = 0.045 * Math.sin(TAU * (g * 2 + t * 0.21)) + 0.02 * Math.sin(TAU * (g * 3 - t * 0.33));
+        colWarp[i] = 0.045 * Math.sin(TAU * (g * 2 - t * 0.17)) + 0.02 * Math.sin(TAU * (g * 3 + t * 0.29));
+        // Brightness pulse along the threads, split into row and column parts.
+        const a = TAU * g * 2;
+        colSin[i] = Math.sin(a); colCos[i] = Math.cos(a);
+        const b = TAU * g * 3 + t * 1.7 + Math.sin(TAU * g * 2) * 2;
+        rowSin[i] = Math.sin(b); rowCos[i] = Math.cos(b);
+      }
+      for (let y = 0; y < CS; y++) {
+        const gy = y / CS;
+        for (let x = 0; x < CS; x++) {
+          const gx = x / CS;
+          const fx = gx + rowWarp[y];
+          const fy = gy + colWarp[x];
+          // Each cell holds one seed, so only the 3x3 cells around this
+          // point can be nearest.
+          const ux = fx - Math.floor(fx), uy = fy - Math.floor(fy);
+          const cx0 = Math.floor(ux * CELLS), cy0 = Math.floor(uy * CELLS);
+          let f1 = 9, f2 = 9;
+          for (let oy = -1; oy <= 1; oy++) {
+            const ry = (cy0 + oy + CELLS) % CELLS;
+            for (let ox = -1; ox <= 1; ox++) {
+              const k = ry * CELLS + (cx0 + ox + CELLS) % CELLS;
+              let dx = Math.abs(ux - px[k]); if (dx > 0.5) dx = 1 - dx;
+              let dy = Math.abs(uy - py[k]); if (dy > 0.5) dy = 1 - dy;
+              const dd = dx * dx + dy * dy;
+              if (dd < f1) { f2 = f1; f1 = dd; } else if (dd < f2) f2 = dd;
+            }
+          }
+          const e = (Math.sqrt(f2) - Math.sqrt(f1)) * CELLS; // 0 on the threads
+          const o = (y * CS + x) * 4;
+          if (e >= 0.2) { d[o + 3] = 0; continue; }
+          // Thin bright core with a soft falloff; brightness pulses along
+          // each thread, so some stretches flare while others fade.
+          const pulse = 0.55 + 0.45 * (colSin[x] * rowCos[y] + colCos[x] * rowSin[y]);
+          const v = (1 - e / 0.2) ** 2.6 * pulse;
+          d[o] = 255; d[o + 1] = 255; d[o + 2] = 255; d[o + 3] = Math.round(v * 255);
+        }
+      }
+      cCtx.putImageData(cImg, 0, 0);
+      if (needTint) {
+        for (const [key, col] of [['cyan', '#25f4ee'], ['pink', '#fe2c55']]) {
+          const c = tinted[key] || (tinted[key] = Object.assign(document.createElement('canvas'), { width: CS, height: CS }));
+          const g = c.getContext('2d');
+          if (!g) continue;
+          g.globalCompositeOperation = 'source-over';
+          g.clearRect(0, 0, CS, CS);
+          g.drawImage(cTex, 0, 0);
+          g.globalCompositeOperation = 'source-in';
+          g.fillStyle = col;
+          g.fillRect(0, 0, CS, CS);
+        }
+      }
+    }
     const liquids = new Map<HTMLElement, Liquid>();
 
     // "near" starts a quarter screen early, so a button has already caught
@@ -163,6 +217,7 @@ export default function CrystalLiquid() {
       l.colA = cs.getPropertyValue('--liquid-a').trim() || '#4338ca';
       l.colB = cs.getPropertyValue('--liquid-b').trim() || '#7c3aed';
       l.colC = cs.getPropertyValue('--liquid-c').trim() || '#0e7490';
+      l.brand = cs.getPropertyValue('--liquid-brand').trim();
       l.gradKey = undefined;
     }
 
@@ -179,7 +234,7 @@ export default function CrystalLiquid() {
         el, canvas, ctx, near: false, level: 0, vel: 0,
         H: new Float32Array(N), V: new Float32Array(N), plane: 0,
         nextStir: Math.random() * 2, seed: Math.random() * 1000,
-        colA: '', colB: '', colC: '', w: 0, h: 0, on: false, fillN: -1, drawn: false,
+        colA: '', colB: '', colC: '', brand: '', w: 0, h: 0, on: false, fillN: -1, drawn: false,
         mx: 0.5, hover: false,
       };
       readColors(l);
@@ -300,24 +355,26 @@ export default function CrystalLiquid() {
 
       ctx.save();
       ctx.clip();
-      // Caustics: a fine, faint net of light that drifts with the water,
-      // about 26px per cell whatever the screen density. Drawn before the
-      // depth shading so it fades with depth, as real light does.
+      const tiktok = l.brand === 'tiktok';
       const top = h * (1 - Math.min(Math.max(l.level, 0), 1.05));
-      if (caustics) {
-        const pat = ctx.createPattern(caustics, 'repeat');
-        if (pat) {
-          const sc = (156 * r) / 192;
-          ctx.globalAlpha = dark ? 0.11 : 0.08;
-          pat.setTransform(new DOMMatrix().translateSelf(((t * 7 + l.seed) % 192) * sc, ((t * 4) % 192) * sc).scaleSelf(sc, sc));
-          ctx.fillStyle = pat;
-          ctx.fillRect(0, top, w, h - top);
-          ctx.globalAlpha = dark ? 0.07 : 0.05;
-          pat.setTransform(new DOMMatrix().translateSelf(-((t * 5 + l.seed * 0.7) % 192) * sc * 1.4, ((t * 6 + 40) % 192) * sc * 1.4).scaleSelf(sc * 1.4, sc * 1.4));
-          ctx.fillRect(0, top, w, h - top);
-          ctx.globalAlpha = 1;
-        }
+      // Caustic web: two scales, brighter when the surface is disturbed,
+      // and confined to the water (the depth shading then fades it).
+      let energy = 0;
+      for (let i = 0; i < N; i += 2) energy = Math.max(energy, Math.abs(l.V[i]));
+      const lively = 0.75 + Math.min(1, energy * 1.5) * 0.5;
+      const layers: [HTMLCanvasElement | undefined, number, number][] = tiktok
+        ? [[tinted.cyan, 0.32, 1], [tinted.pink, 0.2, 1.04]]
+        : [[cTex, (dark ? 0.16 : 0.12) * lively, 1], [cTex, (dark ? 0.09 : 0.07) * lively, 1.7]];
+      for (const [img, alpha, k] of layers) {
+        const pat = img && ctx.createPattern(img, 'repeat');
+        if (!pat) continue;
+        const sc = ((90 * r) / CS) * k; // ~22px cells
+        pat.setTransform(new DOMMatrix().translateSelf((l.seed * 13) % (CS * sc), (l.seed * 7) % (CS * sc)).scaleSelf(sc, sc));
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = pat;
+        ctx.fillRect(0, top, w, h - top);
       }
+      ctx.globalAlpha = 1;
       // Slightly lighter just under the surface, darker with depth.
       const deep = ctx.createLinearGradient(0, top, 0, h);
       deep.addColorStop(0, 'rgba(255,255,255,0.06)');
@@ -327,27 +384,67 @@ export default function CrystalLiquid() {
       ctx.fillRect(0, 0, w, h);
       ctx.restore();
 
-      // Waterline as seen through glass: a fine meniscus line, a little
-      // brighter where the surface tilts toward the light, and a faint
-      // darker edge just under it where the surface refracts. No halo.
+      // Waterline as seen through glass: a fine meniscus line with a faint
+      // refracted edge beneath it. Light comes from the upper left, so the
+      // surface catches it where it rises to the right (canvas y points
+      // down: negative slope).
+      const line = (dx: number, dy: number, style: string) => {
+        ctx.strokeStyle = style;
+        ctx.beginPath();
+        for (let j = 0; j <= M; j++) {
+          if (j) ctx.lineTo(pts[j * 2] + dx, pts[j * 2 + 1] + dy);
+          else ctx.moveTo(pts[0] + dx, pts[1] + dy);
+        }
+        ctx.stroke();
+      };
       ctx.lineJoin = 'round';
       ctx.lineWidth = 1 * r;
-      ctx.strokeStyle = 'rgba(0,0,0,0.14)';
-      ctx.beginPath();
-      for (let j = 0; j <= M; j++) {
-        if (j) ctx.lineTo(pts[j * 2], pts[j * 2 + 1] + 1.5 * r);
-        else ctx.moveTo(pts[0], pts[1] + 1.5 * r);
+      line(0, 1.5 * r, 'rgba(0,0,0,0.14)');
+      if (tiktok) {
+        // The TikTok split: cyan and pink edges offset either side.
+        ctx.lineWidth = 1.4 * r;
+        line(-1.6 * r, -1 * r, 'rgba(37,244,238,0.9)');
+        line(1.6 * r, 1 * r, 'rgba(254,44,85,0.9)');
+        ctx.lineWidth = 1 * r;
       }
-      ctx.stroke();
       for (let j = 0; j < M; j++) {
         const slope = (pts[j * 2 + 3] - pts[j * 2 + 1]) / Math.max(1, pts[j * 2 + 2] - pts[j * 2]);
-        const a = Math.min(0.6, Math.max(0.22, 0.36 + slope * 1.2));
+        const a = Math.min(0.62, Math.max(0.2, 0.34 - slope * 1.3));
         ctx.strokeStyle = `rgba(255,255,255,${a.toFixed(2)})`;
         ctx.beginPath();
         ctx.moveTo(pts[j * 2], pts[j * 2 + 1]);
         ctx.lineTo(pts[j * 2 + 2], pts[j * 2 + 3]);
         ctx.stroke();
       }
+      // Glints: small specular flashes where a ripple's face turns toward
+      // the light. They travel with the waves and vanish on still water.
+      for (let j = 1; j < M - 1; j++) {
+        const s0 = (pts[j * 2 + 1] - pts[j * 2 - 1]) / Math.max(1, pts[j * 2] - pts[j * 2 - 2]);
+        const s1 = (pts[j * 2 + 3] - pts[j * 2 + 1]) / Math.max(1, pts[j * 2 + 2] - pts[j * 2]);
+        const face = -s1;
+        if (face < 0.12 || -s0 > face) continue; // local peak of light-facing slope only
+        const strength = Math.min(1, (face - 0.12) * 4);
+        const gx = pts[j * 2 + 2], gy = pts[j * 2 + 3];
+        const rad = (3 + 5 * strength) * r;
+        const g = ctx.createRadialGradient(gx, gy, 0, gx, gy, rad);
+        g.addColorStop(0, `rgba(255,255,255,${(0.75 * strength).toFixed(2)})`);
+        g.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx.save();
+        ctx.translate(gx, gy); ctx.scale(1.8, 0.45); ctx.translate(-gx, -gy);
+        ctx.fillStyle = g;
+        ctx.beginPath(); ctx.arc(gx, gy, rad, 0, Math.PI * 2); ctx.fill();
+        ctx.restore();
+      }
+      // The glass itself: one narrow, soft vertical reflection near the
+      // left that stays put while the water moves behind it (it shifts a
+      // little as a phone tilts, like a real reflection).
+      const bx = w * 0.14 + deviceTilt * 18 * r;
+      const band = ctx.createLinearGradient(bx - w * 0.03, 0, bx + w * 0.03, 0);
+      band.addColorStop(0, 'rgba(255,255,255,0)');
+      band.addColorStop(0.5, 'rgba(255,255,255,0.075)');
+      band.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = band;
+      ctx.fillRect(bx - w * 0.03, 0, w * 0.06, h);
       l.drawn = true;
     }
 
@@ -381,6 +478,9 @@ export default function CrystalLiquid() {
         }
         live.push([l, l.el.getBoundingClientRect(), l.el.offsetWidth, l.el.offsetHeight]);
       });
+
+      // One caustic update per frame, shared by every button.
+      if (live.length) updateCaustics(time, live.some(([l]) => l.brand === 'tiktok'));
 
       // Write phase.
       for (const [l, rect, bw, bh] of live) {
