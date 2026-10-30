@@ -88,3 +88,15 @@ resend.com → API Keys → Create (Sending access) → Vercel: `RESEND_API_KEY`
 - Give: GTBank 0168368717, Sterling 0101421732 (account name pending).
 - Waiting on: Spotify show link, exact bank account name, why web sign-ups don't show in SHEP's
   First timers screen (branch filter vs branch_id null).
+
+## 28–30 Oct: water, hero brick, parallax, glitches
+- Water buttons rebuilt (components/decor/CrystalLiquid.tsx): Canvas 2D, level tied to scroll position
+  (empty below the screen, full at the top, drains in step), simulated surface, live caustic web,
+  still glass reflection, travelling glints, no CSS glare. TikTok: black liquid, cyan/pink split edges.
+  About 2.3 ms per frame for every button together.
+- Hero brick (public/js/main.js): lit 3D block ~1.35x the last letter, rolls letter to letter, waits by
+  the caret between words, fixed-step springs so it never runs away on slow frames.
+- Parallax: CSS scroll-driven animations (compositor), bounded; script fallback with the same limits.
+- Blank-section fix: reveal script now picks up blocks React rebuilds after load.
+- Give: account numbers unbroken, Nigeria flag + NGN notice, account name added.
+- Still waiting on: Spotify show link; Supabase query so web sign-ups show on SHEP's First timers screen.
