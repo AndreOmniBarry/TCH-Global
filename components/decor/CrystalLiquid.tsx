@@ -407,13 +407,18 @@ export default function CrystalLiquid() {
         line(1.6 * r, 1 * r, 'rgba(254,44,85,0.9)');
         ctx.lineWidth = 1 * r;
       }
+      // The brim catches the light: a soft lit edge just under the
+      // meniscus line, like the bright crescent on a filled glass.
+      ctx.lineWidth = 3 * r;
+      line(0, 1.6 * r, 'rgba(255,255,255,0.13)');
+      ctx.lineWidth = 1.5 * r;
       for (let j = 0; j < M; j++) {
         const slope = (pts[j * 2 + 3] - pts[j * 2 + 1]) / Math.max(1, pts[j * 2 + 2] - pts[j * 2]);
         // Sparkle: little points of light run along the meniscus, the way
         // the brim of real liquid catches the light.
         // One or two at a time, gliding along the brim in opposite directions.
         const tw = Math.max(0, Math.sin(t * 1.9 + j * 0.13 + l.seed)) ** 40 + Math.max(0, Math.sin(t * 1.3 - j * 0.17 + l.seed * 0.5)) ** 48;
-        const a = Math.min(0.95, Math.max(0.2, 0.34 - slope * 1.3) + tw * 0.55);
+        const a = Math.min(1, Math.max(0.42, 0.55 - slope * 1.3) + tw * 0.5);
         ctx.strokeStyle = `rgba(255,255,255,${a.toFixed(2)})`;
         ctx.beginPath();
         ctx.moveTo(pts[j * 2], pts[j * 2 + 1]);
@@ -422,9 +427,9 @@ export default function CrystalLiquid() {
         if (tw > 0.5) {
           // A tiny flare where the twinkle peaks.
           const sx = pts[j * 2 + 2], sy = pts[j * 2 + 3];
-          const sr = (2 + 3 * Math.min(1, tw)) * r;
+          const sr = (3 + 4 * Math.min(1, tw)) * r;
           const sg = ctx.createRadialGradient(sx, sy, 0, sx, sy, sr);
-          sg.addColorStop(0, `rgba(255,255,255,${(0.8 * Math.min(1, tw)).toFixed(2)})`);
+          sg.addColorStop(0, `rgba(255,255,255,${(0.95 * Math.min(1, tw)).toFixed(2)})`);
           sg.addColorStop(1, 'rgba(255,255,255,0)');
           ctx.fillStyle = sg;
           ctx.beginPath(); ctx.ellipse(sx, sy, sr * 1.6, sr * 0.6, 0, 0, Math.PI * 2); ctx.fill();
