@@ -974,7 +974,7 @@
 .pl-thumb img { width: 100%; height: 100%; object-fit: cover; transition: transform .4s ease; }
 .pl-card:hover .pl-thumb img { transform: scale(1.05); }
 .pl-thumb i { position: absolute; top: 8px; left: 8px; font: 600 .62rem var(--font-mono); letter-spacing: .08em; text-transform: uppercase; font-style: normal; color: #fff; background: rgb(0 0 0 / .55); padding: 3px 7px; border-radius: 6px; }
-.pl-play { position: absolute; right: 10px; bottom: 10px; width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; font-size: .8rem; color: #1d1340; background: #f5c542; opacity: 0; transform: translateY(6px); transition: opacity .25s ease, transform .25s ease; }
+.pl-play { position: absolute; right: 10px; bottom: 10px; width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; font-size: .8rem; color: #fff; background: #e11d2e; opacity: 0; transform: translateY(6px); transition: opacity .25s ease, transform .25s ease; }
 .pl-card:hover .pl-play, .pl-card:focus-visible .pl-play { opacity: 1; transform: none; }
 .pl-progress { position: absolute; left: 0; bottom: 0; height: 3px; background: #ff3b30; }
 .pl-title { font-weight: 600; font-size: .92rem; line-height: 1.35; color: var(--text-high); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
@@ -1047,7 +1047,7 @@
 .pl-badge { display: inline-flex; align-items: center; gap: 4px; }
 .pl-progress { left: 0; right: 0; height: 4px; background: rgb(255 255 255 / .25); }
 .pl-progress span { display: block; height: 100%; background: #ff3b30; }
-.pl-play { color: #1d1340; }
+.pl-play { color: #fff; }
 .pl-loading { position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none; }
 .pl-loading span { width: 44px; height: 44px; border-radius: 50%; border: 3px solid rgb(255 255 255 / .2); border-top-color: #f5c542; animation: pl-spin .8s linear infinite; }
 @keyframes pl-spin { to { transform: rotate(360deg); } }
@@ -1387,7 +1387,7 @@ a.photo-cycle { display: block; color: inherit; text-decoration: none; cursor: p
 .chip-opt input:checked + span::before { content: none; }
 
 /* Motion play button: morphing play/pause glyph + pulse ring */
-.mplay { --mp-size: 44px; --mp-bg: #f5c542; --mp-fg: #1d1340; position: relative; display: inline-grid; place-items: center; width: var(--mp-size); height: var(--mp-size); border-radius: 50%; background: var(--mp-bg); color: var(--mp-fg); box-shadow: 0 8px 22px -8px rgb(0 0 0 / .55), inset 0 1px 0 rgb(255 255 255 / .45); transition: transform .35s cubic-bezier(.3, 1.5, .5, 1), box-shadow .3s ease; }
+.mplay { --mp-size: 44px; --mp-bg: #e11d2e; --mp-fg: #fff; position: relative; display: inline-grid; place-items: center; width: var(--mp-size); height: var(--mp-size); border-radius: 50%; background: var(--mp-bg); color: var(--mp-fg); box-shadow: 0 8px 22px -8px rgb(0 0 0 / .55), inset 0 1px 0 rgb(255 255 255 / .45); transition: transform .35s cubic-bezier(.3, 1.5, .5, 1), box-shadow .3s ease; }
 .mplay-glyph { position: relative; width: 38%; height: 38%; display: flex; transform: translateX(6%); transition: transform .3s ease; }
 .mplay.is-playing .mplay-glyph { transform: none; }
 .mplay-a, .mplay-b { flex: 1; height: 100%; background: currentColor; transition: clip-path .32s cubic-bezier(.65, 0, .35, 1); }
@@ -1400,7 +1400,7 @@ a.photo-cycle { display: block; color: inherit; text-decoration: none; cursor: p
 .mplay-ring { position: absolute; inset: -6px; border-radius: 50%; border: 2px solid var(--mp-bg); opacity: 0; pointer-events: none; }
 .mplay.has-ring .mplay-ring { animation: mplay-pulse 2.4s cubic-bezier(.2, .6, .3, 1) infinite; }
 @keyframes mplay-pulse { 0% { transform: scale(.85); opacity: .7; } 100% { transform: scale(1.45); opacity: 0; } }
-:is(a, button):hover > .mplay, :is(a, button):hover .pl-thumb .mplay, .mplay:hover { transform: scale(1.1); box-shadow: 0 12px 30px -8px rgb(245 197 66 / .6), inset 0 1px 0 rgb(255 255 255 / .5); }
+:is(a, button):hover > .mplay, :is(a, button):hover .pl-thumb .mplay, .mplay:hover { transform: scale(1.1); box-shadow: 0 12px 30px -8px rgb(225 29 46 / .6), inset 0 1px 0 rgb(255 255 255 / .5); }
 :is(a, button):active .mplay { transform: scale(.92); transition-duration: .1s; }
 @media (prefers-reduced-motion: reduce) { .mplay, .mplay-a, .mplay-b { transition: none; } .mplay-ring { display: none; } }
 .pl-play { width: auto; height: auto; background: none; box-shadow: none; padding: 0; right: 10px; bottom: 10px; }
@@ -1563,9 +1563,9 @@ a.hs-slide:hover .hs-cta { background: rgb(245 197 66 / .25); }
 .pl-featured-progress span { display: block; height: 100%; background: #f5c542; }
 .pl-featured-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
 .pl-play-cta { display: inline-flex; align-items: center; gap: 10px; padding: 6px 20px 6px 6px; border: 0; border-radius: 999px; background: #fff; color: #120a2a; font: 700 .92rem var(--font-body); cursor: pointer; box-shadow: 0 12px 26px -12px rgb(0 0 0 / .6); transition: transform .2s ease, box-shadow .2s ease; }
-.pl-play-cta:hover { transform: translateY(-1px); box-shadow: 0 16px 30px -12px rgb(245 197 66 / .55); }
+.pl-play-cta:hover { transform: translateY(-1px); box-shadow: 0 16px 30px -12px rgb(225 29 46 / .55); }
 .pl-play-cta:disabled { opacity: .5; cursor: default; }
-.pl-play-cta .mplay { --mp-bg: #f5c542; }
+.pl-play-cta .mplay { --mp-bg: #e11d2e; }
 
 /* Shared pill actions */
 .pl-action { display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; border-radius: 999px; border: 1px solid rgb(255 255 255 / .16); background: rgb(255 255 255 / .08); color: #fff; font: 600 .84rem var(--font-body); cursor: pointer; transition: background .2s ease, border-color .2s ease, transform .15s ease; }
