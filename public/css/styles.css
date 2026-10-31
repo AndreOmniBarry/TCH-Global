@@ -1227,20 +1227,20 @@ body { max-width: 100%; overflow-x: clip; }
 
 /* Open PUDLIB! — plain golden-brown button with a media-player loader:
    a buffering ring around the play mark and a buffer/progress bar. */
-.pud-btn { position: relative; display: inline-flex; align-items: center; gap: 12px; padding: 12px 22px 14px 12px; border-radius: 999px; overflow: hidden; text-decoration: none; color: #2b1606; font: 800 .82rem var(--font-display); letter-spacing: .06em; text-transform: uppercase; background: linear-gradient(135deg, #e7b75a 0%, #c48a34 45%, #8f5a1d 100%); box-shadow: inset 0 1px 0 rgb(255 240 200 / .6), inset 0 -2px 0 rgb(70 35 5 / .25), 0 12px 28px -12px rgb(143 90 29 / .8); transition: transform .2s ease, box-shadow .3s ease, filter .3s ease; }
-.pud-btn:hover { transform: translateY(-1px); filter: saturate(1.1) brightness(1.04); box-shadow: inset 0 1px 0 rgb(255 240 200 / .7), inset 0 -2px 0 rgb(70 35 5 / .25), 0 16px 34px -12px rgb(143 90 29 / .95); }
+.pud-btn { position: relative; display: inline-flex; align-items: center; gap: 12px; padding: 12px 22px 14px 12px; border-radius: 999px; overflow: hidden; text-decoration: none; color: #04263a; font: 800 .82rem var(--font-display); letter-spacing: .06em; text-transform: uppercase; background: linear-gradient(135deg, #7dd3fc 0%, #38bdf8 45%, #0284c7 100%); box-shadow: inset 0 1px 0 rgb(224 242 254 / .6), inset 0 -2px 0 rgb(3 40 70 / .25), 0 12px 28px -12px rgb(2 132 199 / .8); transition: transform .2s ease, box-shadow .3s ease, filter .3s ease; }
+.pud-btn:hover { transform: translateY(-1px); filter: saturate(1.1) brightness(1.04); box-shadow: inset 0 1px 0 rgb(224 242 254 / .7), inset 0 -2px 0 rgb(3 40 70 / .25), 0 16px 34px -12px rgb(2 132 199 / .95); }
 .pud-btn:active { transform: scale(.97); }
-.pud-btn-icon { width: 36px; height: 36px; flex: none; display: grid; place-items: center; border-radius: 50%; background: #2b1606; }
+.pud-btn-icon { width: 36px; height: 36px; flex: none; display: grid; place-items: center; border-radius: 50%; background: #04263a; }
 .pud-btn-icon svg { width: 36px; height: 36px; }
-.pud-ring-bg { fill: none; stroke: rgb(245 197 66 / .22); stroke-width: 2.5; }
-.pud-ring { fill: none; stroke: #f5c542; stroke-width: 2.5; stroke-linecap: round; stroke-dasharray: 94.25; stroke-dashoffset: 70; transform-origin: 18px 18px; animation: pud-buffer 1.6s cubic-bezier(.6,.1,.4,.9) infinite; }
-.pud-tri { fill: #f5c542; transform-origin: 19px 18px; transition: transform .3s cubic-bezier(.3,1.6,.5,1); }
+.pud-ring-bg { fill: none; stroke: rgb(125 211 252 / .22); stroke-width: 2.5; }
+.pud-ring { fill: none; stroke: #7dd3fc; stroke-width: 2.5; stroke-linecap: round; stroke-dasharray: 94.25; stroke-dashoffset: 70; transform-origin: 18px 18px; animation: pud-buffer 1.6s cubic-bezier(.6,.1,.4,.9) infinite; }
+.pud-tri { fill: #7dd3fc; transform-origin: 19px 18px; transition: transform .3s cubic-bezier(.3,1.6,.5,1); }
 .pud-btn:hover .pud-ring, .pud-btn:focus-visible .pud-ring { animation: pud-fill .7s ease forwards; }
 .pud-btn:hover .pud-tri { transform: scale(1.18); }
-.pud-btn-bar { position: absolute; left: 60px; right: 22px; bottom: 7px; height: 3px; border-radius: 3px; background: rgb(43 22 6 / .2); overflow: hidden; }
+.pud-btn-bar { position: absolute; left: 60px; right: 22px; bottom: 7px; height: 3px; border-radius: 3px; background: rgb(4 38 58 / .2); overflow: hidden; }
 .pud-btn-bar b, .pud-btn-bar i { position: absolute; top: 0; bottom: 0; left: 0; border-radius: 3px; }
-.pud-btn-bar i { background: rgb(43 22 6 / .25); animation: pud-buf 2.4s ease-in-out infinite; }
-.pud-btn-bar b { background: #2b1606; animation: pud-prog 2.4s ease-in-out infinite; }
+.pud-btn-bar i { background: rgb(4 38 58 / .25); animation: pud-buf 2.4s ease-in-out infinite; }
+.pud-btn-bar b { background: #04263a; animation: pud-prog 2.4s ease-in-out infinite; }
 .pud-btn:hover .pud-btn-bar b, .pud-btn:hover .pud-btn-bar i { animation: none; width: 100%; transition: width .5s ease; }
 @keyframes pud-buffer { 0% { transform: rotate(0); stroke-dashoffset: 80; } 50% { stroke-dashoffset: 40; } 100% { transform: rotate(360deg); stroke-dashoffset: 80; } }
 @keyframes pud-fill { to { stroke-dashoffset: 0; transform: rotate(-90deg); } }
