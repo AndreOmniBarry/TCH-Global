@@ -4,6 +4,7 @@ import AdminNav from '@/components/AdminNav';
 import { sanityClient } from '@/lib/sanity';
 import { writeClient } from '@/lib/sanity-write';
 import { getChannelId, getLatestVideos } from '@/lib/youtube';
+import { SPOTIFY_URL } from '@/lib/spotify';
 import { bridgeConfigured, bridgeKillSwitch, bridgeMissing, stats as bridgeStats } from '@/lib/bridge/outbox';
 
 export const metadata = { title: 'System status | TCH Global Admin', robots: { index: false } };
@@ -90,7 +91,7 @@ async function run(): Promise<Check[]> {
         : `${b.delivered} delivered · ${b.pending} waiting · ${b.dead} need a person${b.dead ? ' (open /admin/bridge)' : ''}`,
       unlocks: 'Join, salvation, prayer and volunteer sign-ups flowing into SHEP.HRD' });
   }
-  out.push({ name: 'Spotify podcast link', ok: process.env.NEXT_PUBLIC_SPOTIFY_SHOW_URL ? true : null, detail: process.env.NEXT_PUBLIC_SPOTIFY_SHOW_URL || 'Not set (Spotify buttons hidden)', unlocks: 'Spotify buttons' });
+  out.push({ name: 'Spotify podcast link', ok: SPOTIFY_URL ? true : null, detail: SPOTIFY_URL || 'Not set (Spotify buttons hidden)', unlocks: 'Spotify buttons' });
   return out;
 }
 

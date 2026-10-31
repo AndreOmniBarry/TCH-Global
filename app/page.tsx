@@ -11,6 +11,7 @@ import SalvationSection from '@/components/SalvationSection';
 import Script from 'next/script';
 import { fallbackPosts } from '@/lib/fallback-posts';
 import { BANK_ACCOUNTS } from '@/lib/giving';
+import { SPOTIFY_URL } from '@/lib/spotify';
 import { phoneFieldHtml, flagSvg } from '@/lib/phone';
 
 // Cloudflare Turnstile (optional bot check on the forms that reach SHEP.HRD).
@@ -18,11 +19,10 @@ const TS_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || '';
 const TS_BOX = TS_KEY ? `<div class="cf-turnstile" data-sitekey="${TS_KEY}" data-size="flexible" data-theme="auto" data-appearance="interaction-only"></div>` : '';
 
 const FACEBOOK_URL = process.env.NEXT_PUBLIC_FACEBOOK_URL || 'https://www.facebook.com/profile.php?id=61557996937416';
-// Spotify buttons stay hidden until the podcast exists.
 const YOUTUBE_URL = 'https://www.youtube.com/@TheComfortersHouseGlobalMin';
 const INSTAGRAM_URL = process.env.NEXT_PUBLIC_INSTAGRAM_URL || 'https://www.instagram.com/tchglobalmin';
 const TIKTOK_URL = process.env.NEXT_PUBLIC_TIKTOK_URL || 'https://www.tiktok.com/@tchglobal';
-const SPOTIFY_URL = process.env.NEXT_PUBLIC_SPOTIFY_SHOW_URL || '';
+
 
 // This page bridges the original hand-authored static homepage into
 // Next.js. Most of the markup below is an exact, mechanically-extracted
