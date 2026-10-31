@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 const I = {
   // Open book with a bookmark ribbon
@@ -31,6 +31,8 @@ export default function QuickDock() {
   const [hash, setHash] = useState('');
   const [shown, setShown] = useState(false);
   const [tucked, setTucked] = useState(false);
+  const [far, setFar] = useState(false);
+  const topRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     setPath(location.pathname);
@@ -50,6 +52,11 @@ export default function QuickDock() {
         lastY = y;
         const home = location.pathname === '/';
         setShown(!home || y > window.innerHeight * 0.6);
+        // Back to top: appears ~1.5 screens down; its ring shows how far
+        // down the page you are.
+        setFar(y > window.innerHeight * 1.5);
+        const max = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+        topRef.current?.style.setProperty('--p', Math.min(1, y / max).toFixed(3));
         acc = Math.sign(dy) === Math.sign(acc) ? acc + dy : dy;
         if (acc > 60) setTucked(true);
         else if (acc < -30 || y < 40) setTucked(false);
@@ -68,7 +75,20 @@ export default function QuickDock() {
   }, []);
 
   if (!path || /^\/(admin|studio|write)/.test(path)) return null;
+  const toTop = () => {
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' });
+    setTucked(false);
+  };
   return (
+    <>
+    <button ref={topRef} type="button" className={`totop${far ? ' is-shown' : ''}${tucked ? ' is-tucked' : ''}`} onClick={toTop} aria-label="Back to top" tabIndex={far ? 0 : -1}>
+      <svg className="totop-ring" viewBox="0 0 48 48" aria-hidden="true">
+        <circle cx="24" cy="24" r="21" pathLength="100" />
+        <circle className="totop-fill" cx="24" cy="24" r="21" pathLength="100" />
+      </svg>
+      <svg className="totop-arrow" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 19V5M5.5 11.5L12 5l6.5 6.5" /></svg>
+    </button>
     <nav className={`qdock${shown ? ' is-shown' : ''}${tucked ? ' is-tucked' : ''}`} aria-label="Quick links">
       {LINKS.map((l) => {
         const on = l.match(path, hash);
@@ -80,5 +100,6 @@ export default function QuickDock() {
         );
       })}
     </nav>
+    </>
   );
 }

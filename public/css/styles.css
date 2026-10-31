@@ -2480,3 +2480,23 @@ body:has(.pl-amodal) .qdock { display: none; }
 }
 @keyframes tch-par-hero { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(0, 22vh, 0); } }
 @keyframes tch-par-blob { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(0, var(--par, 0px), 0); } }
+
+/* Back to top (components/QuickDock.tsx). A glass disc whose ring fills
+   with scroll progress; phones: just above the bottom dock (dropping to
+   the corner when the dock tucks away); desktop: bottom-right corner. */
+.totop { --p: 0; position: fixed; z-index: 61; right: 16px; bottom: calc(max(12px, env(safe-area-inset-bottom)) + 78px); width: 48px; height: 48px; padding: 0; display: grid; place-items: center; border-radius: 50%; border: 1px solid color-mix(in srgb, var(--text-high) 12%, transparent); background: color-mix(in srgb, var(--bg-root) 62%, transparent); backdrop-filter: blur(18px) saturate(1.5); -webkit-backdrop-filter: blur(18px) saturate(1.5); color: var(--text-high); box-shadow: 0 14px 30px -14px rgb(10 5 30 / .5); cursor: pointer; opacity: 0; pointer-events: none; transform: translateY(18px) scale(.9); transition: opacity .3s ease, transform .4s cubic-bezier(.2, .9, .25, 1), bottom .45s cubic-bezier(.2, .9, .25, 1); -webkit-tap-highlight-color: transparent; }
+.totop.is-shown { opacity: 1; pointer-events: auto; transform: none; }
+.totop.is-shown.is-tucked { bottom: max(14px, env(safe-area-inset-bottom)); }
+.totop:hover { transform: translateY(-2px); }
+.totop:active { transform: scale(.9); }
+.totop:focus-visible { outline: 2px solid var(--accent-cyan); outline-offset: 3px; }
+.totop-ring { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); }
+.totop-ring circle { fill: none; stroke: color-mix(in srgb, var(--text-high) 14%, transparent); stroke-width: 2.5; }
+.totop-ring .totop-fill { stroke: var(--accent-cyan); stroke-linecap: round; stroke-dasharray: 100; stroke-dashoffset: calc(100 - var(--p) * 100); transition: stroke-dashoffset .12s linear; }
+.totop-arrow { position: relative; transition: transform .25s cubic-bezier(.3, 1.5, .5, 1); }
+.totop:hover .totop-arrow { transform: translateY(-2px); }
+body:has(.pl-audiobar, .pl-mini) .totop { bottom: 96px; }
+@media (min-width: 960px) {
+  .totop, .totop.is-shown.is-tucked { right: 24px; bottom: 24px; width: 52px; height: 52px; }
+}
+@media (prefers-reduced-motion: reduce) { .totop { transition: opacity .2s ease; } }
