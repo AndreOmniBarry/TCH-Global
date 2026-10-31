@@ -409,12 +409,26 @@ export default function CrystalLiquid() {
       }
       for (let j = 0; j < M; j++) {
         const slope = (pts[j * 2 + 3] - pts[j * 2 + 1]) / Math.max(1, pts[j * 2 + 2] - pts[j * 2]);
-        const a = Math.min(0.62, Math.max(0.2, 0.34 - slope * 1.3));
+        // Sparkle: little points of light run along the meniscus, the way
+        // the brim of real liquid catches the light.
+        // One or two at a time, gliding along the brim in opposite directions.
+        const tw = Math.max(0, Math.sin(t * 1.9 + j * 0.13 + l.seed)) ** 40 + Math.max(0, Math.sin(t * 1.3 - j * 0.17 + l.seed * 0.5)) ** 48;
+        const a = Math.min(0.95, Math.max(0.2, 0.34 - slope * 1.3) + tw * 0.55);
         ctx.strokeStyle = `rgba(255,255,255,${a.toFixed(2)})`;
         ctx.beginPath();
         ctx.moveTo(pts[j * 2], pts[j * 2 + 1]);
         ctx.lineTo(pts[j * 2 + 2], pts[j * 2 + 3]);
         ctx.stroke();
+        if (tw > 0.5) {
+          // A tiny flare where the twinkle peaks.
+          const sx = pts[j * 2 + 2], sy = pts[j * 2 + 3];
+          const sr = (2 + 3 * Math.min(1, tw)) * r;
+          const sg = ctx.createRadialGradient(sx, sy, 0, sx, sy, sr);
+          sg.addColorStop(0, `rgba(255,255,255,${(0.8 * Math.min(1, tw)).toFixed(2)})`);
+          sg.addColorStop(1, 'rgba(255,255,255,0)');
+          ctx.fillStyle = sg;
+          ctx.beginPath(); ctx.ellipse(sx, sy, sr * 1.6, sr * 0.6, 0, 0, Math.PI * 2); ctx.fill();
+        }
       }
       // Glints: small specular flashes where a ripple's face turns toward
       // the light. They travel with the waves and vanish on still water.
@@ -493,7 +507,9 @@ export default function CrystalLiquid() {
         let s1 = absY - vh * 0.12;
         if (s1 > maxScroll) { s1 = maxScroll; s0 = Math.min(s0, s1 - vh * 0.3); }
         const progress = Math.min(Math.max((sy - s0) / Math.max(1, s1 - s0), 0), 1);
-        const target = progress * 1.04;
+        // Full stops ~2.5px under the rim, so the bright meniscus (and its
+        // sparkle) always shows along the brim, as on a glass filled to the top.
+        const target = progress * (1 - 2.5 / bh);
 
         // Follows the scroll closely, with just enough give to read as fluid.
         // Small fixed steps: stable however long the frame took.
