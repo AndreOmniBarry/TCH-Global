@@ -68,7 +68,7 @@ export default async function BlogPostPage({ params }: Props) {
   return (
     <>
       <div className="read-progress" id="read-progress" />
-      <TrackView slug={post.slug} />
+      <TrackView slug={post.slug} topic={post.category} />
       <SectionTitleStage />
       <SiteHeader />
 

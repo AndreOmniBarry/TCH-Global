@@ -21,12 +21,17 @@ function run(c){
     case 'ZCOUNT': { const lo=num(a[1]), hi=num(a[2]); return [...z(a[0]).values()].filter(s=>s>=lo&&s<=hi).length; }
     case 'ZRANGE': { const m=z(a[0]); const o=a.slice(3).map(x=>x.toUpperCase()); const sorted=[...m.entries()].sort((x,y)=>x[1]-y[1]); let res;
       if(o.includes('BYSCORE')){ const lo=num(a[1]), hi=num(a[2]); res=sorted.filter(([,s])=>s>=lo&&s<=hi); const li=o.indexOf('LIMIT'); if(li>=0){ const off=Number(a[3+li+1]), cnt=Number(a[3+li+2]); res=res.slice(off, off+cnt);} }
-      else { let st=Number(a[1]), en=Number(a[2]); if(en<0) en=sorted.length+en; res=sorted.slice(st,en+1); }
+      else { if(o.includes('REV')) sorted.reverse(); let st=Number(a[1]), en=Number(a[2]); if(en<0) en=sorted.length+en; res=sorted.slice(st,en+1); }
       return o.includes('WITHSCORES') ? res.flatMap(([m,s])=>[m,String(s)]) : res.map(([m])=>m); }
     case 'LPUSH': { const L=l(a[0]); for(const v of a.slice(1)) L.unshift(v); return L.length; }
     case 'LTRIM': { const L=l(a[0]); let st=Number(a[1]), en=Number(a[2]); if(en<0) en=L.length+en; S.set(a[0], L.slice(st,en+1)); return 'OK'; }
     case 'LRANGE': { const L=l(a[0]); let st=Number(a[1]), en=Number(a[2]); if(en<0) en=L.length+en; return L.slice(st,en+1); }
     case 'LREM': { const L=l(a[0]); let n=Number(a[1])||Infinity, r=0; const out=[]; for(const v of L){ if(v===a[2]&&r<n){r++;continue;} out.push(v);} S.set(a[0],out); return r; }
+    case 'SADD': { alive(a[0]); if (!S.has(a[0])) S.set(a[0], new Set()); const st = S.get(a[0]); let n = 0; for (const v of a.slice(1)) if (!st.has(v)) { st.add(v); n++; } return n; }
+    case 'SMEMBERS': return alive(a[0]) ? [...S.get(a[0])] : [];
+    case 'HINCRBY': { alive(a[0]); if (!S.has(a[0])) S.set(a[0], new Map()); const h = S.get(a[0]); const v = Number(h.get(a[1]) || 0) + Number(a[2]); h.set(a[1], String(v)); return v; }
+    case 'HGETALL': { if (!alive(a[0])) return []; return [...S.get(a[0]).entries()].flat(); }
+    case 'ZREVRANK': { const m = z(a[0]); if (!m.has(a[1])) return null; const sorted = [...m.entries()].sort((x, y) => y[1] - x[1]); return sorted.findIndex(([k]) => k === a[1]); }
     case 'PFADD': case 'PFCOUNT': return 0;
     default: throw new Error('unsupported '+C);
   }

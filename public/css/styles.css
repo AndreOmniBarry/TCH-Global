@@ -2585,3 +2585,6 @@ div.tn-teaser:hover { transform: none; box-shadow: 8px 8px 0 #ff4fd8; }
 .wr-mail-meta { margin: 0; padding: 14px 16px; border-radius: 14px; background: #15112b; font-size: .88rem; line-height: 1.7; color: rgb(255 255 255 / .85); }
 .wr-mail-frame { width: 100%; height: 900px; border: 0; border-radius: 18px; background: #0b0816; }
 @media (prefers-reduced-motion: reduce) { .wr-card, .wr-card > *, .wr-weeks i, .wr-list li, .wr-meter i, .wr-phone::before { animation: none !important; } }
+.wr-empty .wr-card { justify-content: center; }
+.wr-cta { align-self: flex-start; padding: 12px 20px; border-radius: 999px; background: #fff; color: #120a2a; font: 700 .9rem var(--font-body); text-decoration: none; }
+.wr-cta--ghost { background: rgb(0 0 0 / .25); color: #fff; }

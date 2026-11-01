@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 
-export type MemberInfo = { id: string; name: string; email: string; newsletter: boolean; phone?: string; createdAt: string };
+export type MemberInfo = { id: string; name: string; email: string; newsletter: boolean; phone?: string; createdAt: string; wrapped?: boolean };
 
 export function useMember() {
   const [member, setMember] = useState<MemberInfo | null>(null);

@@ -88,6 +88,10 @@ export default function AccountPanel({ initialMode, next }: { initialMode: 'sign
             <input type="checkbox" checked={member.newsletter} onChange={(e) => update({ newsletter: e.target.checked })} />
             <span>Email me new messages, blog posts and announcements</span>
           </label>
+          <label className="account-check">
+            <input type="checkbox" checked={member.wrapped !== false} onChange={(e) => update({ wrapped: e.target.checked })} />
+            <span>Keep my <b>My Year in the Word</b>: privately remember what I listen to, read and pray along with, so I get my story each month and in December. Only I can see it.</span>
+          </label>
           <div className="account-actions">
             <button type="submit" className="btn btn-primary">Save changes</button>
             <button type="button" className="btn btn-ghost" onClick={signOut}>Sign out</button>
@@ -97,6 +101,7 @@ export default function AccountPanel({ initialMode, next }: { initialMode: 'sign
         <div className="account-links">
           <a href="/blog">Read and respond on the blog &rarr;</a>
           <a href="/library">Open PUDLIB! &rarr;</a>
+          <a href="/wrapped">My Year in the Word &rarr;</a>
         </div>
       </div>
     );

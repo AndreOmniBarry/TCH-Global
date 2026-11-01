@@ -11,7 +11,7 @@ export const authConfigured = Boolean(process.env.KV_REST_API_URL && process.env
 export const SESSION_COOKIE = 'tch_sess';
 const SESSION_DAYS = 30;
 
-export type Member = { id: string; name: string; email: string; createdAt: string; newsletter: boolean; phone?: string };
+export type Member = { id: string; name: string; email: string; createdAt: string; newsletter: boolean; phone?: string; /** "My Year in the Word" tracking; on unless turned off. */ wrapped?: boolean };
 type StoredMember = Member & { pw: string };
 
 export const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -29,7 +29,7 @@ async function verify(pw: string, stored: string) {
   const want = Buffer.from(hex, 'hex');
   return want.length === buf.length && timingSafeEqual(buf, want);
 }
-const pub = (m: StoredMember): Member => ({ id: m.id, name: m.name, email: m.email, createdAt: m.createdAt, newsletter: m.newsletter, phone: m.phone });
+const pub = (m: StoredMember): Member => ({ id: m.id, name: m.name, email: m.email, createdAt: m.createdAt, newsletter: m.newsletter, phone: m.phone, wrapped: m.wrapped !== false });
 
 export async function createMember(input: { name: string; email: string; password: string; newsletter: boolean; phone?: string }) {
   const email = input.email.trim().toLowerCase();
@@ -84,7 +84,7 @@ export async function currentMember(): Promise<Member | null> {
   }
 }
 
-export async function updateMember(email: string, patch: Partial<Pick<Member, 'name' | 'newsletter' | 'phone'>>) {
+export async function updateMember(email: string, patch: Partial<Pick<Member, 'name' | 'newsletter' | 'phone' | 'wrapped'>>) {
   const m = await kv.get<StoredMember>(key(email));
   if (!m) return null;
   const next = { ...m, ...patch };

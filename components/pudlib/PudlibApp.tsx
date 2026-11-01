@@ -38,6 +38,17 @@ function ago(ts: number) {
   const d = Math.round(h / 24);
   return d === 1 ? 'yesterday' : `${d} days ago`;
 }
+// "Still listening" pulse while something plays, for the member's own
+// My Year in the Word (ignored by the server for signed-out visitors).
+function useListenBeat(id: string, playing: boolean) {
+  useEffect(() => {
+    if (!playing) return;
+    const t = setInterval(() => {
+      fetch('/api/track-view', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ slug: `media:${id}`, event: 'listen', seconds: 30 }), keepalive: true }).catch(() => {});
+    }, 30000);
+    return () => clearInterval(t);
+  }, [id, playing]);
+}
 function track(id: string) {
   fetch('/api/track-view', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ slug: `media:${id}`, event: 'view' }) }).catch(() => {});
 }
@@ -164,6 +175,7 @@ function VideoPlayer({ item, upNext, resumeAt, mini, setMini, onClose, onPlay, o
   const frameRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<any>(null);
   const [playing, setPlaying] = useState(false);
+  useListenBeat(item.id, playing);
   const playingRef = useRef(false);
   useEffect(() => { playingRef.current = playing; }, [playing]);
   const [ready, setReady] = useState(false);
@@ -490,6 +502,7 @@ function AudioBar({ item, resumeAt, onClose, onProgress, onEnded, onWatch, upNex
   upNext: LibItem[]; onPlay: (it: LibItem) => void; saved: boolean; onSave: (it: LibItem) => void;
 }) {
   const [playing, setPlaying] = useState(false);
+  useListenBeat(item.id, playing);
   const [time, setTime] = useState(0);
   const [dur, setDur] = useState(0);
   const [speed, setSpeed] = useState(1);

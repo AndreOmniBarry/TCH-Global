@@ -4,6 +4,8 @@ import { sendEmail, emailConfigured, notifyRecipients, escapeHtml, layout } from
 import { waitUntil } from '@vercel/functions';
 import { limited } from '@/lib/auth';
 import { withCountry } from '@/lib/phone';
+import { currentMember } from '@/lib/auth';
+import { recordActivity } from '@/lib/wrapped-track';
 import { toEnvelope } from '@/lib/bridge/messages';
 import { enqueue, deliver, drain, bridgeConfigured, bridgeKillSwitch } from '@/lib/bridge/outbox';
 
@@ -182,6 +184,10 @@ export async function POST(req: NextRequest) {
     if (!result.ok && !emailed) {
       const fallback = formsConfigured ? result.error : "This form isn't connected yet — please email info@tchglobal.org directly for now.";
       return NextResponse.json({ error: fallback || 'Could not save your submission right now.' }, { status: 503 });
+    }
+    if (type === 'prayer') {
+      const me = await currentMember().catch(() => null);
+      if (me) await recordActivity(me, { kind: 'pray' }).catch(() => {});
     }
     // Never fails the visitor's submission: the church already has it.
     await bridge(type, cleanFields, ip, typeof t === 'number' ? t : 0, cf).catch((e) => console.error('bridge', (e as Error).name));

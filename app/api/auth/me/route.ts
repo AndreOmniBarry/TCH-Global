@@ -11,8 +11,9 @@ export async function GET() {
 export async function PATCH(req: NextRequest) {
   const me = await currentMember();
   if (!me) return NextResponse.json({ error: 'Sign in first.' }, { status: 401 });
-  const { name, newsletter, phone } = await req.json().catch(() => ({}));
-  const patch: { name?: string; newsletter?: boolean; phone?: string } = {};
+  const { name, newsletter, phone, wrapped } = await req.json().catch(() => ({}));
+  const patch: { name?: string; newsletter?: boolean; phone?: string; wrapped?: boolean } = {};
+  if (typeof wrapped === 'boolean') patch.wrapped = wrapped;
   if (typeof name === 'string' && name.trim().length >= 2) patch.name = name.trim().slice(0, 80);
   if (typeof newsletter === 'boolean') patch.newsletter = newsletter;
   if (typeof phone === 'string') patch.phone = phone.trim().slice(0, 30);
