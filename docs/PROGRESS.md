@@ -127,4 +127,5 @@ resend.com → API Keys → Create (Sending access) → Vercel: `RESEND_API_KEY`
 - Media buttons: 3 across on desktop; on phones the odd one out spans the full row.
 - /live: "Facebook Live" label (was clipped on phones).
 - Kids hero bubbles kept to the edges and softer, so the headline reads cleanly.
+- Prayer value icon redrawn as praying hands with a soft glow.
 - Faint text raised to WCAG AA contrast in light and dark themes; contact email is now a tap-to-email link.
