@@ -12,12 +12,14 @@ const BENEFITS = [
   ['Stay connected', 'Our team can follow up with you personally about membership and serving.'],
 ];
 
-export default function AccountPanel({ initialMode, next }: { initialMode: 'signin' | 'signup'; next: string }) {
+export default function AccountPanel({ initialMode, next, initialForgot = false }: { initialMode: 'signin' | 'signup'; next: string; initialForgot?: boolean }) {
   const { member, loading, setMember } = useMember();
   const [mode, setMode] = useState(initialMode);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
   const [saved, setSaved] = useState('');
+  const [forgot, setForgot] = useState(initialForgot);
+  const [sent, setSent] = useState('');
   const switchRef = useSlidingPill<HTMLDivElement>(`${mode}-${member ? 1 : 0}-${loading ? 1 : 0}`);
   const [demo, setDemo] = useState<'' | 'enter' | 'tap' | 'out'>('');
 
@@ -52,6 +54,23 @@ export default function AccountPanel({ initialMode, next }: { initialMode: 'sign
       if (!r.ok) return setErr(d.error || 'Something went wrong. Please try again.');
       if (next) { location.href = next; return; }
       setMember(d.member);
+    } catch {
+      setErr('We couldn’t reach the server. Check your connection and try again.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function sendReset(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setErr('');
+    const f = new FormData(e.currentTarget);
+    setBusy(true);
+    try {
+      const r = await fetch('/api/auth/forgot', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: f.get('email'), website: f.get('website') }) });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) return setErr(d.error || 'Something went wrong. Please try again.');
+      setSent(d.message);
     } catch {
       setErr('We couldn’t reach the server. Check your connection and try again.');
     } finally {
@@ -125,9 +144,27 @@ export default function AccountPanel({ initialMode, next }: { initialMode: 'sign
               <svg viewBox="0 0 24 24" width="26" height="26"><path d="M5 3l14 8-6.2 1.6L10 19z" fill="#fff" stroke="#111" strokeWidth="1.4" strokeLinejoin="round" /></svg>
             </span>
           )}
-          <button type="button" role="tab" aria-selected={mode === 'signup'} className={mode === 'signup' ? 'on' : ''} onClick={() => { setMode('signup'); setErr(''); }}>Create account</button>
-          <button type="button" role="tab" aria-selected={mode === 'signin'} className={mode === 'signin' ? 'on' : ''} onClick={() => { setMode('signin'); setErr(''); }}>Sign in</button>
+          <button type="button" role="tab" aria-selected={mode === 'signup'} className={mode === 'signup' ? 'on' : ''} onClick={() => { setMode('signup'); setForgot(false); setErr(''); }}>Create account</button>
+          <button type="button" role="tab" aria-selected={mode === 'signin'} className={mode === 'signin' ? 'on' : ''} onClick={() => { setMode('signin'); setForgot(false); setErr(''); }}>Sign in</button>
         </div>
+        {mode === 'signin' && forgot ? (
+          <form className="account-form" onSubmit={sendReset} key="forgot">
+            <input type="text" name="website" tabIndex={-1} autoComplete="off" className="hp-field" aria-hidden="true" />
+            <h3 className="account-forgot-title">Reset your password</h3>
+            {sent ? (
+              <p className="form-status" data-kind="ok" role="status">{sent}</p>
+            ) : (
+              <>
+                <p className="account-muted">Enter the email you signed up with and we&rsquo;ll send you a link to choose a new password.</p>
+                <label htmlFor="acc-forgot-email">Email</label>
+                <input id="acc-forgot-email" name="email" type="email" autoComplete="email" required autoFocus />
+                {err && <p className="form-status" data-kind="error" role="alert">{err}</p>}
+                <button type="submit" className="btn btn-primary" disabled={busy} style={{ width: '100%' }}>{busy ? 'Sending…' : 'Email me a reset link'}</button>
+              </>
+            )}
+            <button type="button" className="account-link" onClick={() => { setForgot(false); setSent(''); setErr(''); }}>&larr; Back to sign in</button>
+          </form>
+        ) : (
         <form className="account-form" onSubmit={submit} key={mode}>
           <input type="text" name="website" tabIndex={-1} autoComplete="off" className="hp-field" aria-hidden="true" />
           {mode === 'signup' && (
@@ -152,8 +189,9 @@ export default function AccountPanel({ initialMode, next }: { initialMode: 'sign
           )}
           {err && <p className="form-status" data-kind="error" role="alert">{err}</p>}
           <button type="submit" className="btn btn-primary" disabled={busy} style={{ width: '100%' }}>{busy ? 'Please wait…' : mode === 'signup' ? 'Create my account' : 'Sign in'}</button>
-          {mode === 'signin' && <p className="account-muted" style={{ marginTop: 10 }}>Forgot your password? Email info@tchglobal.org and our team will reset it.</p>}
+          {mode === 'signin' && <button type="button" className="account-link" onClick={() => { setForgot(true); setErr(''); }}>Forgot your password?</button>}
         </form>
+        )}
       </div>
     </div>
   );

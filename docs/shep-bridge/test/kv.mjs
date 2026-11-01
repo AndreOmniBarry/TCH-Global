@@ -10,6 +10,7 @@ function run(c){
   switch (C) {
     case 'SET': { const [k,v,...o]=a; let nx=false,ex=null; for(let i=0;i<o.length;i++){const u=o[i].toUpperCase(); if(u==='NX')nx=true; if(u==='EX')ex=Number(o[++i]); if(u==='PX')ex=Number(o[++i])/1000;} if(nx&&alive(k)) return null; S.set(k,v); if(ex) exp.set(k,now()+ex*1000); else exp.delete(k); return 'OK'; }
     case 'GET': return alive(a[0]) ? S.get(a[0]) : null;
+    case 'GETDEL': { if (!alive(a[0])) return null; const v=S.get(a[0]); S.delete(a[0]); exp.delete(a[0]); return v; }
     case 'DEL': { let n=0; for(const k of a){ if(alive(k)){S.delete(k);exp.delete(k);n++;} } return n; }
     case 'EXISTS': return a.filter(alive).length;
     case 'INCR': { const v=(alive(a[0])?Number(S.get(a[0])):0)+1; S.set(a[0],String(v)); return v; }

@@ -129,3 +129,4 @@ resend.com → API Keys → Create (Sending access) → Vercel: `RESEND_API_KEY`
 - Kids hero bubbles kept to the edges and softer, so the headline reads cleanly.
 - Prayer value icon redrawn as praying hands with a soft glow.
 - Faint text raised to WCAG AA contrast in light and dark themes; contact email is now a tap-to-email link.
+- Forgot password: "Forgot your password?" on sign-in emails a one-time link (1 hour, only its SHA-256 stored in KV, same answer whether or not the email has an account, rate-limited per email and IP). /account/reset sets the new password, signs out every other session and signs the member in.

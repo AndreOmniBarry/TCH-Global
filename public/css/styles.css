@@ -2593,3 +2593,11 @@ div.tn-teaser:hover { transform: none; box-shadow: 8px 8px 0 #ff4fd8; }
   .blog-feature-body { display: flex; flex-direction: column; justify-content: center; padding: clamp(24px, 3vw, 44px); }
   .blog-feature-body h3 { font-size: clamp(1.45rem, 2.1vw, 2rem); line-height: 1.15; }
 }
+
+/* Forgot / reset password */
+.account-link { display: inline-block; margin-top: 12px; padding: 4px 0; background: none; border: 0; color: var(--accent-cyan); font: 600 .88rem var(--font-body); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: color-mix(in srgb, currentColor 40%, transparent); }
+.account-link:hover { text-decoration-color: currentColor; }
+.account-link:focus-visible { outline: 2px solid var(--accent-cyan); outline-offset: 3px; border-radius: 4px; }
+.account-forgot-title { font-size: 1.15rem; margin: 0 0 6px; }
+.account-reset { max-width: 460px; margin: 0 auto; }
+.account-reset h2 { margin: 6px 0 8px; font-size: clamp(1.4rem, 4vw, 1.9rem); }

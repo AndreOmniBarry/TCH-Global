@@ -2,7 +2,7 @@
 // rest of the site. Passwords are hashed with scrypt; sessions are random
 // tokens in an httpOnly cookie, looked up in KV (30-day expiry).
 import { kv } from '@vercel/kv';
-import { randomBytes, scrypt as _scrypt, timingSafeEqual } from 'crypto';
+import { createHash, randomBytes, scrypt as _scrypt, timingSafeEqual } from 'crypto';
 import { promisify } from 'util';
 import { cookies } from 'next/headers';
 
@@ -59,6 +59,9 @@ export async function checkLogin(email: string, password: string) {
 export async function startSession(memberId: string) {
   const token = randomBytes(32).toString('base64url');
   await kv.set(`sess:${token}`, memberId, { ex: SESSION_DAYS * 86400 });
+  // Index the member's sessions so a password reset can sign out everywhere.
+  await kv.sadd(`sessions:${memberId}`, token).catch(() => {});
+  await kv.expire(`sessions:${memberId}`, SESSION_DAYS * 86400).catch(() => {});
   cookies().set(SESSION_COOKIE, token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', path: '/', maxAge: SESSION_DAYS * 86400 });
 }
 
@@ -98,6 +101,38 @@ export async function listMembers(limit = 500): Promise<Member[]> {
   if (!emails.length) return [];
   const rows = await Promise.all(emails.map((e) => kv.get<StoredMember>(key(e))));
   return rows.filter((m): m is StoredMember => Boolean(m)).map(pub);
+}
+
+// Password reset. The emailed token is random; only its SHA-256 is stored,
+// it lasts an hour and works once.
+const RESET_TTL = 60 * 60;
+const resetKey = (token: string) => `pwreset:${createHash('sha256').update(token).digest('hex')}`;
+
+/** Returns a token (to email) when the account exists, otherwise null. */
+export async function createPasswordReset(email: string): Promise<{ token: string; name: string; email: string } | null> {
+  const m = await kv.get<StoredMember>(key(email));
+  if (!m) return null;
+  const token = randomBytes(32).toString('base64url');
+  await kv.set(resetKey(token), m.email, { ex: RESET_TTL });
+  return { token, name: m.name, email: m.email };
+}
+
+export async function resetIsValid(token: string) {
+  return Boolean(token) && Boolean(await kv.get<string>(resetKey(token)));
+}
+
+/** Sets the new password, burns the token and signs out every old session. */
+export async function completePasswordReset(token: string, password: string): Promise<Member | null> {
+  const k = resetKey(token);
+  const email = await kv.getdel<string>(k);
+  if (!email) return null;
+  const m = await kv.get<StoredMember>(key(email));
+  if (!m) return null;
+  const next = { ...m, pw: await hash(password) };
+  await kv.set(key(email), next);
+  const old = await kv.smembers(`sessions:${m.id}`).catch(() => [] as string[]);
+  if (old.length) await kv.del(...old.map((t) => `sess:${t}`), `sessions:${m.id}`).catch(() => {});
+  return pub(next);
 }
 
 /** Tiny fixed-window rate limit (per key) to slow password guessing/spam. */
