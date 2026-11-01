@@ -65,7 +65,7 @@ export default async function LivePage() {
 
           <div className="stream-row live-actions">
             <a className="btn btn-primary btn-youtube" href={`${CHANNEL_URL}/live`} target="_blank" rel="noopener">Open on YouTube</a>
-            <a className="btn btn-ghost btn-facebook" href={facebookUrl} target="_blank" rel="noopener">Also live on Facebook</a>
+            <a className="btn btn-ghost btn-facebook" href={facebookUrl} target="_blank" rel="noopener">Facebook Live</a>
           </div>
 
           <div className="live-schedule">

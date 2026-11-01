@@ -208,7 +208,7 @@ const HOME_HTML_EVENTS_TO_MEDIA = `
       <a href="${FACEBOOK_URL}" target="_blank" rel="noopener" class="btn btn-ghost btn-facebook">${ICON_FACEBOOK} Facebook Live</a>
       ${SPOTIFY_URL ? `<a href="${SPOTIFY_URL}" target="_blank" rel="noopener" class="btn btn-ghost btn-spotify">${ICON_SPOTIFY} Spotify</a>` : ''}
     </div>
-    ${SPOTIFY_URL ? '<p style="font-size:.72rem;color:var(--text-faint);margin-top:12px;font-family:var(--font-mono);">Messages are also available as a podcast on Spotify.</p>' : ''}
+    ${SPOTIFY_URL ? '<p style="font-size:.72rem;color:rgb(255 255 255 / .62);margin-top:12px;font-family:var(--font-mono);">Messages are also available as a podcast on Spotify.</p>' : ''}
   </div>
 </section>
 
@@ -295,7 +295,7 @@ const HOME_HTML_EVENTS_TO_MEDIA = `
       <h4 style="font-size:.9rem;text-transform:uppercase;letter-spacing:.06em;margin-bottom:14px;">Contact Us</h4>
       <p style="font-size:.85rem;margin-bottom:8px;"><strong style="color:var(--text-high);">Address</strong><br>45 Edosomwan Street, Ikpoba Hill, Benin City</p>
       <p style="font-size:.85rem;margin-bottom:8px;"><strong style="color:var(--text-high);">Phone</strong><br><a href="tel:+2348036659700">0803 665 9700</a><br><a href="tel:+2348078682743">0807 868 2743</a></p>
-      <p style="font-size:.85rem;"><strong style="color:var(--text-high);">Email</strong><br>info@tchglobal.org</p>
+      <p style="font-size:.85rem;"><strong style="color:var(--text-high);">Email</strong><br><a href="mailto:info@tchglobal.org">info@tchglobal.org</a></p>
     </div>
   </div>
 </section>

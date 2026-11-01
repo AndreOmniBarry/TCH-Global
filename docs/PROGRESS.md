@@ -118,3 +118,13 @@ resend.com → API Keys → Create (Sending access) → Vercel: `RESEND_API_KEY`
 - Wrapped: auto-advance no longer runs side effects inside a state updater (could skip cards), listening rank uses the same rounded seconds as the totals, copy adapts for monthly recaps, singular/plural, no "0 services"/"0 testimonies" lines.
 - Removed unused `ogl` dependency and ~20 lines of dead CSS from the retired CSS cube.
 - Every non-submit button has `type="button"`.
+
+## 1 Nov 2026: design pass (screenshot review, phone + desktop)
+- Back-to-top button rises above the big section-title stage instead of sitting on its letters (`--st-vis` from SectionTitleStage).
+- Laptop/desktop: page content keeps a ~100px gutter so the red side dock never covers text or cards.
+- Featured blog post is a side-by-side card on wide screens (photo no longer fills a whole screen).
+- "Watch this week's word" card: timecode moved to bottom-right, no longer overlaps the REC tag on phones.
+- Media buttons: 3 across on desktop; on phones the odd one out spans the full row.
+- /live: "Facebook Live" label (was clipped on phones).
+- Kids hero bubbles kept to the edges and softer, so the headline reads cleanly.
+- Faint text raised to WCAG AA contrast in light and dark themes; contact email is now a tap-to-email link.

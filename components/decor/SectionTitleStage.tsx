@@ -81,6 +81,8 @@ export default function SectionTitleStage() {
       if (shift !== lastStageShift) {
         stage!.style.transform = shift;
         lastStageShift = shift;
+        // Floating controls (back to top) rise above the stage while it shows.
+        document.documentElement.style.setProperty('--st-vis', (1 - hide).toFixed(3));
       }
 
       for (let i = 0; i < words.length; i++) {
@@ -174,6 +176,7 @@ export default function SectionTitleStage() {
     ro.observe(document.body);
     return () => {
       cancelAnimationFrame(raf);
+      document.documentElement.style.removeProperty('--st-vis');
       window.removeEventListener('scroll', kick);
       window.removeEventListener('resize', onResize);
       window.removeEventListener('load', onResize);
