@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import { asset } from '@/lib/asset-version';
+import { SITE_URL } from '@/lib/site';
 import '@fontsource/syne/latin-700.css';
 import '@fontsource/syne/latin-800.css';
 import '@fontsource/plus-jakarta-sans/latin-400.css';
@@ -12,10 +13,23 @@ import QuickDock from '@/components/QuickDock';
 import JoinNudge from '@/components/members/JoinNudge';
 import BroadcastFrames from '@/components/decor/BroadcastFrames';
 
+const DESCRIPTION = "TCH Global (The Comforter's House Global) is a church for every nation, led by Pastor Uzor Echiejile.";
+
 export const metadata: Metadata = {
-  title: "TCH Global | The Comforter's House Global",
-  description:
-    "TCH Global (The Comforter's House Global) is a church for every nation, led by Pastor Uzor Echiejile.",
+  metadataBase: new URL(SITE_URL),
+  title: { default: "TCH Global | The Comforter's House Global", template: '%s' },
+  description: DESCRIPTION,
+  applicationName: 'TCH Global',
+  openGraph: {
+    type: 'website',
+    siteName: 'TCH Global',
+    locale: 'en_NG',
+    title: "TCH Global | The Comforter's House Global",
+    description: DESCRIPTION,
+    images: [{ url: '/images/hero-worship.webp', alt: 'Worship at TCH Global' }],
+  },
+  twitter: { card: 'summary_large_image', title: "TCH Global | The Comforter's House Global", description: DESCRIPTION, images: ['/images/hero-worship.webp'] },
+  formatDetection: { telephone: false },
   // Dynamically rendered — bold circular badge, a status dot (live now /
   // fresh post), and a small seasonal accent near Christmas. See
   // app/api/favicon/route.tsx.

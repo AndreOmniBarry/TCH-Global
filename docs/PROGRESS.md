@@ -109,3 +109,12 @@ resend.com → API Keys → Create (Sending access) → Vercel: `RESEND_API_KEY`
   calmer brim sparkle.
 - My Year in the Word: demo (/wrapped/demo, /wrapped/demo/email) and live tracking, member
   page (/wrapped), account switch, emails on the 1st (monthly) and 15 Dec (year).
+
+## 1 Nov 2026: refinement pass
+- Removed the "Full biography coming soon" note (bio stays as is).
+- SEO: `app/sitemap.ts` (pages + every blog and teens post), `app/robots.ts` (admin, studio, api, account, write, wrapped kept out), `metadataBase`, Open Graph and Twitter cards site-wide, per-post article previews with cover image and canonical URL. Admin/write pages now `noindex`.
+- Security headers on every response (HSTS, nosniff, SAMEORIGIN framing, referrer policy, permissions policy); `X-Powered-By` removed. CSP deferred until the custom domain.
+- One `SITE_URL` (lib/site.ts) shared by emails, sitemap and metadata: set `SITE_URL` in Vercel when the domain lands.
+- Wrapped: auto-advance no longer runs side effects inside a state updater (could skip cards), listening rank uses the same rounded seconds as the totals, copy adapts for monthly recaps, singular/plural, no "0 services"/"0 testimonies" lines.
+- Removed unused `ogl` dependency and ~20 lines of dead CSS from the retired CSS cube.
+- Every non-submit button has `type="button"`.

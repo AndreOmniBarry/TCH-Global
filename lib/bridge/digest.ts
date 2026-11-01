@@ -5,7 +5,7 @@ import { unreportedDead, markReported, expiringDead, stats } from './outbox';
 // Option C: when something could not reach SHEP.HRD, a person is told.
 // The email carries counts, short ids and types only — never names,
 // contacts or prayer text (those stay encrypted; export from /admin/bridge).
-const SITE = (process.env.SITE_URL || 'https://tch-global.vercel.app').replace(/\/+$/, '');
+import { SITE_URL as SITE } from '@/lib/site';
 const LABEL: Record<string, string> = {
   'member.join': 'Join us', 'care.salvation': 'Salvation', 'prayer.request': 'Prayer request', 'workforce.volunteer': 'Volunteer',
 };

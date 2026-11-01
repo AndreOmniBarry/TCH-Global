@@ -25,9 +25,13 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: Props) {
   const post = (await getPostBySlug(params.slug)) ?? getFallbackPostBySlug(params.slug);
   if (!post) return {};
+  const title = `${post.title} | The Comforters Blog`;
   return {
-    title: `${post.title} | The Comforters Blog`,
+    title,
     description: post.excerpt,
+    alternates: { canonical: `/blog/${params.slug}` },
+    openGraph: { type: 'article', title, description: post.excerpt, publishedTime: post.publishedAt, images: [{ url: post.coverImage, alt: post.title }] },
+    twitter: { card: 'summary_large_image', title, description: post.excerpt, images: [post.coverImage] },
   };
 }
 
@@ -95,11 +99,11 @@ export default async function BlogPostPage({ params }: Props) {
 
         <div className="share-row">
           <span className="label">Share</span>
-          <button className="share-btn" data-share="native" aria-label="Share">{shareIcons.native}</button>
+          <button type="button" className="share-btn" data-share="native" aria-label="Share">{shareIcons.native}</button>
           <a className="share-btn" href={`https://wa.me/?text=${shareText}`} target="_blank" rel="noopener" aria-label="Share on WhatsApp">{shareIcons.whatsapp}</a>
           <a className="share-btn" href={`https://twitter.com/intent/tweet?text=${shareText}&url=`} target="_blank" rel="noopener" aria-label="Share on X">{shareIcons.x}</a>
           <a className="share-btn" href="https://www.facebook.com/sharer/sharer.php?u=" target="_blank" rel="noopener" aria-label="Share on Facebook">{shareIcons.facebook}</a>
-          <button className="share-btn" data-share="copy" aria-label="Copy link">{shareIcons.copy}</button>
+          <button type="button" className="share-btn" data-share="copy" aria-label="Copy link">{shareIcons.copy}</button>
         </div>
 
         <div className="newsletter-card">

@@ -5,7 +5,7 @@ import TestimonyAdmin from '@/components/testimonies/TestimonyAdmin';
 import { getTestimonies } from '@/lib/sanity';
 import { listMembers } from '@/lib/auth';
 
-export const metadata = { title: 'Submissions | TCH Global Admin' };
+export const metadata = { title: 'Submissions | TCH Global Admin', robots: { index: false } };
 export const dynamic = 'force-dynamic';
 
 const SECTIONS: { type: FormType; title: string; fieldOrder: string[] }[] = [

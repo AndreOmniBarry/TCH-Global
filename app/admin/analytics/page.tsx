@@ -17,7 +17,7 @@ import AdminNav from '@/components/AdminNav';
 import { AreaCompare, BarList, Donut, Funnel, KpiCard, WeekdayBars } from '@/components/analytics/Charts';
 import { getLibrary } from '@/lib/library';
 
-export const metadata = { title: 'Analytics | TCH Global Admin' };
+export const metadata = { title: 'Analytics | TCH Global Admin', robots: { index: false } };
 export const dynamic = 'force-dynamic'; // always read fresh counts, never cache this page
 
 function getPostTitle(slug: string, posts: { slug: string; title: string }[]) {

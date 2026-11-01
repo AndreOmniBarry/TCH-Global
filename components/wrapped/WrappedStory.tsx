@@ -27,6 +27,7 @@ type Card = { key: string; theme: string; share: string; render: (active: boolea
 
 function cards(w: Wrapped): Card[] {
   const services = Math.round(w.minutes / 60);
+  const span = /^\d{4}$/.test(w.period) ? 'all year' : 'all month';
   return [
     {
       key: 'intro', theme: 'wr-t1', share: `My ${w.period} in the Word`,
@@ -34,7 +35,7 @@ function cards(w: Wrapped): Card[] {
         <>
           <p className="wr-eyebrow">TCH Global</p>
           <h2 className="wr-huge">My {w.period}<br />in the Word</h2>
-          <p className="wr-lead">{w.name}, God&rsquo;s Word kept you company all year. Here is what it looked like.</p>
+          <p className="wr-lead">{w.name}, God&rsquo;s Word kept you company {span}. Here is what it looked like.</p>
           <p className="wr-hint">Tap to begin</p>
         </>
       ),
@@ -46,8 +47,10 @@ function cards(w: Wrapped): Card[] {
           <p className="wr-eyebrow">Time in the Word</p>
           <p className="wr-number"><CountUp n={w.minutes} active={a} /></p>
           <p className="wr-unit">minutes listening and watching</p>
-          <p className="wr-lead">That&rsquo;s about <b>{services} Sunday services</b> worth of teaching, carried with you through the week.</p>
-          <p className="wr-chip">More than {100 - w.topPercent}% of TCH listeners</p>
+          {services >= 1
+            ? <p className="wr-lead">That&rsquo;s about <b>{services} Sunday {services === 1 ? 'service' : 'services'}</b> worth of teaching, carried with you through the week.</p>
+            : <p className="wr-lead">Every minute counts. Press play on a message in PUDLIB! and watch this grow.</p>}
+          {w.minutes > 0 && w.topPercent < 50 && <p className="wr-chip">More than {100 - w.topPercent}% of TCH listeners</p>}
         </>
       ),
     },
@@ -74,7 +77,7 @@ function cards(w: Wrapped): Card[] {
             {w.topMessages.map((m, i) => (
               <li key={m.title} style={{ animationDelay: `${150 + i * 120}ms` }}>
                 <b>{i + 1}</b>
-                <span><strong>{m.title}</strong><em>{m.plays} plays{m.series ? ` · ${m.series}` : ''}</em></span>
+                <span><strong>{m.title}</strong><em>{m.plays} {m.plays === 1 ? 'play' : 'plays'}{m.series ? ` · ${m.series}` : ''}</em></span>
               </li>
             ))}
           </ol>
@@ -113,7 +116,9 @@ function cards(w: Wrapped): Card[] {
           <p className="wr-eyebrow">Prayer &amp; community</p>
           <p className="wr-number"><CountUp n={w.prayers.prayed} active={a} /></p>
           <p className="wr-unit">times you prayed along</p>
-          <p className="wr-lead">And you read <b>{w.prayers.testimonies} testimonies</b> of what God did for others at TCH.</p>
+          {w.prayers.testimonies > 0
+            ? <p className="wr-lead">And you read <b>{w.prayers.testimonies} testimonies</b> of what God did for others at TCH.</p>
+            : <p className="wr-lead">Every request reaches the prayer team, and they stand with you.</p>}
         </>
       ),
     },
@@ -187,10 +192,12 @@ export default function WrappedStory({ data, demo = false }: { data: Wrapped; de
   const [paused, setPaused] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const last = useRef(0);
+  const acc = useRef(0);
   const holdAt = useRef(0);
 
   const go = useCallback((d: number) => {
     setI((v) => Math.max(0, Math.min(list.length - 1, v + d)));
+    acc.current = 0;
     setElapsed(0);
   }, [list.length]);
 
@@ -201,10 +208,9 @@ export default function WrappedStory({ data, demo = false }: { data: Wrapped; de
       const dt = last.current ? now - last.current : 0;
       last.current = now;
       if (!paused && i < list.length - 1) {
-        setElapsed((e) => {
-          if (e + dt >= DURATION) { setI((v) => Math.min(list.length - 1, v + 1)); return 0; }
-          return e + dt;
-        });
+        acc.current += dt;
+        if (acc.current >= DURATION) { acc.current = 0; setI((v) => Math.min(list.length - 1, v + 1)); }
+        setElapsed(acc.current);
       }
       raf = requestAnimationFrame(tick);
     };
@@ -245,7 +251,7 @@ export default function WrappedStory({ data, demo = false }: { data: Wrapped; de
         </div>
         <div className="wr-actions">
           <button type="button" onClick={() => saveImage(data, c, THEMES[c.theme])}>Save image</button>
-          {i === list.length - 1 && <button type="button" onClick={() => { setI(0); setElapsed(0); }}>Watch again</button>}
+          {i === list.length - 1 && <button type="button" onClick={() => { acc.current = 0; setI(0); setElapsed(0); }}>Watch again</button>}
         </div>
       </div>
       <p className="wr-help">Tap right for next, left to go back, hold to pause. Arrow keys work on a laptop.</p>

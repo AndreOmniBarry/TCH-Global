@@ -60,11 +60,11 @@ export default function BridgeAdmin(p: Props) {
       )}
 
       <div className="br-actions">
-        <button className="btn btn-primary" disabled={busy || !p.configured} onClick={runTest}>{busy && !test ? 'Testing…' : 'Test connection'}</button>
-        <button className="btn" disabled={busy || !p.configured} onClick={() => act({ action: 'send-now' }, (j) => `Tried ${j.tried}, delivered ${j.delivered}.`)}>Send waiting items now</button>
+        <button type="button" className="btn btn-primary" disabled={busy || !p.configured} onClick={runTest}>{busy && !test ? 'Testing…' : 'Test connection'}</button>
+        <button type="button" className="btn" disabled={busy || !p.configured} onClick={() => act({ action: 'send-now' }, (j) => `Tried ${j.tried}, delivered ${j.delivered}.`)}>Send waiting items now</button>
         <a className="btn" href="/admin/api/bridge?export=dead">Export &ldquo;need a person&rdquo; (CSV)</a>
         <a className="btn" href="/admin/api/bridge?export=pending">Export waiting (CSV)</a>
-        {p.stats?.authAlert && <button className="btn" disabled={busy} onClick={() => act({ action: 'clear-alert' }, () => 'Alert cleared.')}>Keys fixed: clear alert</button>}
+        {p.stats?.authAlert && <button type="button" className="btn" disabled={busy} onClick={() => act({ action: 'clear-alert' }, () => 'Alert cleared.')}>Keys fixed: clear alert</button>}
       </div>
       {test && (
         <div className={`st-row st-row--${test.ok ? 'ok' : 'bad'}`} role="status">
@@ -86,8 +86,8 @@ export default function BridgeAdmin(p: Props) {
       <p className="br-note">Held as a suspected bot or flood, refused by SHEP.HRD as invalid, or still undelivered after 24 hours. Release sends it again; Remove deletes it from the queue (the emailed copy remains). Each is kept 30 days.</p>
       {p.dead.length ? <Table rows={p.dead} actions={(r) => (
         <>
-          <button disabled={busy} onClick={() => act({ action: 'release', ids: [r.id] }, () => 'Released.')}>Release</button>
-          <button disabled={busy} onClick={() => confirm('Remove this item from the queue?') && act({ action: 'remove', ids: [r.id] }, () => 'Removed.')}>Remove</button>
+          <button type="button" disabled={busy} onClick={() => act({ action: 'release', ids: [r.id] }, () => 'Released.')}>Release</button>
+          <button type="button" disabled={busy} onClick={() => confirm('Remove this item from the queue?') && act({ action: 'remove', ids: [r.id] }, () => 'Removed.')}>Remove</button>
         </>
       )} /> : <p className="br-empty">Nothing here.</p>}
 
@@ -149,13 +149,13 @@ function SecretMaker() {
     <div className="br-secrets">
       <h3 className="br-h" style={{ marginTop: 0 }}>Step 1: make your secrets</h3>
       <p className="br-note">Made in your browser only. Nothing here is sent or saved, so copy each into Vercel before leaving this page. Never paste them into chat, email or WhatsApp.</p>
-      {!keys ? <button className="btn btn-primary" onClick={make}>Make my secrets</button> : (
+      {!keys ? <button type="button" className="btn btn-primary" onClick={make}>Make my secrets</button> : (
         <div className="br-table">
           {keys.map(([name, val, where]) => (
             <div key={name} className="br-secret">
               <strong>{name}</strong><em>{where}</em>
               <code>{val}</code>
-              <button className="btn" onClick={() => navigator.clipboard?.writeText(val).then(() => { setCopied(name); setTimeout(() => setCopied(''), 1500); })}>{copied === name ? 'Copied' : 'Copy'}</button>
+              <button type="button" className="btn" onClick={() => navigator.clipboard?.writeText(val).then(() => { setCopied(name); setTimeout(() => setCopied(''), 1500); })}>{copied === name ? 'Copied' : 'Copy'}</button>
             </div>
           ))}
         </div>

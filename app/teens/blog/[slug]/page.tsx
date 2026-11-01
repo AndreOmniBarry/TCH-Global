@@ -7,7 +7,9 @@ export const revalidate = 60;
 
 export async function generateMetadata({ params }: { params: { slug: string } }) {
   const p = await getTeenPostBySlug(params.slug);
-  return p ? { title: `${p.title} | TCH Teens`, description: p.excerpt } : {};
+  if (!p) return {};
+  const title = `${p.title} | TCH Teens`;
+  return { title, description: p.excerpt, alternates: { canonical: `/teens/blog/${params.slug}` }, openGraph: { type: 'article', title, description: p.excerpt, images: [p.coverImage] } };
 }
 
 export default async function TeenPost({ params }: { params: { slug: string } }) {

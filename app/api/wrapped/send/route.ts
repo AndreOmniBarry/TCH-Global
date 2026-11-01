@@ -12,7 +12,7 @@ import { kv } from '@vercel/kv';
 // activity and haven't switched it off.
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
-const SITE = (process.env.SITE_URL || 'https://tch-global.vercel.app').replace(/\/+$/, '');
+import { SITE_URL as SITE } from '@/lib/site';
 
 export async function GET(req: NextRequest) {
   const want = (process.env.CRON_SECRET || '').trim();

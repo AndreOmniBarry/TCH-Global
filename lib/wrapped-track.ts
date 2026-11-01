@@ -30,14 +30,14 @@ export type Activity =
 export async function recordActivity(member: Member & { wrapped?: boolean }, a: Activity) {
   if (!KV_ON || member.wrapped === false) return;
   const t = lagos();
+  const secs = a.kind === 'listen' ? Math.max(0, Math.min(60, Math.round(a.seconds))) : 0;
   const m = kv.multi();
   for (const period of [t.year, t.month]) {
     m.sadd(key(member.id, period, 'days'), t.day);
     m.hincrby(key(member.id, period, 'hours'), t.hour, 1);
     if (a.kind === 'listen') {
-      const s = Math.max(0, Math.min(60, Math.round(a.seconds)));
-      m.hincrby(key(member.id, period), 'secs', s);
-      m.zincrby(key(member.id, period, 'listen'), s, a.media);
+      m.hincrby(key(member.id, period), 'secs', secs);
+      m.zincrby(key(member.id, period, 'listen'), secs, a.media);
     } else if (a.kind === 'play') {
       m.zincrby(key(member.id, period, 'media'), 1, a.media);
     } else if (a.kind === 'readDone') {
@@ -48,7 +48,7 @@ export async function recordActivity(member: Member & { wrapped?: boolean }, a: 
     }
     for (const part of ['', 'days', 'hours', 'listen', 'media', 'topics']) m.expire(key(member.id, period, part), TTL);
   }
-  if (a.kind === 'listen') m.zincrby(`wr:rank:${t.year}`, Math.max(0, Math.min(60, a.seconds)), member.id);
+  if (secs) m.zincrby(`wr:rank:${t.year}`, secs, member.id);
   await m.exec().catch((e) => console.error('wrapped record', (e as Error).name));
 }
 

@@ -58,14 +58,14 @@ export function wrappedEmail(w: Wrapped, storyUrl: string): { subject: string; h
   const stat = (big: string, small: string) =>
     `<td style="padding:14px 10px;text-align:center;background:#16112e;border-radius:14px"><div style="font:800 26px/1.1 Arial,Helvetica,sans-serif;color:#ffffff">${big}</div><div style="font:12px/1.4 Arial,Helvetica,sans-serif;color:#a9a3c9;margin-top:4px">${small}</div></td>`;
   const top = w.topMessages.slice(0, 3).map((m, i) =>
-    `<tr><td style="padding:8px 0;font:700 15px Arial,Helvetica,sans-serif;color:#22d3ee;width:28px">${i + 1}</td><td style="padding:8px 0;font:15px/1.4 Arial,Helvetica,sans-serif;color:#ffffff">${esc(m.title)}<div style="font-size:12px;color:#a9a3c9">${m.plays} plays</div></td></tr>`).join('');
+    `<tr><td style="padding:8px 0;font:700 15px Arial,Helvetica,sans-serif;color:#22d3ee;width:28px">${i + 1}</td><td style="padding:8px 0;font:15px/1.4 Arial,Helvetica,sans-serif;color:#ffffff">${esc(m.title)}<div style="font-size:12px;color:#a9a3c9">${m.plays} ${m.plays === 1 ? 'play' : 'plays'}</div></td></tr>`).join('');
   const html = `<!doctype html><html><body style="margin:0;padding:0;background:#0b0816">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#0b0816"><tr><td align="center" style="padding:24px 12px">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#0f0b22;border-radius:24px;overflow:hidden">
 <tr><td style="padding:32px 28px 8px;background:linear-gradient(135deg,#7c3aed,#22d3ee)">
   <div style="font:800 13px Arial,Helvetica,sans-serif;letter-spacing:.18em;color:rgba(255,255,255,.85)">TCH GLOBAL</div>
   <div style="font:800 34px/1.05 Arial,Helvetica,sans-serif;color:#ffffff;margin:14px 0 6px">My ${esc(w.period)}<br>in the Word</div>
-  <div style="font:15px/1.5 Arial,Helvetica,sans-serif;color:rgba(255,255,255,.9);padding-bottom:22px">${esc(w.name)}, here is your year with God's Word at TCH Global.</div>
+  <div style="font:15px/1.5 Arial,Helvetica,sans-serif;color:rgba(255,255,255,.9);padding-bottom:22px">${esc(w.name)}, here is your ${esc(w.period)} with God's Word at TCH Global.</div>
 </td></tr>
 <tr><td style="padding:22px 20px 6px"><table role="presentation" width="100%" cellpadding="0" cellspacing="8"><tr>${stat(fmt(w.minutes), 'minutes in the Word')}${stat(String(w.days), 'days you showed up')}${stat(String(w.streak), 'day streak')}</tr></table></td></tr>
 <tr><td style="padding:14px 28px 4px"><div style="font:800 13px Arial,Helvetica,sans-serif;letter-spacing:.14em;color:#a9a3c9">YOUR TOP MESSAGES</div><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:6px">${top}</table></td></tr>
