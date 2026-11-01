@@ -100,3 +100,12 @@ resend.com → API Keys → Create (Sending access) → Vercel: `RESEND_API_KEY`
 - Blank-section fix: reveal script now picks up blocks React rebuilds after load.
 - Give: account numbers unbroken, Nigeria flag + NGN notice, account name added.
 - Still waiting on: Spotify show link; Supabase query so web sign-ups show on SHEP's First timers screen.
+
+## 1 Nov
+- SHEP.HRD: website sign-ups now take their care person's branch (sql/86); the two test
+  sign-ups show under Grace Dome. Bridge fully working end to end.
+- Spotify podcast linked; PUDLIB! sky blue; play buttons and player pepper red.
+- TCH Loveforce card (Kids 5-12 / Teens 11-19), liquid back-to-top with progress ring,
+  calmer brim sparkle.
+- My Year in the Word: demo (/wrapped/demo, /wrapped/demo/email) and live tracking, member
+  page (/wrapped), account switch, emails on the 1st (monthly) and 15 Dec (year).
