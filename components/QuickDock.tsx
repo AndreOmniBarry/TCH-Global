@@ -82,7 +82,7 @@ export default function QuickDock() {
   };
   return (
     <>
-    <button ref={topRef} type="button" className={`totop${far ? ' is-shown' : ''}${tucked ? ' is-tucked' : ''}`} onClick={toTop} aria-label="Back to top" tabIndex={far ? 0 : -1}>
+    <button ref={topRef} type="button" data-fill="page" className={`totop liquid${far ? ' is-shown' : ''}${tucked ? ' is-tucked' : ''}`} onClick={toTop} aria-label="Back to top" tabIndex={far ? 0 : -1}>
       <svg className="totop-ring" viewBox="0 0 48 48" aria-hidden="true">
         <circle cx="24" cy="24" r="21" pathLength="100" />
         <circle className="totop-fill" cx="24" cy="24" r="21" pathLength="100" />

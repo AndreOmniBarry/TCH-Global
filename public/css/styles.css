@@ -2500,3 +2500,23 @@ body:has(.pl-audiobar, .pl-mini) .totop { bottom: 96px; }
   .totop, .totop.is-shown.is-tucked { right: 24px; bottom: 24px; width: 52px; height: 52px; }
 }
 @media (prefers-reduced-motion: reduce) { .totop { transition: opacity .2s ease; } }
+/* TCH Loveforce card: one card, two doors (Kids, Teens). */
+.tn-teaser-links { display: flex; flex-wrap: wrap; gap: 10px; justify-self: start; }
+.tn-teaser-links .tn-teaser-go { text-decoration: none; transition: transform .2s ease, box-shadow .2s ease; }
+.tn-teaser-links .tn-teaser-go:hover { transform: translate(-2px, -2px); box-shadow: 4px 4px 0 #ff4fd8; }
+.tn-teaser-links .tn-teaser-go + .tn-teaser-go { background: #ff4fd8; color: #0a0714; }
+div.tn-teaser:hover { transform: none; box-shadow: 8px 8px 0 #ff4fd8; }
+/* Back to top as a water disc: the liquid fills with page progress (the
+   engine reads data-fill="page"), the ring traces the same progress over
+   the glass, and the arrow turns white once the water covers it. */
+.totop.liquid { --liquid-a: #22d3ee; --liquid-b: #6366f1; --liquid-c: #7c3aed; --liquid-rgb: 99 102 241; position: fixed; overflow: hidden; isolation: isolate; }
+.totop-ring, .totop-arrow { z-index: 1; }
+.totop[data-liquid="on"] { color: #fff; }
+.totop[data-liquid="on"] .totop-ring .totop-fill { stroke: #fff; }
+/* "Loveforce" is twice as long as "Teens": size the word to the card. */
+.tn-teaser { container-type: inline-size; }
+.tn-teaser-body { min-width: 0; }
+.tn-teaser-body strong { font-size: clamp(1.6rem, 9.4cqi, 3.6rem); }
+.tn-teaser-links { width: 100%; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.tn-teaser-links .tn-teaser-go { justify-self: stretch; text-align: center; white-space: nowrap; padding: 12px 10px; font-size: clamp(.72rem, 3.4cqi, .88rem); }
+@media (min-width: 760px) { .tn-teaser-links { width: auto; grid-template-columns: auto auto; } .tn-teaser-links .tn-teaser-go { padding: 12px 18px; } }

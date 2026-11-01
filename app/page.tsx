@@ -215,15 +215,18 @@ const HOME_HTML_EVENTS_TO_MEDIA = `
 
 <section class="section" id="teens-teaser">
   <div class="container">
-    <a href="/teens" class="tn-teaser pop">
+    <div class="tn-teaser pop">
       <span class="tn-teaser-orbs" aria-hidden="true"><i></i><i></i></span>
       <span class="tn-teaser-body">
-        <span class="tn-kicker">Ages 11&ndash;19</span>
-        <strong>TCH <em>Teens</em></strong>
-        <span>Hangouts, squads, real talk and a blog made for you.</span>
+        <span class="tn-kicker">Children &amp; Teens Ministry</span>
+        <strong>TCH <em>Loveforce</em></strong>
+        <span>Bible stories and daily faith fun for kids, and hangouts, squads and real talk for teens.</span>
       </span>
-      <span class="tn-teaser-go">Enter TCH Teens &rarr;</span>
-    </a>
+      <span class="tn-teaser-links">
+        <a href="/kids" class="tn-teaser-go">Kids &middot; 5&ndash;12 &rarr;</a>
+        <a href="/teens" class="tn-teaser-go">Teens &middot; 11&ndash;19 &rarr;</a>
+      </span>
+    </div>
   </div>
 </section>
 

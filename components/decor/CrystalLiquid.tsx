@@ -416,9 +416,12 @@ export default function CrystalLiquid() {
         const slope = (pts[j * 2 + 3] - pts[j * 2 + 1]) / Math.max(1, pts[j * 2 + 2] - pts[j * 2]);
         // Sparkle: little points of light run along the meniscus, the way
         // the brim of real liquid catches the light.
-        // One or two at a time, gliding along the brim in opposite directions.
-        const tw = Math.max(0, Math.sin(t * 1.9 + j * 0.13 + l.seed)) ** 40 + Math.max(0, Math.sin(t * 1.3 - j * 0.17 + l.seed * 0.5)) ** 48;
-        const a = Math.min(1, Math.max(0.42, 0.55 - slope * 1.3) + tw * 0.5);
+        // Calm: a single soft glint drifts slowly along the brim, and only
+        // now and then (it fades in and out over several seconds), so it
+        // catches the eye without pulling it.
+        const gate = Math.max(0, Math.sin(t * 0.32 + l.seed)) ** 3;
+        const tw = Math.max(0, Math.sin(t * 0.55 + j * 0.13 + l.seed)) ** 60 * gate;
+        const a = Math.min(1, Math.max(0.42, 0.55 - slope * 1.3) + tw * 0.35);
         ctx.strokeStyle = `rgba(255,255,255,${a.toFixed(2)})`;
         ctx.beginPath();
         ctx.moveTo(pts[j * 2], pts[j * 2 + 1]);
@@ -427,9 +430,9 @@ export default function CrystalLiquid() {
         if (tw > 0.5) {
           // A tiny flare where the twinkle peaks.
           const sx = pts[j * 2 + 2], sy = pts[j * 2 + 3];
-          const sr = (3 + 4 * Math.min(1, tw)) * r;
+          const sr = (2.5 + 3 * Math.min(1, tw)) * r;
           const sg = ctx.createRadialGradient(sx, sy, 0, sx, sy, sr);
-          sg.addColorStop(0, `rgba(255,255,255,${(0.95 * Math.min(1, tw)).toFixed(2)})`);
+          sg.addColorStop(0, `rgba(255,255,255,${(0.6 * Math.min(1, tw)).toFixed(2)})`);
           sg.addColorStop(1, 'rgba(255,255,255,0)');
           ctx.fillStyle = sg;
           ctx.beginPath(); ctx.ellipse(sx, sy, sr * 1.6, sr * 0.6, 0, 0, Math.PI * 2); ctx.fill();
@@ -511,7 +514,11 @@ export default function CrystalLiquid() {
         let s0 = absY - vh;
         let s1 = absY - vh * 0.12;
         if (s1 > maxScroll) { s1 = maxScroll; s0 = Math.min(s0, s1 - vh * 0.3); }
-        const progress = Math.min(Math.max((sy - s0) / Math.max(1, s1 - s0), 0), 1);
+        // data-fill="page": the level is how far down the page you are
+        // (the back-to-top button), not where the element sits on screen.
+        const progress = l.el.dataset.fill === 'page'
+          ? Math.min(Math.max(sy / maxScroll, 0), 1)
+          : Math.min(Math.max((sy - s0) / Math.max(1, s1 - s0), 0), 1);
         // Full stops ~2.5px under the rim, so the bright meniscus (and its
         // sparkle) always shows along the brim, as on a glass filled to the top.
         const target = progress * (1 - 2.5 / bh);
