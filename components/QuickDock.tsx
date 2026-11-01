@@ -74,7 +74,7 @@ export default function QuickDock() {
     return () => { window.removeEventListener('scroll', onScroll); window.removeEventListener('hashchange', onHash); };
   }, []);
 
-  if (!path || /^\/(admin|studio|write)/.test(path)) return null;
+  if (!path || /^\/(admin|studio|write|wrapped)/.test(path)) return null;
   const toTop = () => {
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' });
