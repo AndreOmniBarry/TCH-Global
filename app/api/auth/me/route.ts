@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { currentMember, updateMember } from '@/lib/auth';
+import { currentMember, touchSession, updateMember } from '@/lib/auth';
 import { submitForm } from '@/lib/forms';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
-  return NextResponse.json({ member: await currentMember() }, { headers: { 'Cache-Control': 'no-store' } });
+  const member = await currentMember();
+  if (member) await touchSession(member.id).catch(() => {});
+  return NextResponse.json({ member }, { headers: { 'Cache-Control': 'no-store' } });
 }
 
 export async function PATCH(req: NextRequest) {

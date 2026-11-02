@@ -131,3 +131,12 @@ resend.com → API Keys → Create (Sending access) → Vercel: `RESEND_API_KEY`
 - Faint text raised to WCAG AA contrast in light and dark themes; contact email is now a tap-to-email link.
 - Forgot password: "Forgot your password?" on sign-in emails a one-time link (1 hour, only its SHA-256 stored in KV, same answer whether or not the email has an account, rate-limited per email and IP). /account/reset sets the new password, signs out every other session and signs the member in.
 - Splash rebuilt: slow aurora + film grain, logo in a gradient ring that is the real load-progress indicator, letter-by-letter "TCH Global" wordmark, iris opens from the logo. No canvas/particles; minimum 1.75 s (was 2.4 s), hard cap 2.6 s (was 3.5 s).
+
+## 2 Nov 2026: sign-up policy, families, stay signed in
+Policy (decided):
+- Adults and 18-19s: normal account.
+- Teens 13-17: own account; at sign-up they tick "I'm under 18", give birth year and a parent/guardian email. The guardian is emailed a notice with a one-tap "remove this account" link (/account/guardian, token hashed in KV, 400 days). Teen accounts can't add child profiles.
+- Children 12 and under: no account of their own. A parent adds them under "Your children" (first name + age 3-12 only, max 8). On /kids a "Who's playing?" picker keeps stars per child on the device and sends them to /api/progress, so they appear as "Your family's adventures" in the parent's Year in the Word (web story + email). Under-13 sign-ups are turned away with that instruction.
+- Teens' Daily Drop tasks count toward their own story (days/streak + "Daily Drop tasks" line).
+Staying signed in: sessions now roll. Each visit (at most once a day, via /api/auth/me) pushes the session a year out; sessions are indexed per member so a password reset or guardian removal signs out everywhere.
+Sign-up push: Year-in-the-Word-first copy on the account page and invite sheet; invite appears after 20 s (5 s on a second page), snoozes 3 days; a guest who keeps listening in PUDLIB! is told once per visit that it isn't counting; home banner with a countdown to 15 December and a demo link; kids page "Grown-ups" strip and teens "Make your streak count" strip for guests.

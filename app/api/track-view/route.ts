@@ -19,9 +19,9 @@ export async function POST(req: NextRequest) {
         : (event === 'view' || !event) && media ? { kind: 'play' as const, media: slug }
         : null;
       if (a) await recordActivity(me, a);
-      if (event === 'listen') return NextResponse.json({ ok: true });
+      if (event === 'listen') return NextResponse.json({ ok: true, counted: me.wrapped !== false });
     }
-    if (event === 'listen') return NextResponse.json({ ok: true });
+    if (event === 'listen') return NextResponse.json({ ok: true, counted: false });
     switch (event) {
       case 'share':
         await recordShare(slug);

@@ -43,8 +43,10 @@ function ago(ts: number) {
 function useListenBeat(id: string, playing: boolean) {
   useEffect(() => {
     if (!playing) return;
+    let beats = 0;
     const t = setInterval(() => {
-      fetch('/api/track-view', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ slug: `media:${id}`, event: 'listen', seconds: 30 }), keepalive: true }).catch(() => {});
+      fetch('/api/track-view', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ slug: `media:${id}`, event: 'listen', seconds: 30 }), keepalive: true })
+        .then((r) => r.json()).then((d) => { if (++beats >= 2 && d && d.counted === false) window.dispatchEvent(new Event('tch:listen')); }).catch(() => {});
     }, 30000);
     return () => clearInterval(t);
   }, [id, playing]);

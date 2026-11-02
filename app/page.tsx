@@ -1,4 +1,5 @@
 import PudlibPreview from '@/components/pudlib/PudlibPreview';
+import WrappedPromo from '@/components/wrapped/WrappedPromo';
 import AnnouncementsSection from '@/components/AnnouncementsSection';
 import EventsSection from '@/components/EventsSection';
 import TestimoniesSection from '@/components/TestimoniesSection';
@@ -479,6 +480,7 @@ export default async function HomePage() {
       <div dangerouslySetInnerHTML={{ __html: HOME_HTML_BEFORE_LIBRARY }} />
       <HeroExtras {...heroData} />
       <HeroSpotlight items={spotlights} />
+      <WrappedPromo />
       <PudlibPreview />
       <AnnouncementsSection />
       <div dangerouslySetInnerHTML={{ __html: HOME_HTML_AFTER_LIBRARY }} />

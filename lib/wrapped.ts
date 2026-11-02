@@ -13,7 +13,9 @@ export type Wrapped = {
   weeks: number[];
   topMessages: { title: string; series?: string; plays: number }[];
   topSeries: { title: string; parts: number; finished: number };
-  reads: { posts: number; topTopic: string; book?: string };
+  reads: { posts: number; topTopic: string; book?: string; /** Teens: Daily Drop tasks finished. */ drops?: number };
+  /** Children on the parent's account and their Bible-adventure stars. */
+  family?: { name: string; stars: number; days: number }[];
   prayers: { prayed: number; testimonies: number };
   persona: { name: string; line: string };
   /** Share of members they listened more than (0-100). */
@@ -38,6 +40,7 @@ export const SAMPLE_WRAPPED: Wrapped = {
   ],
   topSeries: { title: 'The Trinitarian Benediction', parts: 6, finished: 4 },
   reads: { posts: 31, topTopic: 'Faith', book: 'Understanding the Faith Life' },
+  family: [{ name: 'Tobi', stars: 212, days: 61 }, { name: 'Kamsi', stars: 148, days: 44 }],
   prayers: { prayed: 64, testimonies: 19 },
   persona: { name: 'The Early Riser', line: 'Most of your listening happened before 7am, the first voice you heard each day was the Word.' },
   topPercent: 7,
@@ -69,6 +72,7 @@ export function wrappedEmail(w: Wrapped, storyUrl: string): { subject: string; h
 </td></tr>
 <tr><td style="padding:22px 20px 6px"><table role="presentation" width="100%" cellpadding="0" cellspacing="8"><tr>${stat(fmt(w.minutes), 'minutes in the Word')}${stat(String(w.days), 'days you showed up')}${stat(String(w.streak), 'day streak')}</tr></table></td></tr>
 <tr><td style="padding:14px 28px 4px"><div style="font:800 13px Arial,Helvetica,sans-serif;letter-spacing:.14em;color:#a9a3c9">YOUR TOP MESSAGES</div><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:6px">${top}</table></td></tr>
+${w.family?.length ? `<tr><td style="padding:10px 28px 0"><div style="background:#16112e;border-radius:16px;padding:16px 18px;font:15px/1.6 Arial,Helvetica,sans-serif;color:#ffffff"><div style="font:800 12px Arial,Helvetica,sans-serif;letter-spacing:.14em;color:#f5c542;margin-bottom:6px">YOUR FAMILY&rsquo;S ADVENTURES</div>${w.family.map((f) => `${esc(f.name)} collected <b>${fmt(f.stars)} stars</b> over ${f.days} ${f.days === 1 ? 'day' : 'days'}`).join('<br>')}</div></td></tr>` : ''}
 <tr><td style="padding:14px 28px"><div style="font:15px/1.6 Arial,Helvetica,sans-serif;color:#ffffff">You were <b>${esc(w.persona.name)}</b>. ${esc(w.persona.line)}</div></td></tr>
 <tr><td style="padding:6px 28px 26px"><div style="background:#16112e;border-radius:16px;padding:18px 18px;font:italic 15px/1.6 Georgia,serif;color:#f6f3ff">&ldquo;${esc(w.blessing.verse)}&rdquo;<div style="font:700 12px Arial,Helvetica,sans-serif;font-style:normal;color:#22d3ee;margin-top:8px">${esc(w.blessing.ref)}</div></div></td></tr>
 <tr><td align="center" style="padding:0 28px 30px"><a href="${esc(storyUrl)}" style="display:inline-block;padding:15px 28px;border-radius:999px;background:#22d3ee;color:#04263a;font:800 15px Arial,Helvetica,sans-serif;text-decoration:none">See your full story</a></td></tr>

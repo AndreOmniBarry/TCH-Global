@@ -105,7 +105,7 @@ function cards(w: Wrapped): Card[] {
           <p className="wr-eyebrow">Reading</p>
           <p className="wr-number"><CountUp n={w.reads.posts} active={a} /></p>
           <p className="wr-unit">blog posts read to the end</p>
-          <p className="wr-lead">Your favourite topic was <b>{w.reads.topTopic}</b>{w.reads.book ? <>, and you opened <b>{w.reads.book}</b> by Pastor Uzor</> : null}.</p>
+          <p className="wr-lead">Your favourite topic was <b>{w.reads.topTopic}</b>{w.reads.book ? <>, and you opened <b>{w.reads.book}</b> by Pastor Uzor</> : null}.{w.reads.drops ? <> You also finished <b>{w.reads.drops} Daily Drop {w.reads.drops === 1 ? 'task' : 'tasks'}</b>.</> : null}</p>
         </>
       ),
     },
@@ -122,6 +122,24 @@ function cards(w: Wrapped): Card[] {
         </>
       ),
     },
+    ...(w.family?.length ? [{
+      key: 'family', theme: 'wr-t6', share: `Our family's Bible adventures: ${w.family.reduce((a, f) => a + f.stars, 0)} stars`,
+      render: (a: boolean) => (
+        <>
+          <p className="wr-eyebrow">Your family&rsquo;s adventures</p>
+          <p className="wr-number"><CountUp n={w.family!.reduce((t, f) => t + f.stars, 0)} active={a} /></p>
+          <p className="wr-unit">stars collected in Today&rsquo;s Bible Adventure</p>
+          <ol className="wr-list">
+            {w.family!.map((f, i) => (
+              <li key={f.name} style={{ animationDelay: `${150 + i * 120}ms` }}>
+                <b>{i + 1}</b>
+                <span><strong>{f.name}</strong><em>{f.stars} stars &middot; {f.days} {f.days === 1 ? 'day' : 'days'}</em></span>
+              </li>
+            ))}
+          </ol>
+        </>
+      ),
+    }] : []),
     {
       key: 'persona', theme: 'wr-t8', share: `I'm ${w.persona.name}`,
       render: () => (

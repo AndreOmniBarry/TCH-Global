@@ -30,6 +30,7 @@ function run(c){
     case 'LREM': { const L=l(a[0]); let n=Number(a[1])||Infinity, r=0; const out=[]; for(const v of L){ if(v===a[2]&&r<n){r++;continue;} out.push(v);} S.set(a[0],out); return r; }
     case 'SADD': { alive(a[0]); if (!S.has(a[0])) S.set(a[0], new Set()); const st = S.get(a[0]); let n = 0; for (const v of a.slice(1)) if (!st.has(v)) { st.add(v); n++; } return n; }
     case 'SMEMBERS': return alive(a[0]) ? [...S.get(a[0])] : [];
+    case 'SCARD': return alive(a[0]) ? S.get(a[0]).size : 0;
     case 'HINCRBY': { alive(a[0]); if (!S.has(a[0])) S.set(a[0], new Map()); const h = S.get(a[0]); const v = Number(h.get(a[1]) || 0) + Number(a[2]); h.set(a[1], String(v)); return v; }
     case 'HGETALL': { if (!alive(a[0])) return []; return [...S.get(a[0]).entries()].flat(); }
     case 'ZREVRANK': { const m = z(a[0]); if (!m.has(a[1])) return null; const sorted = [...m.entries()].sort((x, y) => y[1] - x[1]); return sorted.findIndex(([k]) => k === a[1]); }

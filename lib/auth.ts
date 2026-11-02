@@ -9,9 +9,18 @@ import { cookies } from 'next/headers';
 const scrypt = promisify(_scrypt) as (pw: string, salt: string, len: number) => Promise<Buffer>;
 export const authConfigured = Boolean(process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN);
 export const SESSION_COOKIE = 'tch_sess';
-const SESSION_DAYS = 30;
+// Sessions roll: every visit (at most once a day) pushes expiry a full year
+// out, so a member who comes back at least once a year never signs in again.
+const SESSION_DAYS = 365;
+const TOUCH_COOKIE = 'tch_touch';
 
-export type Member = { id: string; name: string; email: string; createdAt: string; newsletter: boolean; phone?: string; /** "My Year in the Word" tracking; on unless turned off. */ wrapped?: boolean };
+export type Kid = { id: string; name: string; age: number };
+export type Member = {
+  id: string; name: string; email: string; createdAt: string; newsletter: boolean; phone?: string;
+  /** "My Year in the Word" tracking; on unless turned off. */ wrapped?: boolean;
+  /** Children (first name + age only) the parent added; their Bible-adventure stars count toward the family story. */ kids?: Kid[];
+  /** Set for 13-17s: birth year and the parent/guardian who was told about the account. */ teen?: { birthYear: number; guardianEmail: string };
+};
 type StoredMember = Member & { pw: string };
 
 export const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -29,9 +38,9 @@ async function verify(pw: string, stored: string) {
   const want = Buffer.from(hex, 'hex');
   return want.length === buf.length && timingSafeEqual(buf, want);
 }
-const pub = (m: StoredMember): Member => ({ id: m.id, name: m.name, email: m.email, createdAt: m.createdAt, newsletter: m.newsletter, phone: m.phone, wrapped: m.wrapped !== false });
+const pub = (m: StoredMember): Member => ({ id: m.id, name: m.name, email: m.email, createdAt: m.createdAt, newsletter: m.newsletter, phone: m.phone, wrapped: m.wrapped !== false, kids: m.kids ?? [], teen: m.teen });
 
-export async function createMember(input: { name: string; email: string; password: string; newsletter: boolean; phone?: string }) {
+export async function createMember(input: { name: string; email: string; password: string; newsletter: boolean; phone?: string; teen?: Member['teen'] }) {
   const email = input.email.trim().toLowerCase();
   const exists = await kv.exists(key(email));
   if (exists) return { error: 'An account with that email already exists. Sign in instead.' as const };
@@ -42,6 +51,7 @@ export async function createMember(input: { name: string; email: string; passwor
     createdAt: new Date().toISOString(),
     newsletter: input.newsletter,
     phone: input.phone?.trim().slice(0, 30) || undefined,
+    teen: input.teen,
     pw: await hash(input.password),
   };
   await kv.set(key(email), m);
@@ -63,6 +73,19 @@ export async function startSession(memberId: string) {
   await kv.sadd(`sessions:${memberId}`, token).catch(() => {});
   await kv.expire(`sessions:${memberId}`, SESSION_DAYS * 86400).catch(() => {});
   cookies().set(SESSION_COOKIE, token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', path: '/', maxAge: SESSION_DAYS * 86400 });
+}
+
+/** Pushes the current session a year out; cheap, and at most once a day
+ * per browser (a small marker cookie). Called from /api/auth/me. */
+export async function touchSession(memberId: string) {
+  const jar = cookies();
+  const t = jar.get(SESSION_COOKIE)?.value;
+  if (!t || jar.get(TOUCH_COOKIE)) return;
+  await kv.expire(`sess:${t}`, SESSION_DAYS * 86400).catch(() => {});
+  await kv.expire(`sessions:${memberId}`, SESSION_DAYS * 86400).catch(() => {});
+  const secure = process.env.NODE_ENV === 'production';
+  jar.set(SESSION_COOKIE, t, { httpOnly: true, secure, sameSite: 'lax', path: '/', maxAge: SESSION_DAYS * 86400 });
+  jar.set(TOUCH_COOKIE, '1', { httpOnly: true, secure, sameSite: 'lax', path: '/', maxAge: 86400 });
 }
 
 export async function endSession() {
@@ -87,7 +110,7 @@ export async function currentMember(): Promise<Member | null> {
   }
 }
 
-export async function updateMember(email: string, patch: Partial<Pick<Member, 'name' | 'newsletter' | 'phone' | 'wrapped'>>) {
+export async function updateMember(email: string, patch: Partial<Pick<Member, 'name' | 'newsletter' | 'phone' | 'wrapped' | 'kids'>>) {
   const m = await kv.get<StoredMember>(key(email));
   if (!m) return null;
   const next = { ...m, ...patch };
@@ -133,6 +156,36 @@ export async function completePasswordReset(token: string, password: string): Pr
   const old = await kv.smembers(`sessions:${m.id}`).catch(() => [] as string[]);
   if (old.length) await kv.del(...old.map((t) => `sess:${t}`), `sessions:${m.id}`).catch(() => {});
   return pub(next);
+}
+
+/** Removes an account completely (sign-ins, profile, story data keys expire on their own). */
+export async function deleteMember(email: string) {
+  const m = await kv.get<StoredMember>(key(email));
+  if (!m) return false;
+  const sess = await kv.smembers(`sessions:${m.id}`).catch(() => [] as string[]);
+  await kv.del(key(email), `memberid:${m.id}`, `sessions:${m.id}`, ...sess.map((t) => `sess:${t}`));
+  await kv.zrem('members', m.email).catch(() => {});
+  return true;
+}
+
+// Guardian notice for 13-17s: the parent/guardian gets a link that lets
+// them remove the account in one tap. Only the token's hash is stored.
+const guardianKey = (token: string) => `guardian:${createHash('sha256').update(token).digest('hex')}`;
+export async function createGuardianLink(email: string) {
+  const token = randomBytes(24).toString('base64url');
+  await kv.set(guardianKey(token), email.trim().toLowerCase(), { ex: 400 * 86400 });
+  return token;
+}
+export async function guardianLookup(token: string): Promise<Member | null> {
+  if (!token) return null;
+  const email = await kv.get<string>(guardianKey(token));
+  if (!email) return null;
+  const m = await kv.get<StoredMember>(key(email));
+  return m ? pub(m) : null;
+}
+export async function guardianRemove(token: string) {
+  const email = token ? await kv.getdel<string>(guardianKey(token)) : null;
+  return email ? deleteMember(email) : false;
 }
 
 /** Tiny fixed-window rate limit (per key) to slow password guessing/spam. */

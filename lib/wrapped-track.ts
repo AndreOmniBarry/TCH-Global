@@ -25,7 +25,9 @@ export type Activity =
   | { kind: 'play'; media: string }
   | { kind: 'read'; slug: string; topic?: string }
   | { kind: 'readDone'; slug: string; topic?: string }
-  | { kind: 'pray' };
+  | { kind: 'pray' }
+  | { kind: 'drop' }
+  | { kind: 'kidStar'; kid: string };
 
 export async function recordActivity(member: Member & { wrapped?: boolean }, a: Activity) {
   if (!KV_ON || member.wrapped === false) return;
@@ -33,6 +35,14 @@ export async function recordActivity(member: Member & { wrapped?: boolean }, a: 
   const secs = a.kind === 'listen' ? Math.max(0, Math.min(60, Math.round(a.seconds))) : 0;
   const m = kv.multi();
   for (const period of [t.year, t.month]) {
+    if (a.kind === 'kidStar') {
+      // A child's adventures live under the parent, apart from the parent's own days.
+      m.hincrby(key(member.id, period, 'kids'), a.kid, 1);
+      m.sadd(key(member.id, period, `kd:${a.kid}`), t.day);
+      m.expire(key(member.id, period, 'kids'), TTL);
+      m.expire(key(member.id, period, `kd:${a.kid}`), TTL);
+      continue;
+    }
     m.sadd(key(member.id, period, 'days'), t.day);
     m.hincrby(key(member.id, period, 'hours'), t.hour, 1);
     if (a.kind === 'listen') {
@@ -45,6 +55,8 @@ export async function recordActivity(member: Member & { wrapped?: boolean }, a: 
       if (a.topic) m.zincrby(key(member.id, period, 'topics'), 1, a.topic);
     } else if (a.kind === 'pray') {
       m.hincrby(key(member.id, period), 'prayers', 1);
+    } else if (a.kind === 'drop') {
+      m.hincrby(key(member.id, period), 'drops', 1);
     }
     for (const part of ['', 'days', 'hours', 'listen', 'media', 'topics']) m.expire(key(member.id, period, part), TTL);
   }
@@ -101,7 +113,12 @@ export async function buildWrapped(member: Member, period: string): Promise<Wrap
     kv.zrange<string[]>(key(member.id, period, 'topics'), 0, 0, { rev: true }),
   ]);
   const secs = Number(base?.secs || 0);
-  if (!days.length) return null;
+  const kidStars = (member.kids ?? []).length ? await kv.hgetall<Record<string, number>>(key(member.id, period, 'kids')) : null;
+  const family = (member.kids ?? [])
+    .map((k) => ({ k, stars: Number(kidStars?.[k.id] || 0) }))
+    .filter((x) => x.stars > 0);
+  const familyDays = await Promise.all(family.map((x) => kv.scard(key(member.id, period, `kd:${x.k.id}`))));
+  if (!days.length && !family.length) return null;
 
   const { items } = await getLibrary();
   const byId = new Map(items.map((i) => [i.id, i]));
@@ -138,7 +155,8 @@ export async function buildWrapped(member: Member, period: string): Promise<Wrap
     weeks: weeksFrom(days, period),
     topMessages: top.length ? top : [{ title: 'Your first message is waiting in PUDLIB!', plays: 0 }],
     topSeries: { title: seriesName || 'Start a series in PUDLIB!', parts: Math.max(seriesParts, 1), finished: Math.min(seriesDone, Math.max(seriesParts, 1)) },
-    reads: { posts: Number(base?.posts || 0), topTopic: topics[0] || 'Faith', book },
+    reads: { posts: Number(base?.posts || 0), topTopic: topics[0] || 'Faith', book, drops: Number(base?.drops || 0) || undefined },
+    family: family.length ? family.map((x, i) => ({ name: x.k.name, stars: x.stars, days: familyDays[i] || 0 })) : undefined,
     prayers: { prayed: Number(base?.prayers || 0), testimonies: 0 },
     persona: p,
     topPercent,

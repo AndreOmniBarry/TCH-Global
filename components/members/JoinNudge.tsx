@@ -5,14 +5,15 @@ import { useEffect, useState } from 'react';
 const SNOOZE_KEY = 'tch_join_snooze';
 const VIEWS_KEY = 'tch_views';
 const REASONS: Record<string, { title: string; body: string }> = {
-  default: { title: 'Join the TCH Global family', body: 'A free account keeps you connected between Sundays.' },
-  playlist: { title: 'Save messages with a free account', body: 'Build playlists and Watch later, and pick up where you stopped on any device.' },
+  default: { title: 'Start your Year in the Word', body: 'Sign up free and everything you play, read and pray along with here becomes your own story, revealed each month and on 15 December.' },
+  listen: { title: 'This message isn’t counting yet', body: 'You’re listening as a guest. Sign up free (it takes 20 seconds) and every minute from now goes into your own My Year in the Word.' },
+  playlist: { title: 'Save messages with a free account', body: 'Build playlists and Watch later, pick up where you stopped on any device, and watch your Year in the Word grow.' },
   comment: { title: 'Join the conversation', body: 'Respond to messages, pray with others and share what God is doing.' },
 };
-const PERKS = ['Save messages and build playlists', 'Resume on any phone or computer', 'Respond and pray on the blog', 'New messages in your inbox'];
+const PERKS = ['Your own My Year in the Word, every month and on 15 December', 'Sign in once and you stay signed in', 'Resume any message on any device', 'Add your children: their stars count too'];
 
 /** Invite to join: a bottom sheet that appears after real engagement
- * (40s on site, a second page, or most of a post), snoozes for 5 days
+ * (20s on site, a second page, most of a post, or a minute of listening), snoozes for 3 days
  * when dismissed, never shows to members, and opens on demand when a
  * guest reaches for a members-only feature (window event 'tch:join'). */
 export default function JoinNudge() {
@@ -26,7 +27,13 @@ export default function JoinNudge() {
     fetch('/api/auth/me', { cache: 'no-store' }).then((r) => r.json()).then((d) => { if (alive) setMember(Boolean(d.member)); }).catch(() => setMember(false));
     const onAsk = (e: Event) => { setReason((e as CustomEvent).detail?.reason || 'default'); setOpen(true); };
     window.addEventListener('tch:join', onAsk);
-    return () => { alive = false; window.removeEventListener('tch:join', onAsk); };
+    // A guest who keeps listening hears, once per visit, that it isn't counting.
+    const onListen = () => {
+      try { if (sessionStorage.getItem('tch_listen_nudged')) return; sessionStorage.setItem('tch_listen_nudged', '1'); } catch {}
+      setReason('listen'); setOpen(true);
+    };
+    window.addEventListener('tch:listen', onListen);
+    return () => { alive = false; window.removeEventListener('tch:join', onAsk); window.removeEventListener('tch:listen', onListen); };
   }, []);
 
   useEffect(() => {
@@ -40,7 +47,7 @@ export default function JoinNudge() {
     } catch {}
     if (snoozed) return;
     const show = () => { setReason('default'); setOpen(true); cleanup(); };
-    const timer = window.setTimeout(show, views >= 2 ? 6000 : 40000);
+    const timer = window.setTimeout(show, views >= 2 ? 5000 : 20000);
     const onScroll = () => {
       const max = document.documentElement.scrollHeight - innerHeight;
       if (location.pathname.startsWith('/blog/') && max > 0 && scrollY / max > 0.7) show();
@@ -52,7 +59,7 @@ export default function JoinNudge() {
 
   function dismiss() {
     setOpen(false);
-    try { localStorage.setItem(SNOOZE_KEY, String(Date.now() + 5 * 86400000)); } catch {}
+    try { localStorage.setItem(SNOOZE_KEY, String(Date.now() + 3 * 86400000)); } catch {}
   }
 
   if (!open || member) return null;
@@ -70,7 +77,7 @@ export default function JoinNudge() {
           <p>{r.body}</p>
           <ul>{PERKS.map((p) => <li key={p}>{p}</li>)}</ul>
           <div className="jn-actions">
-            <a className="jn-cta" href={`/account?mode=signup&next=${next}`}>Create free account</a>
+            <a className="jn-cta" href={`/account?mode=signup&next=${next}`}>Start my Year in the Word</a>
             <a className="jn-signin" href={`/account?next=${next}`}>I have an account</a>
           </div>
         </div>

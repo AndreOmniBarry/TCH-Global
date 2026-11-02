@@ -1,5 +1,7 @@
 'use client';
 
+import { useMember } from '@/components/members/useMember';
+
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Story } from '@/lib/kids/stories';
 import { shuffle } from '@/components/kids/games';
@@ -38,6 +40,7 @@ function useTeenProgress(dayNo: number) {
   const mark = useCallback((k: Key) => setDone((d) => {
     if (d[k]) return d;
     const next = { ...d, [k]: true };
+    fetch('/api/progress', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ area: 'teens', task: k }), keepalive: true }).catch(() => {});
     try {
       localStorage.setItem(key, JSON.stringify(next));
       const t = Number(localStorage.getItem('tch_teens_xp') || 0) + XP[k];
@@ -161,6 +164,7 @@ const GAMES = [{ k: 'trivia', l: 'Rapid fire' }, { k: 'books', l: 'Books in orde
 
 export default function TeensDaily({ story, season, dayNo, dateLabel, trivia }: Props) {
   const { done, mark, streak, total } = useTeenProgress(dayNo);
+  const { member, loading } = useMember();
   const [game, setGame] = useState<(typeof GAMES)[number]['k']>('trivia');
   const [note, setNote] = useState('');
   const prompt = PROMPTS[dayNo % PROMPTS.length];
@@ -189,6 +193,12 @@ export default function TeensDaily({ story, season, dayNo, dateLabel, trivia }: 
           <span><b>{count}</b>/5 today</span>
         </div>
       </div>
+
+      {!loading && !member && (
+        <a className="td-join" href="/account?mode=signup&next=/teens">
+          <b>Make your streak count.</b> Sign up free and every Daily Drop goes into your own <em>My Year in the Word</em> in December. Your streak follows you to any phone. &rarr;
+        </a>
+      )}
 
       <article className="td-word">
         <span className="td-tag">The Word &middot; {story.ref}</span>

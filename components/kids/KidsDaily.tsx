@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Story } from '@/lib/kids/stories';
 import Scene from './Scene';
+import { useMember } from '@/components/members/useMember';
 import { crossword, shuffle, wordSearch } from './games';
 
 type Props = { story: Story; season: 'christmas' | 'easter' | null; dayNo: number; dateLabel: string };
@@ -11,26 +12,30 @@ const GAMES: { key: GameKey; label: string }[] = [
   { key: 'quiz', label: 'Quiz' }, { key: 'search', label: 'Word search' }, { key: 'cross', label: 'Crossword' }, { key: 'verse', label: 'Verse builder' },
 ];
 
-function useProgress(dayNo: number) {
-  const key = `tch_kids_${dayNo}`;
+// Progress lives on the device per child profile ('' = not signed in) and,
+// for signed-in parents, is also sent to the family's Year in the Word.
+function useProgress(dayNo: number, kid: string) {
+  const key = kid ? `tch_kids_${kid}_${dayNo}` : `tch_kids_${dayNo}`;
+  const streakKey = kid ? `tch_kids_streak_${kid}` : 'tch_kids_streak';
   const [done, setDone] = useState<Record<string, boolean>>({});
   const [streak, setStreak] = useState(0);
   useEffect(() => {
     try {
       setDone(JSON.parse(localStorage.getItem(key) || '{}'));
-      const s = JSON.parse(localStorage.getItem('tch_kids_streak') || '{"last":-1,"n":0}');
+      const s = JSON.parse(localStorage.getItem(streakKey) || '{"last":-1,"n":0}');
       setStreak(s.last === dayNo || s.last === dayNo - 1 ? s.n : 0);
-    } catch {}
-  }, [key, dayNo]);
+    } catch { setDone({}); }
+  }, [key, streakKey, dayNo]);
   const mark = (k: string) => setDone((d) => {
     if (d[k]) return d;
     const next = { ...d, [k]: true };
+    if (kid) fetch('/api/progress', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ area: 'kids', task: k, kid }), keepalive: true }).catch(() => {});
     try {
       localStorage.setItem(key, JSON.stringify(next));
-      const s = JSON.parse(localStorage.getItem('tch_kids_streak') || '{"last":-1,"n":0}');
+      const s = JSON.parse(localStorage.getItem(streakKey) || '{"last":-1,"n":0}');
       if (s.last !== dayNo) {
         const n = s.last === dayNo - 1 ? s.n + 1 : 1;
-        localStorage.setItem('tch_kids_streak', JSON.stringify({ last: dayNo, n }));
+        localStorage.setItem(streakKey, JSON.stringify({ last: dayNo, n }));
         setStreak(n);
       }
     } catch {}
@@ -190,7 +195,17 @@ function VerseBuilder({ story, seed, onWin }: { story: Story; seed: number; onWi
 }
 
 export default function KidsDaily({ story, season, dayNo, dateLabel }: Props) {
-  const { done, mark, streak } = useProgress(dayNo);
+  const { member, loading } = useMember();
+  const kids = member?.kids ?? [];
+  const [kid, setKid] = useState('');
+  useEffect(() => {
+    if (!kids.length) { setKid(''); return; }
+    let saved = '';
+    try { saved = localStorage.getItem('tch_kid_active') || ''; } catch {}
+    setKid(kids.some((k) => k.id === saved) ? saved : kids[0].id);
+  }, [kids.length]); // eslint-disable-line react-hooks/exhaustive-deps
+  const pick = (id: string) => { setKid(id); try { localStorage.setItem('tch_kid_active', id); } catch {} };
+  const { done, mark, streak } = useProgress(dayNo, kid);
   const [game, setGame] = useState<GameKey>('quiz');
   const [boom, setBoom] = useState(0);
   const win = (k: string) => () => { if (!done[k]) { mark(k); setBoom(Date.now()); } };
@@ -199,6 +214,20 @@ export default function KidsDaily({ story, season, dayNo, dateLabel }: Props) {
   return (
     <div className="kd">
       <Confetti k={boom} />
+      {kids.length > 0 ? (
+        <div className="kd-who" role="radiogroup" aria-label="Who's playing?">
+          <span>Who&rsquo;s playing?</span>
+          {kids.map((k, i) => (
+            <button key={k.id} type="button" role="radio" aria-checked={kid === k.id} className={kid === k.id ? 'on' : ''} onClick={() => pick(k.id)} style={{ ['--c' as string]: ['#ff4fd8', '#3d7bff', '#ffb020', '#22c55e', '#a855f7', '#06b6d4', '#ef4444', '#84cc16'][i % 8] }}>
+              <i aria-hidden="true">{k.name[0]}</i>{k.name}
+            </button>
+          ))}
+        </div>
+      ) : !loading && (
+        <a className="kd-grownups" href={member ? '/account#kids' : '/account?mode=signup&next=/kids'}>
+          <b>Grown-ups:</b> {member ? 'add your child to your account' : 'create a free family account'} so these stars are saved and count toward your family&rsquo;s <em>Year in the Word</em> &rarr;
+        </a>
+      )}
       <div className="kd-top">
         <div>
           <span className="kd-date">{dateLabel}</span>
