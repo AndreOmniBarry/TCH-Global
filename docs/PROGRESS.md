@@ -140,3 +140,11 @@ Policy (decided):
 - Teens' Daily Drop tasks count toward their own story (days/streak + "Daily Drop tasks" line).
 Staying signed in: sessions now roll. Each visit (at most once a day, via /api/auth/me) pushes the session a year out; sessions are indexed per member so a password reset or guardian removal signs out everywhere.
 Sign-up push: Year-in-the-Word-first copy on the account page and invite sheet; invite appears after 20 s (5 s on a second page), snoozes 3 days; a guest who keeps listening in PUDLIB! is told once per visit that it isn't counting; home banner with a countdown to 15 December and a demo link; kids page "Grown-ups" strip and teens "Make your streak count" strip for guests.
+
+## 3 Nov 2026: warmer families, sign-in watcher, Google
+Replaces parts of the 2 Nov approach after review:
+- Teens: no age gate. Sign-up asks "I'm joining as": Church family / TCH Loveforce (teens, 13 to 17). Loveforce asks for a parent or guardian "to connect with", who gets "Ray has joined TCH Loveforce" with an invite to join too; a small "Not their parent? Let us know" link leads to /account/guardian, where the account can be closed.
+- Kids: no setup in the account page. Children make an explorer (first name + one of six buddies: lion, lamb, dove, fish, bear, owl) on /kids. Works signed out (device); when a grown-up signs in, explorers move into the family account with their ids (stars carry over; same names merge). Edit/remove on /kids. Year in the Word card renamed "Your explorers" with their buddies.
+- Sessions: 90 days from the last visit (was a year).
+- SessionWatcher (layout): re-checks the session on tab focus and every 15 min. If someone this device knows is signed out, it tries Google One Tap (when configured) and shows "Welcome back, Ada" with an in-place sign-in (no page change). Signed-out plays in PUDLIB! and Daily Drop tasks fire 'tch:needs-signin': known people get that prompt, new visitors the join invite. At most every 10 minutes.
+- Continue with Google: button on sign-in/sign-up and in the watcher; One Tap with auto-select signs returning users back in. Server verifies Google's RS256 ID token against Google's keys (lib/google.ts, no new packages). Off until NEXT_PUBLIC_GOOGLE_CLIENT_ID is set in Vercel (then redeploy).

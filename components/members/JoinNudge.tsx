@@ -6,7 +6,8 @@ const SNOOZE_KEY = 'tch_join_snooze';
 const VIEWS_KEY = 'tch_views';
 const REASONS: Record<string, { title: string; body: string }> = {
   default: { title: 'Start your Year in the Word', body: 'Sign up free and everything you play, read and pray along with here becomes your own story, revealed each month and on 15 December.' },
-  listen: { title: 'This message isn’t counting yet', body: 'You’re listening as a guest. Sign up free (it takes 20 seconds) and every minute from now goes into your own My Year in the Word.' },
+  play: { title: 'This message isn’t counting yet', body: 'You’re listening as a guest. Sign up free (it takes 20 seconds) and every minute from now goes into your own My Year in the Word.' },
+  drop: { title: 'Make your streak count', body: 'Sign up free and every Daily Drop you finish goes into your own My Year in the Word. Your streak follows you to any phone.' },
   playlist: { title: 'Save messages with a free account', body: 'Build playlists and Watch later, pick up where you stopped on any device, and watch your Year in the Word grow.' },
   comment: { title: 'Join the conversation', body: 'Respond to messages, pray with others and share what God is doing.' },
 };
@@ -15,7 +16,8 @@ const PERKS = ['Your own My Year in the Word, every month and on 15 December', '
 /** Invite to join: a bottom sheet that appears after real engagement
  * (20s on site, a second page, most of a post, or a minute of listening), snoozes for 3 days
  * when dismissed, never shows to members, and opens on demand when a
- * guest reaches for a members-only feature (window event 'tch:join'). */
+ * guest reaches for a members-only feature or plays something that would
+ * count toward a Year in the Word (window event 'tch:join'). */
 export default function JoinNudge() {
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState('default');
@@ -27,13 +29,9 @@ export default function JoinNudge() {
     fetch('/api/auth/me', { cache: 'no-store' }).then((r) => r.json()).then((d) => { if (alive) setMember(Boolean(d.member)); }).catch(() => setMember(false));
     const onAsk = (e: Event) => { setReason((e as CustomEvent).detail?.reason || 'default'); setOpen(true); };
     window.addEventListener('tch:join', onAsk);
-    // A guest who keeps listening hears, once per visit, that it isn't counting.
-    const onListen = () => {
-      try { if (sessionStorage.getItem('tch_listen_nudged')) return; sessionStorage.setItem('tch_listen_nudged', '1'); } catch {}
-      setReason('listen'); setOpen(true);
-    };
-    window.addEventListener('tch:listen', onListen);
-    return () => { alive = false; window.removeEventListener('tch:join', onAsk); window.removeEventListener('tch:listen', onListen); };
+    const onIn = () => { setMember(true); setOpen(false); };
+    window.addEventListener('tch:signedin', onIn);
+    return () => { alive = false; window.removeEventListener('tch:join', onAsk); window.removeEventListener('tch:signedin', onIn); };
   }, []);
 
   useEffect(() => {

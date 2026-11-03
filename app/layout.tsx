@@ -11,6 +11,7 @@ import Script from 'next/script';
 import CrystalLiquid from '@/components/decor/CrystalLiquid';
 import QuickDock from '@/components/QuickDock';
 import JoinNudge from '@/components/members/JoinNudge';
+import SessionWatcher from '@/components/members/SessionWatcher';
 import BroadcastFrames from '@/components/decor/BroadcastFrames';
 
 const DESCRIPTION = "TCH Global (The Comforter's House Global) is a church for every nation, led by Pastor Uzor Echiejile.";
@@ -117,6 +118,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <CrystalLiquid />
         <QuickDock />
         <JoinNudge />
+        <SessionWatcher />
         <BroadcastFrames />
         {children}
         <Script src={asset("/js/main.js")} strategy="afterInteractive" />

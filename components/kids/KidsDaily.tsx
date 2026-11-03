@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Story } from '@/lib/kids/stories';
 import Scene from './Scene';
-import { useMember } from '@/components/members/useMember';
+import Explorers from './Explorers';
 import { crossword, shuffle, wordSearch } from './games';
 
 type Props = { story: Story; season: 'christmas' | 'easter' | null; dayNo: number; dateLabel: string };
@@ -195,16 +195,7 @@ function VerseBuilder({ story, seed, onWin }: { story: Story; seed: number; onWi
 }
 
 export default function KidsDaily({ story, season, dayNo, dateLabel }: Props) {
-  const { member, loading } = useMember();
-  const kids = member?.kids ?? [];
   const [kid, setKid] = useState('');
-  useEffect(() => {
-    if (!kids.length) { setKid(''); return; }
-    let saved = '';
-    try { saved = localStorage.getItem('tch_kid_active') || ''; } catch {}
-    setKid(kids.some((k) => k.id === saved) ? saved : kids[0].id);
-  }, [kids.length]); // eslint-disable-line react-hooks/exhaustive-deps
-  const pick = (id: string) => { setKid(id); try { localStorage.setItem('tch_kid_active', id); } catch {} };
   const { done, mark, streak } = useProgress(dayNo, kid);
   const [game, setGame] = useState<GameKey>('quiz');
   const [boom, setBoom] = useState(0);
@@ -214,20 +205,7 @@ export default function KidsDaily({ story, season, dayNo, dateLabel }: Props) {
   return (
     <div className="kd">
       <Confetti k={boom} />
-      {kids.length > 0 ? (
-        <div className="kd-who" role="radiogroup" aria-label="Who's playing?">
-          <span>Who&rsquo;s playing?</span>
-          {kids.map((k, i) => (
-            <button key={k.id} type="button" role="radio" aria-checked={kid === k.id} className={kid === k.id ? 'on' : ''} onClick={() => pick(k.id)} style={{ ['--c' as string]: ['#ff4fd8', '#3d7bff', '#ffb020', '#22c55e', '#a855f7', '#06b6d4', '#ef4444', '#84cc16'][i % 8] }}>
-              <i aria-hidden="true">{k.name[0]}</i>{k.name}
-            </button>
-          ))}
-        </div>
-      ) : !loading && (
-        <a className="kd-grownups" href={member ? '/account#kids' : '/account?mode=signup&next=/kids'}>
-          <b>Grown-ups:</b> {member ? 'add your child to your account' : 'create a free family account'} so these stars are saved and count toward your family&rsquo;s <em>Year in the Word</em> &rarr;
-        </a>
-      )}
+      <Explorers active={kid} onPick={setKid} />
       <div className="kd-top">
         <div>
           <span className="kd-date">{dateLabel}</span>

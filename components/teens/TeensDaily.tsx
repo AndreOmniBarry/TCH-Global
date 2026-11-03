@@ -40,7 +40,8 @@ function useTeenProgress(dayNo: number) {
   const mark = useCallback((k: Key) => setDone((d) => {
     if (d[k]) return d;
     const next = { ...d, [k]: true };
-    fetch('/api/progress', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ area: 'teens', task: k }), keepalive: true }).catch(() => {});
+    fetch('/api/progress', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ area: 'teens', task: k }), keepalive: true })
+      .then((r) => r.json()).then((d) => { if (d && d.counted === false) window.dispatchEvent(new CustomEvent('tch:needs-signin', { detail: { reason: 'drop' } })); }).catch(() => {});
     try {
       localStorage.setItem(key, JSON.stringify(next));
       const t = Number(localStorage.getItem('tch_teens_xp') || 0) + XP[k];

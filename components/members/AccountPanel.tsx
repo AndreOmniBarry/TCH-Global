@@ -5,11 +5,12 @@ import { useSlidingPill } from '@/components/useSlidingPill';
 import { useMember } from './useMember';
 import PhoneField from '@/components/PhoneField';
 import { withCountry } from '@/lib/phone';
+import GoogleButton from './GoogleButton';
 
 const BENEFITS = [
   ['Your own My Year in the Word', 'Every message you play, post you read and prayer you send builds your private story, revealed each month and on 15 December.'],
-  ['Stay signed in', 'Sign in once on your phone and you stay signed in. Pick up any message where you left off.'],
-  ['Family friendly', 'Add your children and their Bible-adventure stars count too. Teens 13+ can have their own account.'],
+  ['Stay signed in', 'Sign in once (or tap Continue with Google) and you stay signed in. Pick up any message where you left off.'],
+  ['For the whole family', 'Children’s Bible-adventure stars join your story, and teens get their own through TCH Loveforce.'],
   ['Respond on the blog', 'Share encouragement, prayers and testimonies under every message.'],
   ['New messages by email', 'Sunday reflections and announcements in your inbox, if you want them.'],
   ['Stay connected', 'Our team can follow up with you personally about membership and serving.'],
@@ -23,9 +24,17 @@ export default function AccountPanel({ initialMode, next, initialForgot = false 
   const [saved, setSaved] = useState('');
   const [forgot, setForgot] = useState(initialForgot);
   const [sent, setSent] = useState('');
-  const [under18, setUnder18] = useState(false);
-  const [kidErr, setKidErr] = useState('');
-  const thisYear = new Date().getFullYear();
+  const [track, setTrack] = useState<'family' | 'loveforce'>('family');
+  const [gErr, setGErr] = useState('');
+
+  // Continue with Google (or One Tap) finished: same as a normal sign-in.
+  useEffect(() => {
+    const onIn = (e: Event) => { if (next) { location.href = next; return; } setMember((e as CustomEvent).detail); };
+    const onErr = (e: Event) => setGErr(String((e as CustomEvent).detail || ''));
+    window.addEventListener('tch:signedin', onIn);
+    window.addEventListener('tch:signin-error', onErr);
+    return () => { window.removeEventListener('tch:signedin', onIn); window.removeEventListener('tch:signin-error', onErr); };
+  }, [next, setMember]);
   const switchRef = useSlidingPill<HTMLDivElement>(`${mode}-${member ? 1 : 0}-${loading ? 1 : 0}`);
   const [demo, setDemo] = useState<'' | 'enter' | 'tap' | 'out'>('');
 
@@ -54,10 +63,11 @@ export default function AccountPanel({ initialMode, next, initialForgot = false 
       const r = await fetch(`/api/auth/${mode === 'signup' ? 'signup' : 'login'}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...body, newsletter: body.newsletter === 'on', under18: body.under18 === 'on' }),
+        body: JSON.stringify({ ...body, newsletter: body.newsletter === 'on', loveforce: track === 'loveforce' }),
       });
       const d = await r.json().catch(() => ({}));
       if (!r.ok) return setErr(d.error || 'Something went wrong. Please try again.');
+      window.dispatchEvent(new CustomEvent('tch:signedin', { detail: d.member }));
       if (next) { location.href = next; return; }
       setMember(d.member);
     } catch {
@@ -84,25 +94,6 @@ export default function AccountPanel({ initialMode, next, initialForgot = false 
     }
   }
 
-  async function addKid(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    setKidErr('');
-    const form = e.currentTarget;
-    const f = new FormData(form);
-    const r = await fetch('/api/kids', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: f.get('kid'), age: Number(f.get('age')) }) }).catch(() => null);
-    const d = r ? await r.json().catch(() => ({})) : {};
-    if (!r?.ok) return setKidErr(d.error || 'Couldn’t add that. Try again.');
-    setMember(d.member);
-    form.reset();
-  }
-
-  async function removeKid(id: string, name: string) {
-    if (!confirm(`Remove ${name}? Their saved stars on this account will no longer count.`)) return;
-    const r = await fetch('/api/kids', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) }).catch(() => null);
-    const d = r ? await r.json().catch(() => ({})) : {};
-    if (r?.ok) setMember(d.member);
-  }
-
   async function update(patch: Record<string, unknown>) {
     setSaved('');
     const r = await fetch('/api/auth/me', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(patch) });
@@ -112,6 +103,8 @@ export default function AccountPanel({ initialMode, next, initialForgot = false 
 
   async function signOut() {
     await fetch('/api/auth/logout', { method: 'POST' });
+    window.dispatchEvent(new Event('tch:signedout'));
+    try { window.google?.accounts.id.disableAutoSelect(); } catch {}
     setMember(null);
   }
 
@@ -143,30 +136,13 @@ export default function AccountPanel({ initialMode, next, initialForgot = false 
           {saved && <p className="form-status" data-kind="ok">{saved}</p>}
         </form>
         {!member.teen && (
-          <section className="account-kids" id="kids">
-            <h3>Your children</h3>
-            <p className="account-muted">Add your 3 to 12-year-olds and pick them on <a href="/kids">Today&rsquo;s Bible Adventure</a>. Their stars are saved and appear in your family&rsquo;s <b>Year in the Word</b>. We keep only a first name and age.</p>
-            {(member.kids ?? []).length > 0 && (
-              <ul className="account-kid-list">
-                {(member.kids ?? []).map((k) => (
-                  <li key={k.id}><i aria-hidden="true">{k.name[0]}</i><span><b>{k.name}</b> &middot; {k.age}</span><button type="button" onClick={() => removeKid(k.id, k.name)} aria-label={`Remove ${k.name}`}>Remove</button></li>
-                ))}
-              </ul>
-            )}
-            {(member.kids ?? []).length < 8 && (
-              <form className="account-kid-add" onSubmit={addKid}>
-                <input name="kid" placeholder="First name" aria-label="Child's first name" required minLength={2} maxLength={24} />
-                <select name="age" aria-label="Age" required defaultValue="">
-                  <option value="" disabled>Age</option>
-                  {Array.from({ length: 10 }, (_, i) => i + 3).map((a) => <option key={a} value={a}>{a}</option>)}
-                </select>
-                <button type="submit" className="btn btn-ghost">Add child</button>
-              </form>
-            )}
-            {kidErr && <p className="form-status" data-kind="error" role="alert">{kidErr}</p>}
-          </section>
+          <a className="account-family" href="/kids" id="kids">
+            <span className="account-family-faces" aria-hidden="true">{(member.kids ?? []).slice(0, 4).map((k) => <i key={k.id}>{k.name[0]}</i>)}{!(member.kids ?? []).length && <i>+</i>}</span>
+            <span><b>{(member.kids ?? []).length ? `Your explorers: ${(member.kids ?? []).map((k) => k.name).join(', ')}` : 'Children at home?'}</b>
+            <em>{(member.kids ?? []).length ? 'Their stars count in your family’s Year in the Word. Add or change explorers on Today’s Bible Adventure.' : 'They make their own explorer on Today’s Bible Adventure, and their stars join your family’s Year in the Word.'}</em></span>
+          </a>
         )}
-        <p className="account-muted account-stay">You&rsquo;ll stay signed in on this device for a year after your last visit. Using a shared phone? Sign out when you&rsquo;re done.</p>
+        <p className="account-muted account-stay">You&rsquo;ll stay signed in on this device as long as you visit at least once every 3 months. Using a shared phone? Sign out when you&rsquo;re done.</p>
         <div className="account-links">
           <a href="/blog">Read and respond on the blog &rarr;</a>
           <a href="/library">Open PUDLIB! &rarr;</a>
@@ -197,6 +173,8 @@ export default function AccountPanel({ initialMode, next, initialForgot = false 
           <button type="button" role="tab" aria-selected={mode === 'signup'} className={mode === 'signup' ? 'on' : ''} onClick={() => { setMode('signup'); setForgot(false); setErr(''); }}>Create account</button>
           <button type="button" role="tab" aria-selected={mode === 'signin'} className={mode === 'signin' ? 'on' : ''} onClick={() => { setMode('signin'); setForgot(false); setErr(''); }}>Sign in</button>
         </div>
+        {!(mode === 'signin' && forgot) && <GoogleButton text={mode === 'signup' ? 'signup_with' : 'signin_with'} />}
+        {gErr && <p className="form-status" data-kind="error" role="alert">{gErr}</p>}
         {mode === 'signin' && forgot ? (
           <form className="account-form" onSubmit={sendReset} key="forgot">
             <input type="text" name="website" tabIndex={-1} autoComplete="off" className="hp-field" aria-hidden="true" />
@@ -229,21 +207,23 @@ export default function AccountPanel({ initialMode, next, initialForgot = false 
           <input id="acc-pw" name="password" type="password" autoComplete={mode === 'signup' ? 'new-password' : 'current-password'} required minLength={mode === 'signup' ? 8 : 1} placeholder={mode === 'signup' ? 'At least 8 characters' : ''} />
           {mode === 'signup' && (
             <>
-              <label className="account-check">
-                <input type="checkbox" name="under18" checked={under18} onChange={(e) => setUnder18(e.target.checked)} />
-                <span>I&rsquo;m under 18</span>
-              </label>
-              {under18 && (
-                <div className="account-teen">
-                  <label htmlFor="acc-by">Year you were born</label>
-                  <select id="acc-by" name="birthYear" required defaultValue="">
-                    <option value="" disabled>Choose…</option>
-                    {Array.from({ length: 7 }, (_, i) => thisYear - 13 - i).map((y) => <option key={y} value={y}>{y}</option>)}
-                    <option value={thisYear - 12}>{thisYear - 12} or later (12 and under)</option>
-                  </select>
-                  <label htmlFor="acc-guardian">Parent or guardian&rsquo;s email</label>
-                  <input id="acc-guardian" name="guardianEmail" type="email" autoComplete="off" required placeholder="We’ll let them know you joined" />
-                  <p className="account-muted">Under 13? A parent can add you to their own account instead, and your stars still count.</p>
+              <fieldset className="join-as">
+                <legend>I&rsquo;m joining as</legend>
+                <div className="join-as-opts">
+                  <button type="button" className={track === 'family' ? 'on' : ''} aria-pressed={track === 'family'} onClick={() => setTrack('family')}>
+                    <b>Church family</b><span>Members, visitors, parents</span>
+                  </button>
+                  <button type="button" className={`lf${track === 'loveforce' ? ' on' : ''}`} aria-pressed={track === 'loveforce'} onClick={() => setTrack('loveforce')}>
+                    <b>TCH Loveforce</b><span>Teens, 13 to 17</span>
+                  </button>
+                </div>
+              </fieldset>
+              {track === 'loveforce' && (
+                <div className="join-lf">
+                  <p><b>Welcome to Loveforce.</b> Your Daily Drops, streaks and the messages you play build your own <em>Year in the Word</em>.</p>
+                  <label htmlFor="acc-guardian">A parent or guardian to connect with</label>
+                  <input id="acc-guardian" name="guardianEmail" type="email" autoComplete="off" required placeholder="Their email" />
+                  <p className="account-muted">We&rsquo;ll send them a short welcome so they can cheer you on and join you on TCH Global.</p>
                 </div>
               )}
               <label htmlFor="acc-phone">Phone (optional)</label>

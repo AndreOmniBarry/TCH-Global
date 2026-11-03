@@ -21,6 +21,10 @@ export async function POST(req: NextRequest) {
       if (a) await recordActivity(me, a);
       if (event === 'listen') return NextResponse.json({ ok: true, counted: me.wrapped !== false });
     }
+    const media = slug.startsWith('media:') || slug.startsWith('yt:');
+    // Tells the player whether this counted toward a Year in the Word, so a
+    // signed-out listener can be asked to sign in.
+    const counted = media ? Boolean(me && me.wrapped !== false) : undefined;
     if (event === 'listen') return NextResponse.json({ ok: true, counted: false });
     switch (event) {
       case 'share':
@@ -33,7 +37,7 @@ export async function POST(req: NextRequest) {
       default:
         await recordView(slug, typeof visitorId === 'string' ? visitorId : undefined);
     }
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: true, counted });
   } catch {
     // Never fail loudly for a view-tracking call — a broken analytics
     // ping should never look like a broken page to a reader.

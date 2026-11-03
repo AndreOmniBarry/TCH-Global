@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Wrapped } from '@/lib/wrapped';
+import Buddy from '@/components/kids/Buddy';
 
 const DURATION = 6500;
 
@@ -123,16 +124,16 @@ function cards(w: Wrapped): Card[] {
       ),
     },
     ...(w.family?.length ? [{
-      key: 'family', theme: 'wr-t6', share: `Our family's Bible adventures: ${w.family.reduce((a, f) => a + f.stars, 0)} stars`,
+      key: 'family', theme: 'wr-t6', share: `Our explorers collected ${w.family.reduce((a, f) => a + f.stars, 0)} stars`,
       render: (a: boolean) => (
         <>
-          <p className="wr-eyebrow">Your family&rsquo;s adventures</p>
+          <p className="wr-eyebrow">Your explorers</p>
           <p className="wr-number"><CountUp n={w.family!.reduce((t, f) => t + f.stars, 0)} active={a} /></p>
           <p className="wr-unit">stars collected in Today&rsquo;s Bible Adventure</p>
           <ol className="wr-list">
             {w.family!.map((f, i) => (
               <li key={f.name} style={{ animationDelay: `${150 + i * 120}ms` }}>
-                <b>{i + 1}</b>
+                <b className="wr-buddy"><Buddy name={f.avatar} size={34} /></b>
                 <span><strong>{f.name}</strong><em>{f.stars} stars &middot; {f.days} {f.days === 1 ? 'day' : 'days'}</em></span>
               </li>
             ))}

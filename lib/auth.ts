@@ -9,17 +9,21 @@ import { cookies } from 'next/headers';
 const scrypt = promisify(_scrypt) as (pw: string, salt: string, len: number) => Promise<Buffer>;
 export const authConfigured = Boolean(process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN);
 export const SESSION_COOKIE = 'tch_sess';
-// Sessions roll: every visit (at most once a day) pushes expiry a full year
-// out, so a member who comes back at least once a year never signs in again.
-const SESSION_DAYS = 365;
+// Sessions roll: every visit (at most once a day) pushes expiry 90 days out,
+// so a member who comes back at least once a quarter never signs in again.
+const SESSION_DAYS = 90;
 const TOUCH_COOKIE = 'tch_touch';
 
-export type Kid = { id: string; name: string; age: number };
+/** A child "explorer" on a family account: first name and a buddy avatar only. */
+export type Kid = { id: string; name: string; avatar?: string; age?: number };
+export const KID_ID_RE = /^k_[a-f0-9]{10}$/;
+export const AVATARS = ['lion', 'lamb', 'dove', 'fish', 'bear', 'owl'] as const;
 export type Member = {
   id: string; name: string; email: string; createdAt: string; newsletter: boolean; phone?: string;
   /** "My Year in the Word" tracking; on unless turned off. */ wrapped?: boolean;
   /** Children (first name + age only) the parent added; their Bible-adventure stars count toward the family story. */ kids?: Kid[];
-  /** Set for 13-17s: birth year and the parent/guardian who was told about the account. */ teen?: { birthYear: number; guardianEmail: string };
+  /** TCH Loveforce (teens): the parent/guardian they asked us to connect with. */ teen?: { guardianEmail: string; birthYear?: number };
+  /** Google account id when they use Continue with Google. */ google?: string;
 };
 type StoredMember = Member & { pw: string };
 
@@ -38,7 +42,7 @@ async function verify(pw: string, stored: string) {
   const want = Buffer.from(hex, 'hex');
   return want.length === buf.length && timingSafeEqual(buf, want);
 }
-const pub = (m: StoredMember): Member => ({ id: m.id, name: m.name, email: m.email, createdAt: m.createdAt, newsletter: m.newsletter, phone: m.phone, wrapped: m.wrapped !== false, kids: m.kids ?? [], teen: m.teen });
+const pub = (m: StoredMember): Member => ({ id: m.id, name: m.name, email: m.email, createdAt: m.createdAt, newsletter: m.newsletter, phone: m.phone, wrapped: m.wrapped !== false, kids: m.kids ?? [], teen: m.teen, google: m.google ? 'linked' : undefined });
 
 export async function createMember(input: { name: string; email: string; password: string; newsletter: boolean; phone?: string; teen?: Member['teen'] }) {
   const email = input.email.trim().toLowerCase();
@@ -58,6 +62,22 @@ export async function createMember(input: { name: string; email: string; passwor
   await kv.set(`memberid:${m.id}`, email);
   await kv.zadd('members', { score: Date.now(), member: email });
   return { member: pub(m) };
+}
+
+/** Continue with Google: signs in the account with that email (linking it
+ * the first time), or creates one. Google has already verified the email. */
+export async function googleMember(p: { sub: string; email: string; name: string }) {
+  const email = p.email.trim().toLowerCase();
+  const m = await kv.get<StoredMember>(key(email));
+  if (m) {
+    if (m.google !== p.sub) await kv.set(key(email), { ...m, google: p.sub });
+    return { member: pub({ ...m, google: p.sub }), created: false };
+  }
+  const r = await createMember({ name: p.name || email.split('@')[0], email, password: randomBytes(24).toString('base64url'), newsletter: true });
+  if ('error' in r) return null;
+  const stored = await kv.get<StoredMember>(key(email));
+  if (stored) await kv.set(key(email), { ...stored, google: p.sub });
+  return { member: r.member, created: true };
 }
 
 export async function checkLogin(email: string, password: string) {

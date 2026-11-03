@@ -156,7 +156,7 @@ export async function buildWrapped(member: Member, period: string): Promise<Wrap
     topMessages: top.length ? top : [{ title: 'Your first message is waiting in PUDLIB!', plays: 0 }],
     topSeries: { title: seriesName || 'Start a series in PUDLIB!', parts: Math.max(seriesParts, 1), finished: Math.min(seriesDone, Math.max(seriesParts, 1)) },
     reads: { posts: Number(base?.posts || 0), topTopic: topics[0] || 'Faith', book, drops: Number(base?.drops || 0) || undefined },
-    family: family.length ? family.map((x, i) => ({ name: x.k.name, stars: x.stars, days: familyDays[i] || 0 })) : undefined,
+    family: family.length ? family.map((x, i) => ({ name: x.k.name, stars: x.stars, days: familyDays[i] || 0, avatar: x.k.avatar })) : undefined,
     prayers: { prayed: Number(base?.prayers || 0), testimonies: 0 },
     persona: p,
     topPercent,

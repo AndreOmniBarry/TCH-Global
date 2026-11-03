@@ -46,13 +46,14 @@ function useListenBeat(id: string, playing: boolean) {
     let beats = 0;
     const t = setInterval(() => {
       fetch('/api/track-view', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ slug: `media:${id}`, event: 'listen', seconds: 30 }), keepalive: true })
-        .then((r) => r.json()).then((d) => { if (++beats >= 2 && d && d.counted === false) window.dispatchEvent(new Event('tch:listen')); }).catch(() => {});
+        .then((r) => r.json()).then((d) => { if (++beats >= 1 && d && d.counted === false) window.dispatchEvent(new CustomEvent('tch:needs-signin', { detail: { reason: 'play' } })); }).catch(() => {});
     }, 30000);
     return () => clearInterval(t);
   }, [id, playing]);
 }
 function track(id: string) {
-  fetch('/api/track-view', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ slug: `media:${id}`, event: 'view' }) }).catch(() => {});
+  fetch('/api/track-view', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ slug: `media:${id}`, event: 'view' }) })
+    .then((r) => r.json()).then((d) => { if (d && d.counted === false) window.dispatchEvent(new CustomEvent('tch:needs-signin', { detail: { reason: 'play' } })); }).catch(() => {});
 }
 
 /* ---------------- Seek bar with hover-time preview ---------------- */
