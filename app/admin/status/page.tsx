@@ -66,6 +66,15 @@ async function run(): Promise<Check[]> {
         : 'Not set up. Add SMTP_USER and SMTP_PASS (Gmail app password).',
       unlocks: 'Submission alerts, welcome, thank-you and salvation emails, teen questions to the Pastor' });
   }
+  {
+    const gid = (process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '').trim();
+    const looksRight = /^[0-9]+-[a-z0-9]+\.apps\.googleusercontent\.com$/.test(gid);
+    out.push({ name: 'Continue with Google', ok: looksRight,
+      detail: !gid ? 'Not set up. Add NEXT_PUBLIC_GOOGLE_CLIENT_ID in Vercel, then redeploy (steps in docs/GOOGLE_SIGNIN.md).'
+        : looksRight ? `On · Client ID …${gid.slice(-38, -27)} · allowed origin must include ${(process.env.SITE_URL || 'https://tch-global.vercel.app').replace(/\/+$/, '')}`
+        : 'NEXT_PUBLIC_GOOGLE_CLIENT_ID is set but doesn’t look like a Google Client ID (it should end in .apps.googleusercontent.com).',
+      unlocks: 'One-tap sign-in and sign-up with Google; returning members signed back in automatically' });
+  }
   out.push({ name: 'Teens private questions', ok: Boolean(process.env.PASTOR_EMAIL && (process.env.RESEND_API_KEY || (process.env.SMTP_USER && process.env.SMTP_PASS))), detail: process.env.PASTOR_EMAIL ? `Go only to the Pastor's inbox${process.env.EMAIL_FROM || (process.env.SMTP_USER && process.env.SMTP_PASS) ? '' : '. Note: add the Gmail sender (SMTP_USER/SMTP_PASS) or a domain so it can reach the Pastor'}` : 'PASTOR_EMAIL not set. Questions are refused until it is.', unlocks: 'Ask anything (No judgement zone) on /teens' });
   // Ask Google directly so a refused key shows Google's own reason.
   let ytErr = '';
