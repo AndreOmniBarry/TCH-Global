@@ -148,3 +148,10 @@ Replaces parts of the 2 Nov approach after review:
 - Sessions: 90 days from the last visit (was a year).
 - SessionWatcher (layout): re-checks the session on tab focus and every 15 min. If someone this device knows is signed out, it tries Google One Tap (when configured) and shows "Welcome back, Ada" with an in-place sign-in (no page change). Signed-out plays in PUDLIB! and Daily Drop tasks fire 'tch:needs-signin': known people get that prompt, new visitors the join invite. At most every 10 minutes.
 - Continue with Google: button on sign-in/sign-up and in the watcher; One Tap with auto-select signs returning users back in. Server verifies Google's RS256 ID token against Google's keys (lib/google.ts, no new packages). Off until NEXT_PUBLIC_GOOGLE_CLIENT_ID is set in Vercel (then redeploy).
+
+## 5 Nov 2026: statements from the church handbook
+- Vision: to take the consolation of Christ Jesus to the people and nations of the earth.
+- Mission: to raise disciples for the work of the ministry (with evangelism, fellowship, discipleship and "make the Gospel a living reality").
+- Core values: P.E.A.R.L.S. (Patience, Excellence, Accountability, Righteousness, Love, Salvation), letter badges; one-line descriptions drafted for review.
+- What We Believe: the six-point faith statement (a-f). Point f was cut off in the photo; reconstructed as "virgin birth, sinless life, atoning death and triumphant return of the Lord Jesus Christ": confirm.
+- Bank account names keep "Consolation Ministry" (must match the bank).
