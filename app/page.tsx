@@ -12,6 +12,7 @@ import SalvationSection from '@/components/SalvationSection';
 import Script from 'next/script';
 import { fallbackPosts } from '@/lib/fallback-posts';
 import { BANK_ACCOUNTS } from '@/lib/giving';
+import { bankLockup, bankWatermark, CHIP } from '@/lib/bank-brands';
 import { SPOTIFY_URL } from '@/lib/spotify';
 import { phoneFieldHtml, flagSvg } from '@/lib/phone';
 
@@ -331,7 +332,15 @@ const HOME_HTML_EVENTS_TO_MEDIA = `
       <span class="eyebrow">Generous Stewardship</span>
       <h2>Give</h2>
       <p>${BANK_ACCOUNTS.length ? `Give by bank transfer to ${BANK_ACCOUNTS.length > 1 ? 'the account for what you’re giving to' : 'the account'} below. Tap a number to copy it. Online card giving is coming soon.` : 'Online giving with a secure payment gateway is coming soon. For now, tell us your intent and our finance team will follow up with safe giving options.'}</p>
-      ${BANK_ACCOUNTS.map((a) => `<div class="bank-card">
+      ${BANK_ACCOUNTS.map((a, i) => a.brand ? `<div class="bank-card bc bc--${a.brand}">
+        <span class="bc-mark" aria-hidden="true">${bankWatermark(a.brand, `bk${i}`)}</span>
+        <span class="bc-top">${bankLockup(a.brand, `bk${i}`)}${a.currency === 'NGN' ? `<span class="bank-cur">${flagSvg('NG')}NGN</span>` : ''}</span>
+        <span class="bc-purpose">${a.purpose}</span>
+        ${CHIP}
+        <button type="button" class="bank-number" onclick="navigator.clipboard&&navigator.clipboard.writeText('${a.number}').then(()=>{this.classList.add('copied');setTimeout(()=>this.classList.remove('copied'),1600)})" aria-label="Copy account number ${a.number}">${a.number.replace(/(\d{4})(\d{3})(\d{3})/, '$1 $2 $3')}<i>Copy</i><b>Copied</b></button>
+        <span class="bc-holder"><small>Account name</small>${a.name}</span>
+        <span class="sr-only">${a.bank}</span>
+      </div>` : `<div class="bank-card">
         <span class="bank-top"><span class="bank-purpose">${a.purpose}</span>${a.currency === 'NGN' ? `<span class="bank-cur">${flagSvg('NG')}NGN · Naira</span>` : a.currency ? `<span class="bank-cur">${a.currency}</span>` : ''}</span>
         <button type="button" class="bank-number" onclick="navigator.clipboard&&navigator.clipboard.writeText('${a.number}').then(()=>{this.classList.add('copied');setTimeout(()=>this.classList.remove('copied'),1600)})" aria-label="Copy account number ${a.number}">${a.number}<i>Copy</i><b>Copied</b></button>
         ${a.name ? `<span class="bank-name">${a.name}</span>` : ''}

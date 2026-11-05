@@ -2711,3 +2711,42 @@ div.tn-teaser:hover { transform: none; box-shadow: 8px 8px 0 #ff4fd8; }
 .kd-grownups { display: block; padding: 12px 16px; border-radius: 16px; background: #fff7e0; border: 2px dashed #ffc94d; color: #1a1530; font-size: .92rem; line-height: 1.5; text-decoration: none; }
 .kd-grownups em { font-style: normal; font-weight: 700; color: #db2777; }
 .value-letter { font: 800 1.35rem/1 var(--font-display); letter-spacing: 0; }
+
+/* Give: bank cards styled as premium debit cards, marks drawn in SVG */
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.bc { position: relative; overflow: hidden; isolation: isolate; display: grid; gap: 10px; padding: 20px 22px 22px; border-radius: 22px; border: 0; color: #fff; min-height: 214px; box-shadow: 0 1px 0 rgb(255 255 255 / .25) inset, 0 24px 44px -22px var(--bc-shadow), 0 2px 6px rgb(0 0 0 / .12); transition: transform .45s cubic-bezier(.2, .9, .2, 1), box-shadow .45s ease; }
+.bc:hover { transform: translateY(-3px) rotate(-.4deg); }
+.bc--sterling { --bc-shadow: rgb(190 18 30 / .65); background: radial-gradient(120% 90% at 100% 0%, #ff5a3c 0%, transparent 55%), radial-gradient(90% 120% at 0% 100%, #5e0309 0%, transparent 60%), linear-gradient(135deg, #e3171b, #a50a12); }
+.bc--premiumtrust { --bc-shadow: rgb(84 14 46 / .7); background: radial-gradient(110% 90% at 100% 0%, rgb(255 140 70 / .45) 0%, transparent 55%), radial-gradient(90% 120% at 0% 100%, #1d0512 0%, transparent 60%), linear-gradient(135deg, #7d1238, #3a0a1e); }
+/* Fine guilloché lines, like a real card */
+.bc::before { content: ''; position: absolute; inset: 0; z-index: -1; opacity: .16; background: repeating-radial-gradient(circle at 115% -20%, transparent 0 14px, rgb(255 255 255 / .55) 14px 15px); -webkit-mask-image: linear-gradient(200deg, #000 20%, transparent 70%); mask-image: linear-gradient(200deg, #000 20%, transparent 70%); }
+/* Light sheen that sweeps across once in view and on hover */
+.bc::after { content: ''; position: absolute; inset: -40% -60%; z-index: 2; pointer-events: none; background: linear-gradient(105deg, transparent 42%, rgb(255 255 255 / .28) 50%, transparent 58%); transform: translateX(-60%); }
+.bc:hover::after { animation: bc-sheen 1.2s cubic-bezier(.4, 0, .2, 1) 1 both; }
+/* Where supported, the sheen is tied to scrolling: it sweeps across as the card rises into view. */
+@supports (animation-timeline: view()) {
+  .bc::after { animation: bc-sheen linear both; animation-timeline: view(); animation-range: entry 40% cover 55%; }
+  .bc:hover::after { animation: bc-sheen 1.2s cubic-bezier(.4, 0, .2, 1) 1 both; animation-timeline: auto; }
+}
+@keyframes bc-sheen { to { transform: translateX(60%); } }
+.bc-mark { position: absolute; right: -54px; bottom: -64px; z-index: -1; opacity: .14; transform: rotate(-12deg); color: #fff; pointer-events: none; }
+.bc--premiumtrust .bc-mark { opacity: .12; }
+.bc-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.bc-lock { display: inline-flex; align-items: center; gap: 9px; padding: 6px 12px 6px 7px; border-radius: 999px; background: #fff; color: #1a1530; box-shadow: 0 6px 16px -8px rgb(0 0 0 / .5); }
+.bc--premiumtrust .bc-lock { color: #6b0f2f; }
+.bc-word { font: 700 1.02rem/1 var(--font-body); letter-spacing: -.01em; }
+.bc-word--sterling { color: #5f6368; font-weight: 600; letter-spacing: .005em; }
+.bc-word--premium { color: #6b0f2f; display: inline-flex; align-items: baseline; gap: 0; font-weight: 600; }
+.bc-word--premium b { font-weight: 800; }
+.bc-word--premium small { margin-left: 5px; font: 600 .7rem var(--font-body); color: #9a4a66; letter-spacing: .04em; text-transform: uppercase; }
+.bc .bank-cur { background: rgb(255 255 255 / .16); border-color: rgb(255 255 255 / .28); color: #fff; }
+.bc-purpose { font: 600 .68rem var(--font-mono); letter-spacing: .16em; text-transform: uppercase; color: rgb(255 255 255 / .85); }
+.bc-chip { filter: drop-shadow(0 1px 1px rgb(0 0 0 / .25)); }
+.bc .bank-number { color: #fff; font-size: clamp(1.5rem, 6.6vw, 2.05rem); letter-spacing: .06em; text-shadow: 0 1px 0 rgb(0 0 0 / .25), 0 -1px 0 rgb(255 255 255 / .12); }
+.bc .bank-number i { color: #fff; border-color: rgb(255 255 255 / .45); background: rgb(255 255 255 / .1); }
+.bc .bank-number b { color: #bbf7d0; border-color: #bbf7d0; background: rgb(22 163 74 / .3); }
+.bc .bank-number:focus-visible { outline: 2px solid #fff; outline-offset: 4px; border-radius: 6px; }
+.bc-holder { display: grid; gap: 2px; font: 700 .9rem/1.3 var(--font-body); letter-spacing: .04em; text-transform: uppercase; color: rgb(255 255 255 / .95); }
+.bc-holder small { font: 600 .6rem var(--font-mono); letter-spacing: .16em; color: rgb(255 255 255 / .78); }
+@media (min-width: 900px) { .bc { aspect-ratio: 1.586; min-height: 0; align-content: space-between; } }
+@media (prefers-reduced-motion: reduce) { .bc, .bc:hover { transform: none; transition: none; } .bc::after { display: none; } }
