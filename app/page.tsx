@@ -330,7 +330,7 @@ const HOME_HTML_EVENTS_TO_MEDIA = `
     <div class="section-header pop">
       <span class="eyebrow">Generous Stewardship</span>
       <h2>Give</h2>
-      <p>${BANK_ACCOUNTS.length ? `Give by bank transfer to ${BANK_ACCOUNTS.length > 1 ? 'either account' : 'the account'} below. Tap a number to copy it. Online card giving is coming soon.` : 'Online giving with a secure payment gateway is coming soon. For now, tell us your intent and our finance team will follow up with safe giving options.'}</p>
+      <p>${BANK_ACCOUNTS.length ? `Give by bank transfer to ${BANK_ACCOUNTS.length > 2 ? 'the account for what you’re giving to' : BANK_ACCOUNTS.length > 1 ? 'either account' : 'the account'} below. Tap a number to copy it. Online card giving is coming soon.` : 'Online giving with a secure payment gateway is coming soon. For now, tell us your intent and our finance team will follow up with safe giving options.'}</p>
       ${BANK_ACCOUNTS.map((a) => `<div class="bank-card">
         <span class="bank-top"><span class="bank-purpose">${a.purpose}</span>${a.currency === 'NGN' ? `<span class="bank-cur">${flagSvg('NG')}NGN · Naira</span>` : a.currency ? `<span class="bank-cur">${a.currency}</span>` : ''}</span>
         <button type="button" class="bank-number" onclick="navigator.clipboard&&navigator.clipboard.writeText('${a.number}').then(()=>{this.classList.add('copied');setTimeout(()=>this.classList.remove('copied'),1600)})" aria-label="Copy account number ${a.number}">${a.number}<i>Copy</i><b>Copied</b></button>
@@ -347,13 +347,13 @@ const HOME_HTML_EVENTS_TO_MEDIA = `
         <label for="give-email">Email</label>
         <input type="email" id="give-email" placeholder="you@example.com" required>
         <label for="give-amount">Intended Amount</label>
-        <input type="number" id="give-amount" placeholder="e.g. 100" min="1">
+        <input type="number" id="give-amount" placeholder="Amount in naira, e.g. 10000" min="1">
         <label for="give-fund">Fund</label>
         <select id="give-fund">
-          <option>General Fund</option>
-          <option>Missions</option>
-          <option>Building Fund</option>
-          <option>Outreach</option>
+          <option>Tithes &amp; offerings</option>
+          <option>Seeds</option>
+          <option>Partnership</option>
+          <option>Pledges &amp; projects</option>
         </select>
         <button type="submit" class="btn btn-primary" style="width:100%;">Submit Giving Intent</button>
       </form>
