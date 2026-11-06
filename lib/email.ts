@@ -32,32 +32,60 @@ export function escapeHtml(s: string) {
   return s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
 }
 
-export async function sendEmail(opts: { to: string[]; subject: string; html: string; replyTo?: string }): Promise<boolean> {
-  if (!opts.to.length) return false;
-  if (useSmtp || (!API_KEY && smtpConfigured)) {
-    try {
-      const nodemailer = await import('nodemailer');
-      const t = nodemailer.createTransport({ host: 'smtp.gmail.com', port: 465, secure: true, auth: { user: SMTP_USER, pass: SMTP_PASS } });
-      await t.sendMail({ from: `TCH Global <${SMTP_USER}>`, to: opts.to.join(', '), subject: opts.subject, html: opts.html, replyTo: opts.replyTo });
-      return true;
-    } catch (err) {
-      console.error('Gmail send error:', err);
-      return false;
-    }
+/** Why the last send failed, in plain words (shown on /admin/status). */
+export let lastEmailError = '';
+
+async function viaGmail(opts: { to: string[]; subject: string; html: string; replyTo?: string }) {
+  try {
+    const nodemailer = await import('nodemailer');
+    const t = nodemailer.createTransport({ host: 'smtp.gmail.com', port: 465, secure: true, auth: { user: SMTP_USER, pass: SMTP_PASS } });
+    await t.sendMail({ from: `TCH Global <${SMTP_USER}>`, to: opts.to.join(', '), subject: opts.subject, html: opts.html, replyTo: opts.replyTo });
+    return '';
+  } catch (err) {
+    const e = err as { responseCode?: number; message?: string };
+    console.error('Gmail send error:', err);
+    return e.responseCode === 535 || /Username and Password not accepted|BadCredentials/i.test(e.message || '')
+      ? `Gmail refused the sign-in for ${SMTP_USER}: the app password in SMTP_PASS is wrong or was revoked. Create a new one (Google Account → Security → App passwords) and update SMTP_PASS in Vercel.`
+      : `Gmail error: ${(e.message || String(err)).slice(0, 200)}`;
   }
-  if (!API_KEY) return false;
+}
+
+async function viaResend(opts: { to: string[]; subject: string; html: string; replyTo?: string }) {
   try {
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: { Authorization: `Bearer ${API_KEY}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ from: FROM, to: opts.to, subject: opts.subject, html: opts.html, reply_to: opts.replyTo }),
     });
-    if (!res.ok) console.error('Resend send failed:', res.status, await res.text().catch(() => ''));
-    return res.ok;
+    if (res.ok) return '';
+    const body = await res.text().catch(() => '');
+    console.error('Resend send failed:', res.status, body);
+    return res.status === 403 && /testing emails|own email|verify a domain/i.test(body)
+      ? 'Resend can only email its own account owner until the church domain is verified. Set SMTP_USER and SMTP_PASS (Gmail app password) so emails reach everyone.'
+      : `Resend error ${res.status}: ${body.slice(0, 200)}`;
   } catch (err) {
     console.error('Resend send error:', err);
-    return false;
+    return `Resend error: ${String(err).slice(0, 200)}`;
   }
+}
+
+/** Sends through the preferred route and falls back to the other one if
+ * both are configured, so one broken key doesn't stop every email. */
+export async function sendEmail(opts: { to: string[]; subject: string; html: string; replyTo?: string }): Promise<boolean> {
+  if (!opts.to.length) return false;
+  const order: ('gmail' | 'resend')[] = [];
+  if (useSmtp || (!API_KEY && smtpConfigured)) order.push('gmail');
+  if (API_KEY) order.push('resend');
+  if (smtpConfigured && !order.includes('gmail')) order.push('gmail');
+  if (!order.length) { lastEmailError = 'Email isn’t set up: add SMTP_USER and SMTP_PASS (Gmail app password) in Vercel.'; return false; }
+  const errors: string[] = [];
+  for (const route of order) {
+    const err = route === 'gmail' ? await viaGmail(opts) : await viaResend(opts);
+    if (!err) { lastEmailError = ''; return true; }
+    errors.push(err);
+  }
+  lastEmailError = errors.join(' Then: ');
+  return false;
 }
 
 export function layout(title: string, body: string) {
