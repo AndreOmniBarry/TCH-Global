@@ -1,3 +1,4 @@
+import { verifyEmail } from '@/lib/email';
 import { kv } from '@vercel/kv';
 import { SiteHeader, SiteFooter } from '@/components/SiteChrome';
 import AdminNav from '@/components/AdminNav';
@@ -57,14 +58,9 @@ async function run(): Promise<Check[]> {
     unlocks: 'Studio publishes appear on the site instantly' });
   out.push({ name: 'Admin / publishing password', ok: Boolean(process.env.WRITE_PASSWORD), detail: process.env.WRITE_PASSWORD ? 'WRITE_PASSWORD is set' : 'WRITE_PASSWORD not set', unlocks: 'Admin pages, /write' });
   {
-    const smtp = Boolean(process.env.SMTP_USER && process.env.SMTP_PASS);
-    const domain = Boolean(process.env.EMAIL_FROM);
-    out.push({ name: 'Emails', ok: smtp || (Boolean(process.env.RESEND_API_KEY) && domain) ? true : process.env.RESEND_API_KEY ? false : false,
-      detail: domain && process.env.RESEND_API_KEY ? `Resend with your domain · from ${process.env.EMAIL_FROM} · alerts to ${process.env.NOTIFY_EMAIL || '(NOTIFY_EMAIL not set)'}`
-        : smtp ? `Sending through Gmail (${process.env.SMTP_USER}) · reaches everyone · alerts to ${process.env.NOTIFY_EMAIL || '(NOTIFY_EMAIL not set)'}`
-        : process.env.RESEND_API_KEY ? 'Resend test sender: only reaches the Resend account owner. Add SMTP_USER and SMTP_PASS (Gmail app password) so visitors and the Pastor get emails too.'
-        : 'Not set up. Add SMTP_USER and SMTP_PASS (Gmail app password).',
-      unlocks: 'Submission alerts, welcome, thank-you and salvation emails, teen questions to the Pastor' });
+    const v = await verifyEmail();
+    out.push({ name: 'Emails', ok: v.ok, detail: `${v.detail} · alerts to ${process.env.NOTIFY_EMAIL || '(NOTIFY_EMAIL not set)'}`,
+      unlocks: 'Password reset links, welcome, thank-you and salvation emails, submission alerts, teen questions to the Pastor' });
   }
   {
     const gid = (process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '').trim();

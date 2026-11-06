@@ -95,3 +95,26 @@ export function layout(title: string, body: string) {
   <h2 style="font-size:20px;margin:0 0 12px">${title}</h2>${body}
   <p style="font-size:12px;color:#8a85a3;margin-top:28px">TCH Global &middot; Sun 7:30 &amp; 9:15 AM &middot; Mon Prayer 5:30 PM &middot; Wed 5:30 PM (WAT)</p></div>`;
 }
+
+/** Live check for /admin/status: signs in to Gmail (no email sent) or
+ * reports the Resend test-sender limit, in plain words. */
+export async function verifyEmail(): Promise<{ ok: boolean; detail: string }> {
+  if (smtpConfigured) {
+    try {
+      const nodemailer = await import('nodemailer');
+      const t = nodemailer.createTransport({ host: 'smtp.gmail.com', port: 465, secure: true, auth: { user: SMTP_USER, pass: SMTP_PASS } });
+      await t.verify();
+      return { ok: true, detail: `Gmail sign-in works (${SMTP_USER}). Emails reach everyone.` };
+    } catch (err) {
+      const e = err as { responseCode?: number; message?: string };
+      return { ok: false, detail: e.responseCode === 535 || /not accepted|BadCredentials/i.test(e.message || '')
+        ? `Gmail REFUSED the sign-in for ${SMTP_USER}: the app password in SMTP_PASS is wrong or was revoked (changing the Google password revokes it). Make a new app password and paste it into SMTP_PASS in Vercel, then redeploy.`
+        : `Gmail problem: ${(e.message || String(err)).slice(0, 180)}` };
+    }
+  }
+  if (API_KEY) {
+    if (!process.env.EMAIL_FROM) return { ok: false, detail: 'Only Resend’s test sender is set up: it can email the Resend account owner and nobody else (so reset links fail for members). Add SMTP_USER and SMTP_PASS (Gmail app password) in Vercel.' };
+    return { ok: true, detail: `Resend with ${process.env.EMAIL_FROM}` };
+  }
+  return { ok: false, detail: 'Not set up. Add SMTP_USER and SMTP_PASS (Gmail app password) in Vercel.' };
+}
