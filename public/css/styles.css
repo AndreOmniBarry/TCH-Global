@@ -2750,3 +2750,35 @@ div.tn-teaser:hover { transform: none; box-shadow: 8px 8px 0 #ff4fd8; }
 .bc-holder small { font: 600 .6rem var(--font-mono); letter-spacing: .16em; color: rgb(255 255 255 / .78); }
 @media (min-width: 900px) { .bc { aspect-ratio: 1.586; min-height: 0; align-content: space-between; } }
 @media (prefers-reduced-motion: reduce) { .bc, .bc:hover { transform: none; transition: none; } .bc::after { display: none; } }
+
+/* ===== Glass light: iOS-style touch glow + glowing text selection ===== */
+html { -webkit-tap-highlight-color: transparent; }
+@property --gr { syntax: '<percentage>'; inherits: false; initial-value: 0%; }
+.tglow {
+  --glow-core: rgb(255 255 255 / .3); --glow-mid: rgb(186 230 253 / .1); --glow-halo: rgb(125 211 252 / .28);
+  position: fixed; z-index: 9000; pointer-events: none; overflow: hidden; contain: strict;
+  opacity: 0; mix-blend-mode: plus-lighter;
+  box-shadow: 0 0 0 0 var(--glow-halo);
+  transition: opacity .18s ease, box-shadow .35s ease;
+}
+.tglow::before {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(circle var(--gs, 140px) at var(--gx, 50%) var(--gy, 50%), var(--glow-core) 0%, var(--glow-mid) calc(var(--gr) * .45), transparent var(--gr));
+  transition: --gr .5s cubic-bezier(.2, .9, .2, 1);
+}
+/* A whisper of light around the control's edge, like light catching glass */
+.tglow::after { content: ''; position: absolute; inset: 0; border-radius: inherit; box-shadow: inset 0 0 0 1px rgb(255 255 255 / .28), inset 0 1px 0 rgb(255 255 255 / .35); opacity: .8; }
+.tglow.is-on { opacity: 1; box-shadow: 0 0 18px 1px var(--glow-halo); }
+.tglow.is-on::before { --gr: 100%; }
+.tglow.is-off { opacity: 0; transition: opacity .5s ease, box-shadow .5s ease; }
+/* Light surfaces: white light vanishes, so a soft blue-violet glass tint instead */
+.tglow.on-light { --glow-core: rgb(99 102 241 / .17); --glow-mid: rgb(34 211 238 / .1); --glow-halo: rgb(99 102 241 / .22); mix-blend-mode: normal; }
+.tglow.on-light::after { box-shadow: inset 0 0 0 1px rgb(99 102 241 / .18), inset 0 1px 0 rgb(255 255 255 / .6); }
+@media (prefers-reduced-motion: reduce) { .tglow::before { transition: none; } .tglow.is-on::before { --gr: 100%; } }
+
+/* Text selection: translucent, softly glowing tint (like selecting in Messages) */
+::selection { background: rgb(56 189 248 / .28); color: inherit; text-shadow: 0 0 .55em rgb(56 189 248 / .55); }
+:root[data-theme="dark"] ::selection { background: rgb(125 211 252 / .3); text-shadow: 0 0 .6em rgb(125 211 252 / .6); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) ::selection { background: rgb(125 211 252 / .3); text-shadow: 0 0 .6em rgb(125 211 252 / .6); } }
+.bc ::selection, .band-dark ::selection { background: rgb(255 255 255 / .28); text-shadow: 0 0 .6em rgb(255 255 255 / .55); }
+input, textarea { caret-color: var(--accent-cyan); }

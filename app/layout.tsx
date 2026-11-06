@@ -10,6 +10,7 @@ import '@fontsource/jetbrains-mono/latin-600.css';
 import Script from 'next/script';
 import CrystalLiquid from '@/components/decor/CrystalLiquid';
 import QuickDock from '@/components/QuickDock';
+import TouchGlow from '@/components/decor/TouchGlow';
 import JoinNudge from '@/components/members/JoinNudge';
 import SessionWatcher from '@/components/members/SessionWatcher';
 import BroadcastFrames from '@/components/decor/BroadcastFrames';
@@ -117,6 +118,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script dangerouslySetInnerHTML={{ __html: SPLASH_SCRIPT }} />
         <CrystalLiquid />
         <QuickDock />
+        <TouchGlow />
         <JoinNudge />
         <SessionWatcher />
         <BroadcastFrames />
