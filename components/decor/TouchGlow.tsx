@@ -13,6 +13,17 @@ const TARGETS = 'a, button, [role="button"], [role="tab"], [role="radio"], [role
 const DARK = '.band-dark, .bc, .td, .tn, .wr-phone, .wp-card, .jn, .hero-stage, .hero, .site-footer, .qdock';
 const SPRING = 'cubic-bezier(.34, 1.56, .64, 1)';
 
+// Inside the fixed dock, header or a sticky bar? Then the overlay is pinned
+// to the screen like its control; otherwise it lives on the page and
+// scrolls with the control, so it can never drift away from it.
+function pinned(el: Element) {
+  for (let n: Element | null = el; n && n !== document.body; n = n.parentElement) {
+    const pos = getComputedStyle(n).position;
+    if (pos === 'fixed' || pos === 'sticky') return true;
+  }
+  return false;
+}
+
 function onDark(el: Element) {
   if (el.closest(DARK)) return true;
   for (let n: Element | null = el; n; n = n.parentElement) {
@@ -32,6 +43,8 @@ export default function TouchGlow() {
     if (!('animate' in HTMLElement.prototype)) return;
     const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
     let p: Press | null = null;
+    const live = new Set<HTMLDivElement>();
+    const killAll = () => { live.forEach((g) => g.remove()); live.clear(); };
 
     const light = (x: number, y: number) => {
       if (!p?.glow) return;
@@ -49,9 +62,12 @@ export default function TouchGlow() {
       const g = document.createElement('div');
       g.className = `tglow ${onDark(el) ? 'on-dark' : 'on-light'}`;
       g.setAttribute('aria-hidden', 'true');
-      g.style.cssText = `left:${rect.left}px;top:${rect.top}px;width:${rect.width}px;height:${rect.height}px;border-radius:${getComputedStyle(el).borderRadius || '14px'}`;
+      const fixed = pinned(el);
+      const ox = fixed ? 0 : scrollX, oy = fixed ? 0 : scrollY;
+      g.style.cssText = `position:${fixed ? 'fixed' : 'absolute'};left:${rect.left + ox}px;top:${rect.top + oy}px;width:${rect.width}px;height:${rect.height}px;border-radius:${getComputedStyle(el).borderRadius || '14px'}`;
       g.style.setProperty('--gs', `${Math.max(60, Math.min(160, Math.hypot(rect.width, rect.height) * 0.45))}px`);
       document.body.appendChild(g);
+      live.add(g);
       p.glow = g;
       light(p.x0, p.y0);
       const grow = { duration: 260, easing: 'cubic-bezier(.2, .8, .2, 1)', fill: 'forwards' as const };
@@ -74,7 +90,7 @@ export default function TouchGlow() {
       } else anims.forEach((x) => x.cancel());
       if (glow) {
         const f = glow.animate([{ opacity: 1, scale }, { opacity: 0, scale: 1 }], { duration: fast ? 100 : 320, easing: 'ease-out', fill: 'forwards' });
-        f.onfinish = () => glow.remove();
+        f.onfinish = () => { glow.remove(); live.delete(glow); };
       }
     };
 
@@ -104,7 +120,8 @@ export default function TouchGlow() {
       end(false);
     };
     const onCancel = () => end(true);
-    const onScroll = () => { if (p) end(true); };
+    // Any scroll: end the press and clear every light at once, fading or not.
+    const onScroll = () => { if (p) end(true); killAll(); };
 
     document.addEventListener('pointerdown', onDown, { passive: true });
     document.addEventListener('pointermove', onMove, { passive: true });
@@ -120,6 +137,7 @@ export default function TouchGlow() {
       window.removeEventListener('scroll', onScroll, { capture: true });
       window.removeEventListener('blur', onCancel);
       end(true);
+      killAll();
     };
   }, []);
   return null;

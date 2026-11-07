@@ -2754,7 +2754,7 @@ div.tn-teaser:hover { transform: none; box-shadow: 8px 8px 0 #ff4fd8; }
 /* ===== Glass light: iOS-style touch glow + glowing text selection ===== */
 html { -webkit-tap-highlight-color: transparent; }
 .tglow {
-  position: fixed; z-index: 9000; pointer-events: none; overflow: hidden; contain: strict; opacity: 0;
+  position: absolute; z-index: 9000; pointer-events: none; overflow: hidden; contain: strict; opacity: 0;
   background: radial-gradient(circle var(--gs, 120px) at var(--gx, 50%) var(--gy, 50%), var(--glow-core) 0%, var(--glow-mid) 45%, transparent 100%);
 }
 /* Dark controls: diffuse white light, added like light on glass */
@@ -2773,3 +2773,9 @@ input, textarea { caret-color: var(--accent-cyan); }
 .mt-link { margin-top: 14px; padding: 14px; border-radius: 14px; background: color-mix(in srgb, #10b981 10%, transparent); border: 1px solid color-mix(in srgb, #10b981 40%, transparent); display: grid; gap: 8px; }
 .mt-link code { display: block; padding: 10px; border-radius: 10px; background: var(--surface-low); font-size: .78rem; word-break: break-all; }
 .mt-link-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* No iPhone selection handles on the site's controls and labels: pressing
+   and holding a button, card or message shouldn't start selecting text.
+   Reading text (articles, the pastor's bio, forms) stays selectable. */
+body { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+input, textarea, select, [contenteditable="true"], .post-body, .pastor-bio, .bank-number, .mt-link code { -webkit-user-select: text; user-select: text; -webkit-touch-callout: default; }
