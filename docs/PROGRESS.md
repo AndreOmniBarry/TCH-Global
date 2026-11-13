@@ -155,3 +155,16 @@ Replaces parts of the 2 Nov approach after review:
 - Core values: P.E.A.R.L.S. (Patience, Excellence, Accountability, Righteousness, Love, Salvation), letter badges; one-line descriptions drafted for review.
 - What We Believe: the six-point faith statement (a-f). Point f was cut off in the photo; reconstructed as "virgin birth, sinless life, atoning death and triumphant return of the Lord Jesus Christ": confirm.
 - Bank account names keep "Consolation Ministry" (must match the bank).
+
+## 5–7 Nov 2026: giving, touch feel, member help
+- Give: two accounts. Premium Trust 0010181146 (tithes, offerings, pledges & projects) and Sterling 0101421732 (partnership); GTBank removed. Shown as bank cards with SVG bank marks (lib/bank-brands.ts), grouped numbers with copy.
+- Touch: Liquid Glass response (components/decor/TouchGlow.tsx). Pressed controls swell slightly and light from the fingertip; the light lives on the page, clears on any scroll, and never shows for swipes. Text selection off for controls; articles, bio, forms and account numbers stay selectable.
+- Admin > Member help (/admin/members): one-time password reset link for any member; test email that shows the exact failure.
+- Email: Gmail and Resend fall back to each other; /admin/status checks the Gmail sign-in live.
+
+## Open items
+- Email: if /admin/status says Gmail refused the sign-in, make a new Gmail app password and update SMTP_PASS in Vercel.
+- Continue with Google: finish the Google Cloud setup (docs/GOOGLE_SIGNIN.md), then add NEXT_PUBLIC_GOOGLE_CLIENT_ID in Vercel and redeploy.
+- Confirm point 6 of What We Believe, and whether seeds go to Premium Trust.
+- Rotate CRON_SECRET (exposed in chat earlier).
+- Bank marks are drawn from memory: swap in official artwork if exact logos are wanted.
