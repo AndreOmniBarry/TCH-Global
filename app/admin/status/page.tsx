@@ -1,4 +1,4 @@
-import { verifyEmail } from '@/lib/email';
+import { emailHistory, verifyEmail } from '@/lib/email';
 import { kv } from '@vercel/kv';
 import { SiteHeader, SiteFooter } from '@/components/SiteChrome';
 import AdminNav from '@/components/AdminNav';
@@ -58,8 +58,12 @@ async function run(): Promise<Check[]> {
     unlocks: 'Studio publishes appear on the site instantly' });
   out.push({ name: 'Admin / publishing password', ok: Boolean(process.env.WRITE_PASSWORD), detail: process.env.WRITE_PASSWORD ? 'WRITE_PASSWORD is set' : 'WRITE_PASSWORD not set', unlocks: 'Admin pages, /write' });
   {
-    const v = await verifyEmail();
-    out.push({ name: 'Emails', ok: v.ok, detail: `${v.detail} · alerts to ${process.env.NOTIFY_EMAIL || '(NOTIFY_EMAIL not set)'}`,
+    const [v, h] = await Promise.all([verifyEmail(), emailHistory()]);
+    const when = (iso: string) => new Date(iso).toLocaleString('en-GB', { timeZone: 'Africa/Lagos', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+    const failNewer = h.lastFail && (!h.lastOk || h.lastFail.at > h.lastOk);
+    const hist = failNewer && h.lastFail ? ` · LAST FAILED SEND ${when(h.lastFail.at)} (“${h.lastFail.subject}” to ${h.lastFail.to}): ${h.lastFail.error}`
+      : h.lastOk ? ` · last email sent ${when(h.lastOk)}` : '';
+    out.push({ name: 'Emails', ok: v.ok && !failNewer, detail: `${v.detail}${hist} · alerts to ${process.env.NOTIFY_EMAIL || '(NOTIFY_EMAIL not set)'}`,
       unlocks: 'Password reset links, welcome, thank-you and salvation emails, submission alerts, teen questions to the Pastor' });
   }
   {

@@ -35,6 +35,27 @@ export function escapeHtml(s: string) {
 /** Why the last send failed, in plain words (shown on /admin/status). */
 export let lastEmailError = '';
 
+// Each serverless instance has its own memory, so failures are also kept in
+// KV (30 days) where /admin/status can always read the latest one.
+type EmailLog = { at: string; to: string; subject: string; error: string };
+async function logEmail(entry: EmailLog | null) {
+  if (!process.env.KV_REST_API_URL || !process.env.KV_REST_API_TOKEN) return;
+  try {
+    const { kv } = await import('@vercel/kv');
+    if (entry) await kv.set('email:lastfail', entry, { ex: 30 * 86400 });
+    else await kv.set('email:lastok', new Date().toISOString(), { ex: 30 * 86400 });
+  } catch { /* logging must never break sending */ }
+}
+export async function emailHistory(): Promise<{ lastFail: EmailLog | null; lastOk: string | null }> {
+  if (!process.env.KV_REST_API_URL || !process.env.KV_REST_API_TOKEN) return { lastFail: null, lastOk: null };
+  try {
+    const { kv } = await import('@vercel/kv');
+    const [lastFail, lastOk] = await Promise.all([kv.get<EmailLog>('email:lastfail'), kv.get<string>('email:lastok')]);
+    return { lastFail, lastOk };
+  } catch { return { lastFail: null, lastOk: null }; }
+}
+const mask = (a: string) => a.replace(/^(.).*?(.)?@/, (_m, x, y) => `${x}***${y ?? ''}@`);
+
 async function viaGmail(opts: { to: string[]; subject: string; html: string; replyTo?: string }) {
   try {
     const nodemailer = await import('nodemailer');
@@ -81,10 +102,11 @@ export async function sendEmail(opts: { to: string[]; subject: string; html: str
   const errors: string[] = [];
   for (const route of order) {
     const err = route === 'gmail' ? await viaGmail(opts) : await viaResend(opts);
-    if (!err) { lastEmailError = ''; return true; }
+    if (!err) { lastEmailError = ''; await logEmail(null); return true; }
     errors.push(err);
   }
   lastEmailError = errors.join(' Then: ');
+  await logEmail({ at: new Date().toISOString(), to: opts.to.map(mask).join(', '), subject: opts.subject, error: lastEmailError });
   return false;
 }
 
