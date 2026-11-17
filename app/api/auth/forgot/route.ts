@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
   <p style="font-size:13px;line-height:1.6;color:#6b6490">This link works once and expires in 1 hour. If you didn&rsquo;t ask for this, you can ignore this email: your password stays the same.</p>
   <p style="font-size:12px;color:#8a85a3;word-break:break-all">Button not working? Paste this into your browser:<br>${link}</p>`),
     });
-    if (!ok) return NextResponse.json({ error: 'We couldn’t send the email just now. Please try again in a few minutes.' }, { status: 502 });
+    if (!ok) return NextResponse.json({ error: 'We couldn’t send the email just now. Try again in a few minutes, or write to info@tchglobal.org and our team will reset your password for you.' }, { status: 502 });
   }
   return NextResponse.json(SENT);
 }
