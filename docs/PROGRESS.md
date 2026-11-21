@@ -162,8 +162,12 @@ Replaces parts of the 2 Nov approach after review:
 - Admin > Member help (/admin/members): one-time password reset link for any member; test email that shows the exact failure.
 - Email: Gmail and Resend fall back to each other; /admin/status checks the Gmail sign-in live.
 
+## 15–17 Nov 2026: email diagnostics
+- The latest failed email (time, subject, masked recipient, exact reason) and the last successful send are kept in KV for 30 days (`email:lastfail`, `email:lastok`) and shown on the Emails line of /admin/status.
+- Forgot password: if the reset email can't be sent, members are told to write to info@tchglobal.org; the team makes a link in /admin/members.
+
 ## Open items
-- Email: if /admin/status says Gmail refused the sign-in, make a new Gmail app password and update SMTP_PASS in Vercel.
+- Email: if /admin/status says Gmail refused the sign-in (or shows a LAST FAILED SEND), make a new Gmail app password (myaccount.google.com/apppasswords), put it in SMTP_PASS in Vercel, check SMTP_USER matches, then redeploy.
 - Continue with Google: finish the Google Cloud setup (docs/GOOGLE_SIGNIN.md), then add NEXT_PUBLIC_GOOGLE_CLIENT_ID in Vercel and redeploy.
 - Confirm point 6 of What We Believe, and whether seeds go to Premium Trust.
 - Rotate CRON_SECRET (exposed in chat earlier).
